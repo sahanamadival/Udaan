@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCQ Quiz – Udaan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.8s ease-out forwards; }
+    .fade-up-delay-1 { animation-delay: 0.2s; }
+    .fade-up-delay-2 { animation-delay: 0.4s; }
+    
+    .stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: -1;
+      background-image: 
+        radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+        radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+        radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+        radial-gradient(2px 2px at 160px 30px, #ddd, transparent);
+      background-repeat: repeat;
+      background-size: 200px 100px;
+      animation: zoomInOut 3s ease-in-out infinite alternate;
+    }
+    
+    @keyframes zoomInOut {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.2); opacity: 0.4; }
+    }
+    
+    @keyframes float {
+      0% { transform: translate(0, 0); }
+      50% { transform: translate(10px, 10px); }
+      100% { transform: translate(0, 0); }
+    }
+    
+    .floating {
+      animation: float 15s infinite ease-in-out;
+    }
+    
+    @keyframes twinkle {
+      0% { opacity: 0.2; }
+      50% { opacity: 1; }
+      100% { opacity: 0.2; }
+    }
+    
+    .twinkle {
+      animation: twinkle 4s infinite;
+    }
+    
+    /* Fixed background that doesn't scroll */
+    .fixed-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+    }
+    
+    .question-card {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.5);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .question-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(15, 23, 42, 0.7);
+    }
+    
+    .option-label {
+      display: block;
+      margin: 12px 0;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.5);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .option-label:hover {
+      background: rgba(37, 99, 235, 0.3);
+      border-color: rgba(37, 99, 235, 0.6);
+    }
+    
+    .option-input:checked + .option-label {
+      background: rgba(37, 99, 235, 0.5);
+      border-color: #2563eb;
+    }
+    
+    .submit-button {
+      display: block;
+      margin: 40px auto 0;
+      padding: 16px 32px;
+      font-size: 18px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      background: linear-gradient(to right, #2563eb, #7c3aed);
+      color: white;
+      box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+      transition: all 0.3s ease;
+    }
+    
+    .submit-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.6);
+    }
+    
+    .submit-button:active {
+      transform: translateY(0);
+    }
+    
+    @media (max-width: 600px) {
+      .question-card h3 {
+        font-size: 1.1rem;
+      }
+      
+      .submit-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body class="relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-950 via-[#0a0d21] to-[#020410] text-white">
+  <!-- Fixed background elements that don't scroll -->
+  <div class="fixed-background">
+    <div class="stars"></div>
+    
+    <!-- Space Elements -->
+    <div class="absolute top-10 left-10 w-2 h-2 bg-white rounded-full twinkle"></div>
+    <div class="absolute top-1/4 right-20 w-1 h-1 bg-blue-300 rounded-full twinkle" style="animation-delay: 1s;"></div>
+    <div class="absolute bottom-20 left-1/3 w-1 h-1 bg-purple-300 rounded-full twinkle" style="animation-delay: 2s;"></div>
+    <div class="absolute top-1/3 left-1/4 w-1 h-1 bg-cyan-200 rounded-full twinkle" style="animation-delay: 0.5s;"></div>
+    <div class="absolute bottom-40 right-1/4 w-2 h-2 bg-white rounded-full twinkle" style="animation-delay: 1.5s;"></div>
+    
+    <!-- Nebula Blobs -->
+    <div class="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-blue-800/40 mix-blend-screen blur-[100px] floating"></div>
+    <div class="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-purple-800/40 mix-blend-screen blur-[100px] floating" style="animation-delay: 3s;"></div>
+  </div>
+  
+  <div class="max-w-6xl mx-auto p-4 md:p-6 relative z-10">
+    <!-- Top Bar -->
+    <div class="flex justify-between items-center mb-8 fade-up">
+      <h1 class="text-2xl md:text-3xl font-bold">🧠 Quiz Challenge</h1>
+      <a href="{{ url_for('student_dashboard') }}" class="bg-white/10 hover:bg-white/20 rounded-full px-5 py-2 transition-all">
+        Back to Dashboard
+      </a>
+    </div>
+    
+    <div class="flex flex-col lg:flex-row gap-6">
+      <!-- Left Sidebar -->
+      <div class="w-full lg:w-1/4 fade-up">
+        <div class="bg-white/5 backdrop-blur-xl border-r border-white/10 rounded-2xl p-6 mb-6">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+              <span class="text-xl">📝</span>
+            </div>
+            <div>
+              <div class="font-bold">Quiz Challenge</div>
+              <div class="text-gray-400 text-sm">Test your knowledge</div>
+            </div>
+          </div>
+          
+          <div class="space-y-4">
+            <a href="{{ url_for('student_dashboard') }}" class="block bg-white/10 backdrop-blur-xl rounded-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-[1.02]">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center">
+                  <span>🏠</span>
+                </div>
+                <span>Dashboard</span>
+              </div>
+            </a>
+            
+            <a href="{{ url_for('library') }}" class="block bg-white/10 backdrop-blur-xl rounded-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-[1.02]">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                  <span>📚</span>
+                </div>
+                <span>My Textbooks</span>
+              </div>
+            </a>
+          </div>
+        </div>
+        
+        <div class="bg-white/5 backdrop-blur-xl border-r border-white/10 rounded-2xl p-6">
+          <h3 class="font-bold mb-4">Quiz Tips</h3>
+          <ul class="text-sm text-gray-300 space-y-2">
+            <li>• Read each question carefully</li>
+            <li>• Select the best answer</li>
+            <li>• Review before submitting</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Main Content -->
+      <div class="w-full lg:w-3/4">
+        <!-- Welcome Section -->
+        <div class="bg-white/10 backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] rounded-3xl p-8 md:p-10 mb-6 fade-up-delay-1">
+          <h2 class="text-xl md:text-2xl font-bold mb-2">Knowledge Check</h2>
+          <p class="text-gray-300">Test your understanding with this AI-generated quiz.</p>
+        </div>
+        
+        <!-- Quiz Section -->
+        <section class="bg-white/10 backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] rounded-3xl p-8 md:p-10 fade-up-delay-2">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl md:text-2xl font-bold" style="margin:0;">Multiple Choice Questions</h2>
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20">
+              <span>❓</span>
+              <span>{{ quiz|length }} Questions</span>
+            </div>
+          </div>
+          
+          <form action="{{ url_for('submit_quiz') }}" method="POST">
+            {% for q in quiz %}
+              {% set q_index = loop.index %}
+              <div class="question-card rounded-2xl p-6 mb-6 fade-up">
+                <h3 class="text-lg font-bold mb-4">Q{{ q_index }}. {{ q.question }}</h3>
+                <div class="options">
+                  {% for option in q.options %}
+                    <div class="flex items-start">
+                      <input type="radio" id="q{{ q_index }}_opt{{ loop.index }}" name="q{{ q_index }}" value="{{ option }}" required class="mt-1 mr-3 h-5 w-5 text-blue-500">
+                      <label for="q{{ q_index }}_opt{{ loop.index }}" class="option-label flex-grow">
+                        {{ option }}
+                      </label>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endfor %}
+            <button type="submit" class="submit-button">Submit Quiz</button>
+          </form>
+        </section>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

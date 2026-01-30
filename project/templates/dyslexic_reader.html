@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dyslexic-Friendly Reader – Udaan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.8s ease-out forwards; }
+    .fade-up-delay-1 { animation-delay: 0.2s; }
+    .fade-up-delay-2 { animation-delay: 0.4s; }
+    
+    .stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: -1;
+      background-image: 
+        radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+        radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+        radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+        radial-gradient(2px 2px at 160px 30px, #ddd, transparent);
+      background-repeat: repeat;
+      background-size: 200px 100px;
+      animation: zoomInOut 3s ease-in-out infinite alternate;
+    }
+    
+    @keyframes zoomInOut {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.2); opacity: 0.4; }
+    }
+    
+    @keyframes float {
+      0% { transform: translate(0, 0); }
+      50% { transform: translate(10px, 10px); }
+      100% { transform: translate(0, 0); }
+    }
+    
+    .floating {
+      animation: float 15s infinite ease-in-out;
+    }
+    
+    @keyframes twinkle {
+      0% { opacity: 0.2; }
+      50% { opacity: 1; }
+      100% { opacity: 0.2; }
+    }
+    
+    .twinkle {
+      animation: twinkle 4s infinite;
+    }
+    
+    /* Fixed background that doesn't scroll */
+    .fixed-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+    }
+    
+    .toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.toolbar .control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: radial-gradient(circle at top left,
+    rgba(15, 23, 42, 0.96),
+    rgba(15, 23, 42, 0.78));
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.toolbar label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+  color: #e5f2ff;
+}
+
+.toolbar select {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5f2ff;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.toolbar select:focus {
+  border-color: #22d3ee;
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.6);
+}
+
+.toolbar .badge-small {
+  font-size: 0.8rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.95);
+  color: #bfdbfe;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+}
+
+.toolbar input[type="range"] {
+  accent-color: #06b6d4; /* for modern browsers */
+}
+
+/* WebKit sliders */
+.toolbar input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(31, 41, 55, 0.95);
+}
+
+.toolbar input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #06b6d4;
+  border: 2px solid #e0f2fe;
+  margin-top: -5px;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.35);
+}
+
+/* Firefox sliders */
+.toolbar input[type="range"]::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(31, 41, 55, 0.95);
+}
+
+.toolbar input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #06b6d4;
+  border: 2px solid #e0f2fe;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.35);
+}
+    .reader-shell {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  background: transparent;           /* no solid fill */
+  box-shadow: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: transparent;           /* start fully transparent */
+  opacity: 0;                        /* no tint until user moves slider */
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.reader {
+  position: relative;
+  z-index: 1;
+  padding: 28px;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.75);
+  line-height: 1.7;
+  color: #ffffff;
+  width: 100%;
+  height: 100%;
+  max-height: 70vh;
+  overflow-y: auto;
+  white-space: pre-wrap;   /* <-- important: show newlines */
+  
+  /* Transparent scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* WebKit browsers (Chrome, Safari, Edge) */
+.reader::-webkit-scrollbar {
+  width: 8px;
+}
+
+.reader::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.reader::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  border: none;
+}
+
+.reader::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+    .reading-glass-container { padding: 0; }
+    .glass-panel {
+  background: radial-gradient(circle at top left,
+    rgba(15, 23, 42, 0.95),
+    rgba(15, 23, 42, 0.75));
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+}
+
+    .badge-small { font-size: 0.85rem; padding: 2px 8px; border-radius: 8px; background: #eef6ff; color:#2563eb; }
+
+    /* Top-right controls */
+    .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .controls-top { display:flex; gap:8px; align-items:center; }
+
+    /* Speaking highlight */
+    .word-speaking {
+      background: rgba(0, 200, 255, 0.35);
+      color: #ffffff;
+      border-radius: 4px;
+      padding: 2px;
+    }
+    .highlight {
+      background-color: rgba(0, 200, 255, 0.35);
+      color: #ffffff;
+      border-radius: 4px;
+      padding: 2px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: radial-gradient(circle at top left,
+        rgba(15, 23, 42, 0.96),
+        rgba(15, 23, 42, 0.8));
+      color: #e5f2ff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.8);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.9);
+      background: radial-gradient(circle at top left,
+        rgba(37, 99, 235, 0.95),
+        rgba(14, 165, 233, 0.9));
+    }
+
+    .button:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.85);
+    }
+  </style>
+</head>
+<body class="relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-950 via-[#0a0d21] to-[#020410] text-white">
+  <!-- Fixed background elements that don't scroll -->
+  <div class="fixed-background">
+    <div class="stars"></div>
+    
+    <!-- Space Elements -->
+    <div class="absolute top-10 left-10 w-2 h-2 bg-white rounded-full twinkle"></div>
+    <div class="absolute top-1/4 right-20 w-1 h-1 bg-blue-300 rounded-full twinkle" style="animation-delay: 1s;"></div>
+    <div class="absolute bottom-20 left-1/3 w-1 h-1 bg-purple-300 rounded-full twinkle" style="animation-delay: 2s;"></div>
+    <div class="absolute top-1/3 left-1/4 w-1 h-1 bg-cyan-200 rounded-full twinkle" style="animation-delay: 0.5s;"></div>
+    <div class="absolute bottom-40 right-1/4 w-2 h-2 bg-white rounded-full twinkle" style="animation-delay: 1.5s;"></div>
+    
+    <!-- Nebula Blobs -->
+    <div class="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-blue-800/40 mix-blend-screen blur-[100px] floating"></div>
+    <div class="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-purple-800/40 mix-blend-screen blur-[100px] floating" style="animation-delay: 3s;"></div>
+  </div>
+  
+  <div class="max-w-6xl mx-auto p-4 md:p-6 relative z-10">
+    <!-- Top Bar -->
+    <div class="flex justify-between items-center mb-8 fade-up">
+      <h1 class="text-2xl md:text-3xl font-bold">Dyslexic-Friendly Reader</h1>
+      <a href="{{ url_for('student_dashboard') }}" class="bg-white/10 hover:bg-white/20 rounded-full px-5 py-2 transition-all">
+        Logout
+      </a>
+    </div>
+    
+    <div class="flex flex-col lg:flex-row gap-6">
+      <!-- Left Sidebar -->
+      <div class="w-full lg:w-1/4 fade-up">
+        <div class="bg-white/5 backdrop-blur-xl border-r border-white/10 rounded-2xl p-6 mb-6">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <span class="text-xl">🔤</span>
+            </div>
+            <div>
+              <div class="font-bold">Dyslexic Reader</div>
+              <div class="text-gray-400 text-sm">Accessibility Mode</div>
+            </div>
+          </div>
+          
+          <div class="space-y-4">
+            <button onclick="playFullServer()" class="w-full bg-white/10 backdrop-blur-xl rounded-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-[1.02] text-left">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                  <span>▶</span>
+                </div>
+                <span>Play Audio</span>
+              </div>
+            </button>
+            
+            <button onclick="pauseServerAudio()" class="w-full bg-white/10 backdrop-blur-xl rounded-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-[1.02] text-left">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                  <span>⏸</span>
+                </div>
+                <span>Pause Audio</span>
+              </div>
+            </button>
+            
+            <button onclick="stopServerAudio()" class="w-full bg-white/10 backdrop-blur-xl rounded-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-[1.02] text-left">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <span>⏹</span>
+                </div>
+                <span>Stop Audio</span>
+              </div>
+            </button>
+            
+            <a href="{{ url_for('student_dashboard') }}" class="block bg-white/10 backdrop-blur-xl rounded-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-[1.02] text-left">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                  <span>🏠</span>
+                </div>
+                <span>Back to Dashboard</span>
+              </div>
+            </a>
+          </div>
+        </div>
+        
+        <div class="bg-white/5 backdrop-blur-xl border-r border-white/10 rounded-2xl p-6">
+          <h3 class="font-bold mb-4">Reading Preferences</h3>
+          <div class="text-sm text-gray-300">Adjust settings for optimal readability</div>
+        </div>
+      </div>
+      
+      <!-- Main Content -->
+      <div class="w-full lg:w-3/4">
+        <!-- Welcome Section -->
+        <div class="backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] rounded-3xl p-8 md:p-10 mb-6 fade-up-delay-1">
+          <h2 class="text-xl md:text-2xl font-bold mb-2">Accessible Reading Mode</h2>
+          <p class="text-gray-300">Optimized for dyslexic readers with customizable settings.</p>
+        </div>
+        
+        <section class="glass-panel fade-in dyslexic-mode backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] rounded-3xl p-8 md:p-10 fade-up-delay-2">
+          <div class="topbar">
+            <h2 style="margin:0;">Reading Controls</h2>
+            <div class="controls-top">
+              <button
+  id="playSelBtn"
+  style="display:none;"
+  onclick="playSelectionServer()"
+  class="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-2 text-xs md:text-sm font-medium text-sky-100 hover:bg-white/20 hover:scale-[1.02] transition-all duration-300"
+>
+  <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-cyan-400/20 text-[10px]">
+    ▶
+  </span>
+  <span>Play Selection</span>
+</button>
+            </div>
+          </div>
+
+    <div class="toolbar" role="region" aria-label="Reading preferences">
+      <div class="control-group">
+        <label for="fontSelect">Font</label>
+        <select id="fontSelect" aria-label="Font" onchange="applyTypography()">
+          <option value="OpenDyslexic, Arial, sans-serif">OpenDyslexic</option>
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="Verdana, sans-serif">Verdana</option>
+          <option value="'Segoe UI', Arial, sans-serif">Segoe UI</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="fontSize">Size</label>
+        <input id="fontSize" type="range" min="16" max="28" step="1" value="18" oninput="applyTypography()" aria-label="Font size">
+        <span id="fontSizeVal" class="badge-small">18px</span>
+      </div>
+      <div class="control-group">
+        <label for="lineHeight">Line</label>
+        <input id="lineHeight" type="range" min="1.2" max="2.5" step="0.1" value="1.6" oninput="applyTypography()" aria-label="Line spacing">
+        <span id="lineHeightVal" class="badge-small">1.6</span>
+      </div>
+      <div class="control-group">
+        <label for="wordSpacing">Word</label>
+        <input id="wordSpacing" type="range" min="0" max="0.6" step="0.05" value="0.2" oninput="applyTypography()" aria-label="Word spacing">
+        <span id="wordSpacingVal" class="badge-small">0.2em</span>
+      </div>
+      <div class="control-group">
+        <label for="letterSpacing">Letter</label>
+        <input id="letterSpacing" type="range" min="0" max="0.15" step="0.01" value="0.04" oninput="applyTypography()" aria-label="Letter spacing">
+        <span id="letterSpacingVal" class="badge-small">0.04em</span>
+      </div>
+      <div class="control-group">
+        <label for="overlayColor">Overlay</label>
+        <input id="overlayColor" type="color" value="#e3f6ff" onchange="applyOverlay()" aria-label="Color overlay">
+        <label for="overlayOpacity">Opacity</label>
+        <input id="overlayOpacity" type="range" min="0" max="0.6" step="0.05" value="0" oninput="applyOverlay()" aria-label="Overlay opacity">
+      </div>
+    </div>
+
+    <div class="reader-shell">
+      <div id="overlay" class="overlay" aria-hidden="true"></div>
+      <div id="readerContent" class="reader" tabindex="0">
+        <div class="reading-glass-container">
+          <div id="readingText">
+            {{ text|safe }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+      <div style="margin-top:10px; color:#64748b;">Press Play to start audio + highlighting. Click any word to jump there. <span id="ttsStatus" class="badge-small">Ready</span></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <audio id="srvAudio" preload="auto"></audio>
+
+  <script>
+    const reader = document.getElementById('readerContent');
+    const playSelBtn = document.getElementById('playSelBtn');
+    const srvAudio = document.getElementById('srvAudio');
+
+    let userScrolling = false;
+
+    reader.addEventListener('wheel', () => {
+      userScrolling = true;
+      clearTimeout(window._scrollTimer);
+      window._scrollTimer = setTimeout(() => userScrolling = false, 1000);
+    });
+
+    // Take whatever HTML the server rendered into #readingText
+    // and normalise it to a plain-text version that we will reuse.
+    const readingBoxInitial = document.getElementById('readingText');
+    let basePlainText = '';
+
+    if (readingBoxInitial) {
+      const html = readingBoxInitial.innerHTML;
+
+      basePlainText = html
+        // turn <br> into newlines
+        .replace(/<br\s*\/?>/gi, '\n')
+        // decode &nbsp;
+        .replace(/&nbsp;/gi, ' ')
+        // remove any remaining HTML tags
+        .replace(/<[^>]+>/g, '')
+        // normalise whitespace
+        .replace(/\r/g, '')
+        .replace(/[ \t]+\n/g, '\n')
+        .replace(/\n[ \t]+/g, '\n')
+        .trim();
+    }
+
+    function applyTypography(){
+      const font = document.getElementById('fontSelect').value;
+      const size = document.getElementById('fontSize').value;
+      const line = document.getElementById('lineHeight').value;
+      const word = document.getElementById('wordSpacing').value;
+      const letter = document.getElementById('letterSpacing').value;
+      reader.style.fontFamily = font;
+      reader.style.fontSize = size + 'px';
+      reader.style.lineHeight = line;
+      reader.style.wordSpacing = word + 'em';
+      reader.style.letterSpacing = letter + 'em';
+      document.getElementById('fontSizeVal').textContent = size + 'px';
+      document.getElementById('lineHeightVal').textContent = line;
+      document.getElementById('wordSpacingVal').textContent = word + 'em';
+      document.getElementById('letterSpacingVal').textContent = letter + 'em';
+    }
+    function applyOverlay(){
+      const color = document.getElementById('overlayColor').value;
+      const opacity = document.getElementById('overlayOpacity').value;
+      const overlay = document.getElementById('overlay');
+      overlay.style.background = color;
+      overlay.style.opacity = opacity;
+    }
+    applyTypography();
+    applyOverlay();
+
+    function getSelectedText(){ const s = window.getSelection(); return s && s.toString().trim(); }
+    function getReaderText(){
+      return basePlainText || '';
+    }
+    function setTtsStatus(msg){ const el = document.getElementById('ttsStatus'); if(el) el.textContent = msg; }
+
+    // Word highlighting map
+    let timingMap = [];
+    let wordSpans = [];
+
+    function clearHighlights(){ wordSpans.forEach(s=> s.classList.remove('word-speaking')); }
+
+    function wrapWordsForHighlight(text){
+      const readingBox = document.getElementById('readingText');
+      if (!readingBox) return;
+
+      wordSpans = [];
+      readingBox.innerHTML = '';
+
+      // Tokens: words OR explicit newlines
+      const tokens = text.match(/\S+|\n/g) || [];
+
+      tokens.forEach((tok) => {
+        if (tok === '\n') {
+          // paragraph gap
+          readingBox.appendChild(document.createElement('br'));
+          readingBox.appendChild(document.createElement('br'));
+          return;
+        }
+
+        const span = document.createElement('span');
+        span.className = 'word';
+        span.textContent = tok;
+        span.dataset.index = wordSpans.length;
+        span.style.cursor = 'pointer';
+        span.addEventListener('click', () => seekToWord(parseInt(span.dataset.index, 10)));
+
+        readingBox.appendChild(span);
+        readingBox.appendChild(document.createTextNode(' '));
+
+        wordSpans.push(span);
+      });
+    }
+
+    function rescaleTimingsToDuration() {
+        if (!timingMap.length || !isFinite(srvAudio.duration) || srvAudio.duration <= 0)
+            return;
+
+        const originalEnd = timingMap[timingMap.length - 1].end;
+        if (originalEnd <= 0) return;
+
+        // Scale timings EXACTLY to audio duration
+        const scale = srvAudio.duration / originalEnd;
+
+        timingMap = timingMap.map(seg => ({
+            word: seg.word,
+            start: seg.start * scale,
+            end: seg.end * scale
+        }));
+    }
+
+    function highlightAtTime(t) {
+        if (!timingMap.length || !wordSpans.length) return;
+
+        let low = 0, high = timingMap.length - 1;
+        let activeIdx = -1;
+
+        // binary search → perfect fast lookup
+        while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            const seg = timingMap[mid];
+
+            if (t >= seg.start && t < seg.end) {
+                activeIdx = mid;
+                break;
+            }
+            if (t < seg.start) high = mid - 1;
+            else low = mid + 1;
+        }
+
+        // Update highlights
+        for (let i = 0; i < wordSpans.length; i++) {
+            if (i === activeIdx) {
+                wordSpans[i].classList.add("word-speaking");
+                
+                // Scroll only every 5th word AND only when the user is NOT scrolling
+                if (!userScrolling && i % 5 === 0) {
+                    wordSpans[i].scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            } else {
+                wordSpans[i].classList.remove("word-speaking");
+            }
+        }
+    }
+
+    function highlightWord(index) {
+      document.querySelectorAll('.word').forEach(w => w.classList.remove('highlight'));
+      let w = document.querySelector(`.word[data-index="${index}"]`);
+      if (w) {
+        w.classList.add('highlight');
+        w.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    function seekToWord(index) {
+        if (!timingMap.length || index < 0 || index >= timingMap.length) return;
+
+        const seg = timingMap[index];
+
+        // Seek EXACT start of word
+        srvAudio.currentTime = seg.start;
+
+        // Reset highlights FIRST
+        clearHighlights();
+        highlightAtTime(seg.start);
+
+        // Play immediately
+        srvAudio.play();
+    }
+
+    // Server play for full content
+    function playFullServer(){
+      const text = getReaderText();
+      if(!text){ setTtsStatus('No text to read'); return; }
+      setTtsStatus('Generating audio...');
+      fetch("{{ url_for('api_read_selected_text') }}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      }).then(r => r.json()).then(res =>{
+        if(res.error){ setTtsStatus(res.error); return; }
+        const { audio_url, timings } = res;
+        timingMap = timings || [];
+        wrapWordsForHighlight(text);
+        srvAudio.src = audio_url;
+        const onMeta = ()=>{ rescaleTimingsToDuration(); srvAudio.removeEventListener('loadedmetadata', onMeta); srvAudio.currentTime = 0; srvAudio.play(); setTtsStatus('Playing'); };
+        srvAudio.addEventListener('loadedmetadata', onMeta);
+      }).catch(err => setTtsStatus('Error: '+ err.message));
+    }
+
+    // Optional: selection-based play stays, but highlights only after play
+    function playSelectionServer(){
+      const sel = getSelectedText();
+      if(!sel){ setTtsStatus('Select text first'); return; }
+      setTtsStatus('Generating audio...');
+      fetch("{{ url_for('api_read_selected_text') }}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: sel })
+      }).then(r => r.json()).then(res =>{
+        if(res.error){ setTtsStatus(res.error); return; }
+        const { audio_url, timings } = res;
+        timingMap = timings || [];
+        wrapWordsForHighlight(sel);
+        srvAudio.src = audio_url;
+        const onMeta = ()=>{ rescaleTimingsToDuration(); srvAudio.removeEventListener('loadedmetadata', onMeta); srvAudio.currentTime = 0; srvAudio.play(); setTtsStatus('Playing selection'); };
+        srvAudio.addEventListener('loadedmetadata', onMeta);
+      }).catch(err => setTtsStatus('Error: '+ err.message));
+    }
+
+    function pauseServerAudio(){ srvAudio.pause(); setTtsStatus('Paused'); }
+    function stopServerAudio(){ srvAudio.pause(); srvAudio.currentTime = 0; setTtsStatus('Stopped'); clearHighlights(); }
+
+    // Show Play Selection only when user selects
+    document.addEventListener('selectionchange', ()=>{ playSelBtn.style.display = getSelectedText() ? 'inline-flex' : 'none'; });
+
+    // Highlight on time updates
+    let rafId;
+    function loop() {
+        const t = srvAudio.currentTime + 0.03; // slight natural delay
+        highlightAtTime(t);
+        rafId = requestAnimationFrame(loop);
+    }
+    srvAudio.addEventListener('play', ()=>{ cancelAnimationFrame(rafId); rafId = requestAnimationFrame(loop); });
+    srvAudio.addEventListener('timeupdate', ()=>{ if(!srvAudio.paused) { highlightAtTime(srvAudio.currentTime); } });
+    srvAudio.addEventListener('pause', ()=> cancelAnimationFrame(rafId));
+    srvAudio.addEventListener('ended', ()=>{ cancelAnimationFrame(rafId); setTtsStatus('Finished'); clearHighlights(); });
+
+    // Initial wrapping when the page loads
+    wrapWordsForHighlight(basePlainText);
+  </script>
+</body>
+</html>
