@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: udaan-app
+    env: python
+    region: frankfurt  # You can change this to your preferred region
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 app:app
+    repo: https://github.com/sahanamadival/Udaan.git  # Update this to your actual repo
+    branch: main  # Update this to your actual branch
+    envVars:
+      - key: PYTHON_PATH
+        value: .
+      - key: FLASK_APP
+        value: app.py
