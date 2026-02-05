@@ -1,17 +1,22 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Quiz Results</title>
-  <style>
+{% extends "base.html" %}
+
+{% block title %}Quiz Results{% endblock %}
+
+{% block body_class %}relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-950 via-[#0a0d21] to-[#020410] text-white{% endblock %}
+
+{% block extra_css %}
+<style>
+
     body { font-family: Arial, sans-serif; margin: 30px; }
     .result-box { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 10px; }
     .correct { color: green; }
     .wrong { color: red; }
-  </style>
-</head>
-<body>
-  <h2>📊 Quiz Results</h2>
+  
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>📊 Quiz Results</h2>
   <p><b>Score: {{ score }}/{{ total }}</b></p>
 
   {% for r in results %}
@@ -23,5 +28,10 @@
   {% endfor %}
 
   <a href="{{ url_for('student_dashboard') }}">⬅ Back to Dashboard</a>
-</body>
-</html>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+</script>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Grade 4 Dashboard - Udaan{% endblock %}
+
+{% block body_class %}min-h-screen bg-gradient-to-br from-purple-50 to-violet-100{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-violet-800 mb-2">Welcome, {{ user.name }}!</h1>
+            <p class="text-xl text-violet-600">Grade 4 Learning Dashboard</p>
+            <div class="mt-4 inline-block bg-violet-100 text-violet-800 px-4 py-2 rounded-full font-semibold">
+                Grade 4 Student
+            </div>
+        </div>
+
+        <!-- Learning Modules -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Advanced Literature -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-crown text-2xl text-rose-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Literature Master</h3>
+                    <p class="text-gray-600 mb-4">Classic stories and literary analysis</p>
+                    <button class="bg-rose-500 hover:bg-rose-600 text-white px-6 py-2 rounded-lg transition-colors">
+                        Explore Literature
+                    </button>
+                </div>
+            </div>
+
+            <!-- Advanced Mathematics -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-square-root-alt text-2xl text-cyan-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Math Expert</h3>
+                    <p class="text-gray-600 mb-4">Decimals, geometry, and problem solving</p>
+                    <button class="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-lg transition-colors">
+                        Solve Math
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scientific Research -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-microscope text-2xl text-emerald-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Science Research</h3>
+                    <p class="text-gray-600 mb-4">Scientific method and experiments</p>
+                    <button class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg transition-colors">
+                        Conduct Research
+                    </button>
+                </div>
+            </div>
+
+            <!-- Creative Expression -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-theater-masks text-2xl text-amber-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Creative Expression</h3>
+                    <p class="text-gray-600 mb-4">Drama, poetry, and creative projects</p>
+                    <button class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg transition-colors">
+                        Get Creative
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Your Progress</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-rose-600 mb-2">30</div>
+                    <div class="text-gray-600">Books Analyzed</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-cyan-600 mb-2">65</div>
+                    <div class="text-gray-600">Math Problems Solved</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-emerald-600 mb-2">15</div>
+                    <div class="text-gray-600">Science Experiments</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-amber-600 mb-2">12</div>
+                    <div class="text-gray-600">Creative Projects</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="text-center">
+            <a href="{{ url_for('student_dashboard') }}" class="inline-block bg-violet-500 hover:bg-violet-600 text-white px-8 py-3 rounded-lg font-semibold mr-4 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Main Dashboard
+            </a>
+            <a href="{{ url_for('logout') }}" class="inline-block bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

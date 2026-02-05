@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Test - Udaan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="static/styles.css">
+    
+    <style>
+        .test-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--color-primary);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        
+        .test-button {
+            background: linear-gradient(90deg, var(--button-gradient-start) 60%, var(--button-gradient-end) 100%);
+            color: var(--color-primary);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="space-bg min-h-screen p-8">
+    <!-- Theme Toggle Button -->
+    <button id="theme-toggle" class="theme-toggle fixed top-4 right-4">
+        <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="24" height="24">
+            <path id="sun-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            <path id="moon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" style="display: none;" />
+        </svg>
+    </button>
+
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold mb-8" style="color: var(--h-color);">Theme Test Page</h1>
+        
+        <div class="test-card">
+            <h2 class="text-2xl font-semibold mb-4">Test Card</h2>
+            <p>This is a test paragraph to see if theme switching works properly.</p>
+            <button class="test-button mt-4">Test Button</button>
+        </div>
+        
+        <div class="test-card">
+            <h3 class="text-xl font-semibold mb-2">Theme Information</h3>
+            <p>Current theme: <span id="current-theme">dark</span></p>
+            <p>Body classes: <span id="body-classes"></span></p>
+        </div>
+    </div>
+
+    <script>
+        function updateThemeInfo() {
+            const currentTheme = document.body.classList.contains('light-theme') ? 'light' : 'dark';
+            document.getElementById('current-theme').textContent = currentTheme;
+            document.getElementById('body-classes').textContent = document.body.className;
+        }
+
+        function initializeTheme() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const sunPath = document.getElementById('sun-path');
+            const moonPath = document.getElementById('moon-path');
+            
+            if (!themeToggle || !sunPath || !moonPath) {
+                console.warn('Theme toggle elements not found');
+                return;
+            }
+
+            // Check for saved theme preference or respect OS setting
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+            // Set initial theme
+            if (savedTheme === 'light' || (!savedTheme && !prefersDarkScheme.matches)) {
+                document.body.classList.add('light-theme');
+                sunPath.style.display = 'none';
+                moonPath.style.display = 'block';
+                console.log('Applied light theme');
+            } else {
+                document.body.classList.remove('light-theme');
+                sunPath.style.display = 'block';
+                moonPath.style.display = 'none';
+                console.log('Applied dark theme');
+            }
+
+            updateThemeInfo();
+
+            themeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('light-theme');
+                
+                // Toggle icons
+                if (document.body.classList.contains('light-theme')) {
+                    sunPath.style.display = 'none';
+                    moonPath.style.display = 'block';
+                    localStorage.setItem('theme', 'light');
+                    console.log('Switched to light theme');
+                } else {
+                    sunPath.style.display = 'block';
+                    moonPath.style.display = 'none';
+                    localStorage.setItem('theme', 'dark');
+                    console.log('Switched to dark theme');
+                }
+                
+                updateThemeInfo();
+            });
+        }
+
+        // Initialize theme when DOM is loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeTheme);
+        } else {
+            initializeTheme();
+        }
+    </script>
+</body>
+</html>

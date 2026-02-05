@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Grade 5 Dashboard - Udaan{% endblock %}
+
+{% block body_class %}min-h-screen bg-gradient-to-br from-rose-50 to-pink-100{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-pink-800 mb-2">Welcome, {{ user.name }}!</h1>
+            <p class="text-xl text-pink-600">Grade 5 Learning Dashboard</p>
+            <div class="mt-4 inline-block bg-pink-100 text-pink-800 px-4 py-2 rounded-full font-semibold">
+                Grade 5 Student
+            </div>
+        </div>
+
+        <!-- Learning Modules -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Literary Excellence -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-feather-alt text-2xl text-indigo-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Literary Excellence</h3>
+                    <p class="text-gray-600 mb-4">Advanced reading and critical thinking</p>
+                    <button class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg transition-colors">
+                        Master Literature
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mathematical Mastery -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-infinity text-2xl text-green-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Mathematical Mastery</h3>
+                    <p class="text-gray-600 mb-4">Algebra basics and advanced problem solving</p>
+                    <button class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors">
+                        Master Math
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scientific Innovation -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-rocket text-2xl text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Scientific Innovation</h3>
+                    <p class="text-gray-600 mb-4">Advanced experiments and scientific inquiry</p>
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
+                        Innovate Science
+                    </button>
+                </div>
+            </div>
+
+            <!-- Leadership & Expression -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-star text-2xl text-amber-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Leadership & Expression</h3>
+                    <p class="text-gray-600 mb-4">Public speaking and leadership skills</p>
+                    <button class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg transition-colors">
+                        Lead & Express
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Your Progress</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-indigo-600 mb-2">35</div>
+                    <div class="text-gray-600">Books Mastered</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-green-600 mb-2">80</div>
+                    <div class="text-gray-600">Math Problems Solved</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-blue-600 mb-2">20</div>
+                    <div class="text-gray-600">Science Innovations</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-amber-600 mb-2">15</div>
+                    <div class="text-gray-600">Leadership Projects</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="text-center">
+            <a href="{{ url_for('student_dashboard') }}" class="inline-block bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-lg font-semibold mr-4 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Main Dashboard
+            </a>
+            <a href="{{ url_for('logout') }}" class="inline-block bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -370,8 +370,13 @@ def login_student():
             return redirect(request.url)
 
         if user["password_hash"] and check_password_hash(user["password_hash"], password):
-            session["user"] = {"role": "student", "id": user["id"], "name": user["name"]}
-            return redirect(url_for("student_dashboard"))
+            session["user"] = {"role": "student", "id": user["id"], "name": user["name"], "grade": user["grade"]}
+            # Redirect to grade-specific dashboard for grades 1-5
+            if user["grade"] and user["grade"] in ["1", "2", "3", "4", "5"]:
+                return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+            else:
+                # For grades outside 1-5, redirect to general student dashboard
+                return redirect(url_for("student_dashboard"))
         else:
             flash("Incorrect password.")
             return redirect(request.url)
@@ -481,6 +486,52 @@ def student_dashboard():
                          uploads=uploads,
                          progress_percent=int(progress_percentage),
                          progress_width=progress_width_percent)
+
+# Grade-specific Dashboard Routes
+@app.route("/dashboard/grade/1")
+@login_required(role="student")
+def grade_1_dashboard():
+    user = session.get("user")
+    if user.get("grade") != "1":
+        flash("Access denied. This dashboard is for Grade 1 students only.")
+        return redirect(url_for("student_dashboard"))
+    return render_template("grade_1_dashboard.html", user=user)
+
+@app.route("/dashboard/grade/2")
+@login_required(role="student")
+def grade_2_dashboard():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This dashboard is for Grade 2 students only.")
+        return redirect(url_for("student_dashboard"))
+    return render_template("grade_2_dashboard.html", user=user)
+
+@app.route("/dashboard/grade/3")
+@login_required(role="student")
+def grade_3_dashboard():
+    user = session.get("user")
+    if user.get("grade") != "3":
+        flash("Access denied. This dashboard is for Grade 3 students only.")
+        return redirect(url_for("student_dashboard"))
+    return render_template("grade_3_dashboard.html", user=user)
+
+@app.route("/dashboard/grade/4")
+@login_required(role="student")
+def grade_4_dashboard():
+    user = session.get("user")
+    if user.get("grade") != "4":
+        flash("Access denied. This dashboard is for Grade 4 students only.")
+        return redirect(url_for("student_dashboard"))
+    return render_template("grade_4_dashboard.html", user=user)
+
+@app.route("/dashboard/grade/5")
+@login_required(role="student")
+def grade_5_dashboard():
+    user = session.get("user")
+    if user.get("grade") != "5":
+        flash("Access denied. This dashboard is for Grade 5 students only.")
+        return redirect(url_for("student_dashboard"))
+    return render_template("grade_5_dashboard.html", user=user)
 
 @app.route("/upload_textbook", methods=["POST"])
 @login_required(role="student")

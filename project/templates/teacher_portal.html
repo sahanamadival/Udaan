@@ -1,53 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teacher Portal - Udaan</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+{% extends "base.html" %}
 
-  <style>
-    @keyframes fadeUp {
-      0% { opacity: 0; transform: translateY(25px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-    .fade-up { animation: fadeUp 0.6s ease-out forwards; }
+{% block title %}Teacher Portal - Udaan{% endblock %}
 
-    /* Deep space background with stars */
-    .space-bg {
-      background: 
-        radial-gradient(circle at center, rgba(72, 61, 139, 0.4), transparent 70%),
-        linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-    }
-    
-    /* Twinkling stars */
-    .stars {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: -1;
-    }
-    
-    .star {
-      position: absolute;
-      background-color: white;
-      border-radius: 50%;
-      animation: twinkle var(--duration) ease-in-out infinite;
-      animation-delay: var(--delay);
-    }
-    
-    @keyframes twinkle {
-      0% { opacity: 0.2; }
-      50% { opacity: 1; }
-      100% { opacity: 0.2; }
-    }
-  </style>
-</head>
+{% block body_class %}min-h-screen flex items-center justify-center space-bg text-white relative overflow-hidden{% endblock %}
 
-<body class="min-h-screen flex items-center justify-center space-bg text-white relative overflow-hidden">
+{% block extra_css %}
+<style>
+  @keyframes fadeUp {
+    0% { opacity: 0; transform: translateY(25px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.6s ease-out forwards; }
+  
+  /* Twinkling stars */
+  .stars {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: -1;
+  }
+  
+  .star {
+    position: absolute;
+    background-color: white;
+    border-radius: 50%;
+    animation: twinkle var(--duration) ease-in-out infinite;
+    animation-delay: var(--delay);
+  }
+  
+  @keyframes twinkle {
+    0% { opacity: 0.2; }
+    50% { opacity: 1; }
+    100% { opacity: 0.2; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
   <!-- Stars background -->
   <div class="stars" id="stars-container"></div>
   
@@ -79,7 +71,9 @@
       </a>
     </div>
   </div>
+{% endblock %}
 
+{% block extra_js %}
   <script>
     // Generate stars
     document.addEventListener('DOMContentLoaded', function() {
@@ -108,5 +102,4 @@
       }
     });
   </script>
-</body>
-</html>
+{% endblock %}

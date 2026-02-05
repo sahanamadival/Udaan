@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Udaan – Transform Learning{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="{% block body_class %}relative h-screen bg-[#020410] text-white overflow-hidden{% endblock %}">
+  <!-- Theme Toggle Button -->
+  <button id="theme-toggle" class="theme-toggle">
+    <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path id="sun-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+      <path id="moon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" style="display: none;" />
+    </svg>
+  </button>
+
+  <!-- Light Theme Background Elements -->
+  <div class="stars">
+    <!-- Enhanced Clouds -->
+    <div class="cloud"></div>
+    <div class="cloud"></div>
+    <div class="cloud"></div>
+    <div class="cloud"></div>
+    <div class="cloud"></div>
+    
+    <!-- Enhanced Balloons -->
+    <div class="balloon"></div>
+    <div class="balloon"></div>
+    <div class="balloon"></div>
+    <div class="balloon"></div>
+    <div class="balloon"></div>
+    
+    <!-- Enhanced Light Stars -->
+    <div class="light-star"></div>
+    <div class="light-star"></div>
+    <div class="light-star"></div>
+    <div class="light-star"></div>
+    <div class="light-star"></div>
+    
+    <!-- Floating Particles -->
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
+  {% block content %}{% endblock %}
+
+  <script>
+    // Theme toggle functionality
+    function initializeTheme() {
+      const themeToggle = document.getElementById('theme-toggle');
+      const sunPath = document.getElementById('sun-path');
+      const moonPath = document.getElementById('moon-path');
+      
+      if (!themeToggle || !sunPath || !moonPath) {
+        console.warn('Theme toggle elements not found');
+        return;
+      }
+
+      // Check for saved theme preference or respect OS setting
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+      // Set initial theme
+      if (savedTheme === 'light' || (!savedTheme && !prefersDarkScheme.matches)) {
+        document.body.classList.add('light-theme');
+        sunPath.style.display = 'none';
+        moonPath.style.display = 'block';
+        console.log('Applied light theme');
+      } else {
+        document.body.classList.remove('light-theme');
+        sunPath.style.display = 'block';
+        moonPath.style.display = 'none';
+        console.log('Applied dark theme');
+      }
+
+      themeToggle.addEventListener('click', function() {
+        document.body.classList.toggle('light-theme');
+        
+        // Toggle icons
+        if (document.body.classList.contains('light-theme')) {
+          sunPath.style.display = 'none';
+          moonPath.style.display = 'block';
+          localStorage.setItem('theme', 'light');
+          console.log('Switched to light theme');
+        } else {
+          sunPath.style.display = 'block';
+          moonPath.style.display = 'none';
+          localStorage.setItem('theme', 'dark');
+          console.log('Switched to dark theme');
+        }
+      });
+    }
+
+    // Initialize theme when DOM is loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeTheme);
+    } else {
+      initializeTheme();
+    }
+  </script>
+  
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

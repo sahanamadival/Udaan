@@ -1,15 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Dashboard - Udaan</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    
-    <style>
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard - Udaan{% endblock %}
+
+{% block body_class %}relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-950 via-[#0a0d21] to-[#020410] text-white{% endblock %}
+
+{% block extra_css %}
+<style>
+
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -144,10 +141,12 @@
             font-size: 0.85rem;
             font-weight: 600;
         }
-    </style>
-</head>
-<body class="relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-950 via-[#0a0d21] to-[#020410] text-white">
-    <!-- Fixed background elements that don't scroll -->
+    
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Fixed background elements that don't scroll -->
     <div class="fixed-background">
         <div class="stars"></div>
         
@@ -298,8 +297,12 @@
             </div>
         </div>
     </div>
+{% endblock %}
 
-    <script>
+{% block extra_js %}
+<script>
+
+
         (function(){
             const canvas = document.getElementById('progressLine');
             if(!canvas) return;
@@ -387,6 +390,6 @@
                 ctx.fill();
             }
         })();
-    </script>
-</body>
-</html>
+    
+</script>
+{% endblock %}

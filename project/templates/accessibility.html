@@ -1,13 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Accessibility</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <style>
+{% extends "base.html" %}
+
+{% block title %}Accessibility{% endblock %}
+
+{% block body_class %}relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-950 via-[#0a0d21] to-[#020410] text-white{% endblock %}
+
+{% block extra_css %}
+<style>
+
     :root{
       --bg:#f7f9fc;
       --card:#ffffff;
@@ -53,10 +52,12 @@
 
     a.link{color:#1d4ed8;text-decoration:none;font-weight:700}
     a.link:hover{text-decoration:underline}
-  </style>
-</head>
-<body>
-  <div class="wrap">
+  
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wrap">
     <div class="card">
       <div class="topbar">
         <button class="back" onclick="history.back()" aria-label="Back">←</button>
@@ -116,8 +117,11 @@
       </div>
     </div>
   </div>
+{% endblock %}
 
-  <script>
+{% block extra_js %}
+<script>
+
     function initChipGroup(groupId){
       const group = document.getElementById(groupId);
       group.addEventListener('click', (e)=>{
@@ -142,6 +146,6 @@
     initToggle('contrastToggle');
     initToggle('voiceToggle');
     initToggle('srToggle');
-  </script>
-</body>
-</html>
+  
+</script>
+{% endblock %}

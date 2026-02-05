@@ -1,10 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Udaan – Sign In or Register</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  <style>
+{% extends "base.html" %}
+
+{% block title %}Udaan – Sign In or Register{% endblock %}
+
+{% block body_class %}relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-950 via-[#0a0d21] to-[#020410] text-white{% endblock %}
+
+{% block extra_css %}
+<style>
+
     .role-switch { display:flex; gap:8px; align-items:center; justify-content:center; margin-bottom:14px; }
     .chip { padding:8px 14px; border-radius:999px; background:#eef6ff; color:#2563eb; font-weight:600; text-decoration:none; box-shadow:0 2px 8px rgba(37,99,235,0.08); transition:transform .12s ease, box-shadow .12s ease, background .2s; }
     .chip:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(37,99,235,0.16); }
@@ -12,10 +14,12 @@
     .button { display:inline-flex; align-items:center; justify-content:center; gap:8px; }
     .button:focus-visible, .chip:focus-visible { outline:3px solid #93c5fd; outline-offset:2px; }
     .btn-grid { display:flex; flex-direction:column; gap:10px; }
-  </style>
-</head>
-<body>
-  <section class="glass-panel fade-in" style="max-width:520px;margin:48px auto;">
+  
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="glass-panel fade-in" style="max-width:520px;margin:48px auto;">
     <div class="role-switch" aria-label="Choose role">
       <a class="chip {% if role == 'student' %}active{% endif %}" href="{{ url_for('role_page', role='student') }}">Student</a>
       <a class="chip {% if role == 'teacher' %}active{% endif %}" href="{{ url_for('role_page', role='teacher') }}">Teacher/Parent</a>
@@ -38,13 +42,16 @@
       <a href="{{ url_for('index') }}" class="badge" style="display:inline-block;text-decoration:none;">⬅ Back</a>
     </div>
   </section>
+{% endblock %}
 
-  <script>
+{% block extra_js %}
+<script>
+
     // Simple hover micro-interaction: add a subtle scale on auth buttons
     document.querySelectorAll('.button').forEach(btn => {
       btn.addEventListener('mouseenter', () => btn.style.transform = 'translateY(-1px) scale(1.01)');
       btn.addEventListener('mouseleave', () => btn.style.transform = '');
     });
-  </script>
-</body>
-</html>
+  
+</script>
+{% endblock %}

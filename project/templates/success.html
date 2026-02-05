@@ -1,14 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Success</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body>
-  <div class="container">
+{% extends "base.html" %}
+
+{% block title %}Success{% endblock %}
+
+{% block body_class %}relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-950 via-[#0a0d21] to-[#020410] text-white{% endblock %}
+
+{% block extra_css %}
+<style>
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
     <h2>Signup Successful!</h2>
     <a href="/">Go Home</a>
   </div>
-</body>
-</html>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+</script>
+{% endblock %}

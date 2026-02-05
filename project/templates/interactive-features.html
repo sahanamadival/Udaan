@@ -1,12 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Udaan – Interactive Learning Features</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <section class="glass-panel fade-in">
+{% extends "base.html" %}
+
+{% block title %}Udaan – Interactive Learning Features{% endblock %}
+
+{% block body_class %}relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-950 via-[#0a0d21] to-[#020410] text-white{% endblock %}
+
+{% block extra_css %}
+<style>
+
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="glass-panel fade-in">
     <h2>Learning Modules</h2>
     <div class="feature-card">
       <span class="module-icon">📖</span>
@@ -59,5 +64,10 @@
       <span class="badge">Summaries · Flashcards · Progress</span>
     </div>
   </section>
-</body>
-</html>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+</script>
+{% endblock %}
