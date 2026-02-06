@@ -242,7 +242,7 @@
           Back to Dashboard
         </a>
       {% else %}
-        <a href="{{ url_for('student_dashboard') }}" class="bg-white/10 hover:bg-white/20 rounded-full px-5 py-2 transition-all">
+        <a href="{% if user and user.grade and user.grade in ['1', '2', '3', '4', '5'] %}{{ url_for('grade_' + user.grade + '_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}" class="bg-white/10 hover:bg-white/20 rounded-full px-5 py-2 transition-all">
           Back to Dashboard
         </a>
       {% endif %}
@@ -281,7 +281,7 @@
               </div>
             </button>
             
-            <a href="{{ url_for('student_dashboard') }}" class="block bg-white/10 backdrop-blur-xl rounded-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-[1.02] text-left">
+            <a href="{% if user and user.grade and user.grade in ['1', '2', '3', '4', '5'] %}{{ url_for('grade_' + user.grade + '_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}" class="block bg-white/10 backdrop-blur-xl rounded-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-[1.02] text-left">
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
                   <span>🏠</span>

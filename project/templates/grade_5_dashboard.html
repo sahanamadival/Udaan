@@ -16,6 +16,43 @@
             </div>
         </div>
 
+        <!-- AI Summary Section -->
+        {% if ai_summary %}
+        <div class="summary-box bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span>📘</span> AI Summary
+            </h3>
+            <p class="text-gray-700">{{ ai_summary }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Audio Player Section -->
+        {% if audio_file %}
+        <div class="audio-box bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span>🎧</span> Your Audio Narration
+            </h3>
+            <audio controls class="w-full">
+                <source src="{{ url_for('static', filename='narrations/' + audio_file) }}" type="audio/mpeg">
+                Your browser does not support audio.
+            </audio>
+        </div>
+        {% endif %}
+
+        {% if hindi_file %}
+        <div class="mt-6 text-center">
+            <p class="mb-2 text-green-400 font-semibold">
+                Hindi translation ready
+            </p>
+
+            <a href="{{ url_for('static', filename='translations/' + hindi_file) }}"
+               download
+               class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-full text-white font-semibold">
+                Download Hindi PDF
+            </a>
+        </div>
+        {% endif %}
+
         <!-- Learning Modules -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Literary Excellence -->

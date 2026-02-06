@@ -5,7 +5,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timezone
 from functools import wraps
 import PyPDF2
-import pyttsx3
 import time
 from openai import OpenAI
 from deep_translator import GoogleTranslator
@@ -281,6 +280,27 @@ def login_required(role=None):
         return wrapped
     return decorator
 
+def redirect_to_dashboard(user):
+    """
+    Universal redirect that sends student to correct grade dashboard
+    and teacher to teacher dashboard.
+    """
+    if not user:
+        return redirect(url_for("index"))
+
+    role = user.get("role")
+
+    if role == "teacher":
+        return redirect(url_for("teacher_dashboard"))
+
+    if role == "student":
+        grade = str(user.get("grade") or "")
+        if grade in ["1", "2", "3", "4", "5"]:
+            return redirect(url_for(f"grade_{grade}_dashboard"))
+        return redirect_to_dashboard(session.get("user"))
+
+    return redirect(url_for("index"))
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -365,7 +385,7 @@ def login_student():
             else:
                 # For grades outside 1-5, redirect to general dashboard if needed
                 # Since we removed the general dashboard, redirect to grade 1 as default
-                return redirect(url_for("grade_1_dashboard"))
+                return redirect_to_dashboard(session.get("user"))
         else:
             flash("Incorrect password.")
             return redirect(request.url)
@@ -446,8 +466,15 @@ def grade_1_dashboard():
         if user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
             return redirect(url_for(f"grade_{user['grade']}_dashboard"))
         else:
-            return redirect(url_for("grade_1_dashboard"))
-    return render_template("grade_1_dashboard.html", user=user)
+            return redirect_to_dashboard(session.get("user"))
+    
+    # Handle summary display (show once)
+    summary = None
+    if session.pop("show_summary_once", False):
+        summary = session.get("latest_summary")
+    
+    audio_file = session.pop("audio_file", None)
+    return render_template("grade_1_dashboard.html", user=user, hindi_file=session.get("hindi_file"))
 
 
 @app.route("/grade/1/alphabets")
@@ -456,7 +483,7 @@ def grade_1_alphabets():
     user = session.get("user")
     if user.get("grade") != "1":
         flash("Access denied. This content is for Grade 1 students only.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(session.get("user"))
     return render_template("grade_1_alphabets_new.html", user=user)
 
 
@@ -466,7 +493,7 @@ def grade_1_math():
     user = session.get("user")
     if user.get("grade") != "1":
         flash("Access denied. This content is for Grade 1 students only.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(session.get("user"))
     return render_template("grade_1_math_new.html", user=user)
 
 
@@ -476,7 +503,7 @@ def grade_1_flashcards():
     user = session.get("user")
     if user.get("grade") != "1":
         flash("Access denied. This content is for Grade 1 students only.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(session.get("user"))
     return render_template("grade_1_flashcards.html", user=user)
 
 
@@ -486,7 +513,7 @@ def grade_1_shapes():
     user = session.get("user")
     if user.get("grade") != "1":
         flash("Access denied. This content is for Grade 1 students only.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(session.get("user"))
     return render_template("grade_1_shapes.html", user=user)
 
 
@@ -496,7 +523,7 @@ def grade_1_quiz():
     user = session.get("user")
     if user.get("grade") != "1":
         flash("Access denied. This content is for Grade 1 students only.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(session.get("user"))
     return render_template("grade_1_quiz.html", user=user)
 
 
@@ -621,7 +648,14 @@ def grade_2_dashboard():
             return redirect(url_for(f"grade_{user['grade']}_dashboard"))
         else:
             return redirect(url_for("grade_2_dashboard"))
-    return render_template("grade_2_dashboard.html", user=user)
+    
+    # Handle summary display (show once)
+    summary = None
+    if session.pop("show_summary_once", False):
+        summary = session.get("latest_summary")
+    
+    audio_file = session.pop("audio_file", None)
+    return render_template("grade_2_dashboard.html", user=user, hindi_file=session.get("hindi_file"))
 
 @app.route("/dashboard/grade/3")
 @login_required(role="student")
@@ -634,7 +668,14 @@ def grade_3_dashboard():
             return redirect(url_for(f"grade_{user['grade']}_dashboard"))
         else:
             return redirect(url_for("grade_3_dashboard"))
-    return render_template("grade_3_dashboard.html", user=user)
+    
+    # Handle summary display (show once)
+    summary = None
+    if session.pop("show_summary_once", False):
+        summary = session.get("latest_summary")
+    
+    audio_file = session.pop("audio_file", None)
+    return render_template("grade_3_dashboard.html", user=user, hindi_file=session.get("hindi_file"))
 
 @app.route("/dashboard/grade/4")
 @login_required(role="student")
@@ -647,7 +688,14 @@ def grade_4_dashboard():
             return redirect(url_for(f"grade_{user['grade']}_dashboard"))
         else:
             return redirect(url_for("grade_4_dashboard"))
-    return render_template("grade_4_dashboard.html", user=user)
+    
+    # Handle summary display (show once)
+    summary = None
+    if session.pop("show_summary_once", False):
+        summary = session.get("latest_summary")
+    
+    audio_file = session.pop("audio_file", None)
+    return render_template("grade_4_dashboard.html", user=user, hindi_file=session.get("hindi_file"))
 
 @app.route("/dashboard/grade/5")
 @login_required(role="student")
@@ -660,7 +708,14 @@ def grade_5_dashboard():
             return redirect(url_for(f"grade_{user['grade']}_dashboard"))
         else:
             return redirect(url_for("grade_5_dashboard"))
-    return render_template("grade_5_dashboard.html", user=user)
+    
+    # Handle summary display (show once)
+    summary = None
+    if session.pop("show_summary_once", False):
+        summary = session.get("latest_summary")
+    
+    audio_file = session.pop("audio_file", None)
+    return render_template("grade_5_dashboard.html", user=user, hindi_file=session.get("hindi_file"))
 
 @app.route("/upload_textbook", methods=["POST"])
 @login_required(role="student")
@@ -671,7 +726,7 @@ def upload_textbook():
         if user and user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
             return redirect(url_for(f"grade_{user['grade']}_dashboard"))
         else:
-            return redirect(url_for("grade_1_dashboard"))
+            return redirect_to_dashboard(session.get("user"))
     file = request.files["textbook"]
     if file.filename == "":
         flash("No file selected.")
@@ -679,7 +734,7 @@ def upload_textbook():
         if user and user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
             return redirect(url_for(f"grade_{user['grade']}_dashboard"))
         else:
-            return redirect(url_for("grade_1_dashboard"))
+            return redirect_to_dashboard(session.get("user"))
 
     filename = file.filename
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
@@ -698,7 +753,7 @@ def upload_textbook():
     if user and user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
         return redirect(url_for(f"grade_{user['grade']}_dashboard"))
     else:
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(session.get("user"))
 
 @app.route("/library")
 @login_required(role="student")
@@ -720,111 +775,74 @@ def library():
 @app.route("/audio_narration", methods=["POST"])
 @login_required(role="student")
 def audio_narration():
-    filename = session.get("uploaded_file")
-    if not filename:
-        flash("No textbook uploaded yet.")
-        return redirect(url_for("grade_1_dashboard"))
 
-    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-    if not os.path.exists(filepath):
-        flash("File not found on server.")
-        return redirect(url_for("grade_1_dashboard"))
-
-    # extracting text directly 
-    text = ""
-    try:
-        pdf_reader = PdfReader(open(filepath, "rb"))
-        for page in pdf_reader.pages:
-            text += page.extract_text() or ""
-    except Exception as e:
-        flash(f"Error reading PDF: {str(e)}")
-        return redirect(url_for("grade_1_dashboard"))
-
-    # Fallback to OCR 
-    if not text.strip():
-        flash("⚠️ No text found, using OCR...")
-        try:
-            doc = fitz.open(filepath)
-            ocr_text = []
-            for page_num in range(len(doc)):
-                pix = doc[page_num].get_pixmap()
-                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                ocr_text.append(pytesseract.image_to_string(img))
-            text = "\n".join(ocr_text)
-        except Exception as e:
-            flash(f"⚠️ OCR failed: {str(e)}")
-            return redirect(url_for("grade_1_dashboard"))
-
-    if not text.strip():
-        flash("⚠️ Still no readable text found after OCR.")
-        return redirect(url_for("grade_1_dashboard"))
-
-    # Generate narration
-    student_id = session["user"]["id"]
-    timestamp = int(time.time())
-    audio_filename = f"{student_id}_{timestamp}.mp3"
-    audio_path = os.path.join("static/narrations", audio_filename)
-    os.makedirs("static/narrations", exist_ok=True)
-
-    # Convert text to speech
-    try:
-        engine = pyttsx3.init()
-        engine.save_to_file(text, audio_path)
-        engine.runAndWait()
-    except Exception as e:
-        flash(f"Error generating narration: {str(e)}")
-        return redirect(url_for("grade_1_dashboard"))
-
-    flash("🎧 Audio narration generated successfully!")
+    print("=== AUDIO ROUTE HIT ===")
 
     user = session.get("user")
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM uploads WHERE student_id = ?", (user["id"],))
-    uploads = cur.fetchall()
+    
+    # Clear unrelated session outputs
+    session.pop("show_summary_once", None)
+    session.pop("latest_summary", None)
+    session.pop("hindi_file", None)
 
-    # Calculate progress metrics
-    total_uploads = len(uploads)
-    
-    # Get flashcards count
-    cur.execute("SELECT COUNT(*) as count, SUM(num_flashcards) as total FROM flashcards WHERE student_id = ?", (user["id"],))
-    flashcard_data = cur.fetchone()
-    total_flashcards = flashcard_data["total"] or 0
-    
-    # Get quiz attempts
-    cur.execute("SELECT COUNT(*) as count, AVG(score) as avg_score FROM quiz_attempts WHERE student_id = ?", (user["id"],))
-    quiz_data = cur.fetchone()
-    total_quizzes = quiz_data["count"] or 0
-    
-    # Calculate progress percentage (weighted average of activities)
-    progress_percentage = 0
-    # Only calculate progress if the student has any activities
-    if total_uploads > 0 or total_flashcards > 0 or total_quizzes > 0:
-        # Base progress on uploads, flashcards, and quizzes with more reasonable weighting
-        # Max points: 40 (uploads) + 30 (flashcards) + 30 (quizzes) = 100
-        upload_points = min(40, total_uploads * 10)  # Up to 40 points for uploads
-        flashcard_points = min(30, total_flashcards * 2)  # Up to 30 points for flashcards
-        quiz_points = min(30, total_quizzes * 10)  # Up to 30 points for quizzes
-        activity_score = upload_points + flashcard_points + quiz_points
-        progress_percentage = min(100, activity_score)
-    
-    # Calculate progress width as percentage
-    progress_width_percent = int(progress_percentage) if progress_percentage > 0 else 0
-    
-    conn.close()
-    
-    # Redirect to grade-specific dashboard if user has a grade
-    if user and user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
-        return redirect(url_for(f"grade_{user['grade']}_dashboard"))
-    else:
-        return render_template(
-            "student_dashboard.html",
-            name=user.get("name"),
-            uploads=uploads,
-            audio_file=audio_filename,
-            progress_percent=int(progress_percentage),
-            progress_width=progress_width_percent
-        )
+    filename = session.get("uploaded_file")
+    if not filename:
+        flash("No textbook uploaded.")
+        return redirect_to_dashboard(user)
+
+    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+
+    if not os.path.exists(filepath):
+        flash("File not found.")
+        return redirect_to_dashboard(user)
+
+    # Extract text
+    text = extract_text_hybrid(filepath)
+
+    if not text.strip():
+        flash("Could not extract text from PDF.")
+        return redirect_to_dashboard(user)
+
+    print("=== TEXT EXTRACTED ===")
+
+    # Limit text for TTS safety
+    text = text[:3000]
+
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        student_id = user["id"]
+        timestamp = int(time.time())
+        audio_filename = f"{student_id}_{timestamp}.mp3"
+
+        audio_folder = os.path.join("static", "narrations")
+        os.makedirs(audio_folder, exist_ok=True)
+
+        audio_path = os.path.join(audio_folder, audio_filename)
+
+        print("=== GENERATING AUDIO WITH OPENAI ===")
+
+        # Correct streaming TTS
+        with client.audio.speech.with_streaming_response.create(
+            model="tts-1",
+            voice="alloy",
+            input=text
+        ) as response:
+            response.stream_to_file(audio_path)
+
+        print("=== AUDIO FILE SAVED ===", audio_path)
+
+        session["audio_file"] = audio_filename
+        flash("Audio narration generated successfully!")
+
+    except Exception as e:
+        print("=== AUDIO ERROR ===")
+        print(str(e))
+        flash("Audio generation failed. Check terminal.")
+        return redirect_to_dashboard(user)
+
+    return redirect_to_dashboard(user)
 
 
 @app.route("/generate_summary", methods=["POST"])
@@ -848,7 +866,7 @@ def generate_summary():
 
     if not result:
         flash("⚠️ No textbook uploaded yet.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(session.get("user"))
 
     filename = result["filename"]
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
@@ -858,7 +876,7 @@ def generate_summary():
 
     if not text.strip():
         flash("⚠️ Could not extract text from PDF.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(session.get("user"))
 
     print("=== TEXT EXTRACTED SUCCESSFULLY ===")
 
@@ -888,168 +906,153 @@ def generate_summary():
         print("=== OPENAI ERROR ===")
         print(str(e))
         flash("⚠️ AI summary generation failed.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(session.get("user"))
 
-    # SAVE TO DATABASE
-    conn = get_db()
-    cur = conn.cursor()
+    # SAVE TO SESSION (NOT DATABASE)
+    session["latest_summary"] = summary
+    session["show_summary_once"] = True
 
-    cur.execute("""
-        INSERT INTO ai_summaries (student_id, filename, summary, created_at)
-        VALUES (?, ?, ?, ?)
-    """, (
-        user["id"],
-        filename,
-        summary,
-        datetime.now(timezone.utc).isoformat()
-    ))
+    print("=== SUMMARY STORED IN SESSION ===")
 
-    conn.commit()
-    conn.close()
-
-    print("=== SUMMARY INSERTED INTO DATABASE ===")
-
-    return redirect(url_for("grade_1_dashboard"))
+    # Redirect to correct grade dashboard
+    grade = session["user"].get("grade")
+    if grade in ["1", "2", "3", "4", "5"]:
+        return redirect(url_for(f"grade_{grade}_dashboard"))
+    else:
+        return redirect_to_dashboard(session.get("user"))
 
 @app.route("/translate_text", methods=["POST"])
 @login_required(role="student")
 def translate_text():
+    print("=== TRANSLATE ROUTE HIT ===")
+
+    user = session.get("user")
     filename = session.get("uploaded_file")
+
     if not filename:
         flash("No textbook uploaded yet.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(user)
 
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+
     if not os.path.exists(filepath):
         flash("File not found on server.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(user)
 
-    # --- Step 1: Extract text directly from PDF ---
-    text = ""
+    # ---------- Extract text ----------
     try:
-        pdf_reader = PdfReader(open(filepath, "rb"))
-        for page in pdf_reader.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text
+        text = extract_text_hybrid(filepath)
     except Exception as e:
-        flash(f"Error reading PDF: {str(e)}")
-        return redirect(url_for("grade_1_dashboard"))
-
-    # --- Step 2: Fallback to OCR if no text ---
-    if not text.strip():
-        flash("⚠️ No text found, using OCR...")
-        try:
-            doc = fitz.open(filepath)
-            ocr_text = []
-            for page_num in range(len(doc)):
-                pix = doc[page_num].get_pixmap()
-                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                ocr_result = pytesseract.image_to_string(img)
-                ocr_text.append(ocr_result if isinstance(ocr_result, str) else "")
-            text = "\n".join(ocr_text)
-        except Exception as e:
-            flash(f"⚠️ OCR failed: {str(e)}")
-            return redirect(url_for("grade_1_dashboard"))
+        print("TEXT EXTRACTION ERROR:", e)
+        flash("Unable to read PDF.")
+        return redirect_to_dashboard(user)
 
     if not text.strip():
-        flash("⚠️ Still no readable text found after OCR.")
-        return redirect(url_for("grade_1_dashboard"))
+        flash("No readable text found in PDF.")
+        return redirect_to_dashboard(user)
 
-    # --- Step 3: Prepare output file ---
-    os.makedirs("static/translations", exist_ok=True)
-    base = os.path.splitext(filename)[0]
-    hindi_file = f"{base}_hindi.pdf"
-    hindi_path = os.path.join("static/translations", hindi_file)
+    print("=== TEXT EXTRACTED ===")
 
-    # --- Step 4: Translation with OpenAI ---
+    # ---------- Translate with OpenAI ----------
     try:
-        # Translate to Hindi using OpenAI
-        prompt_hi = f"Translate the following English educational text into Hindi, keep it clear and natural and don't bold anything. No * please:\n\n{text}"
-        
-        response_hi = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt_hi}],
+        from openai import OpenAI
+        client = OpenAI()
+
+        prompt = f"""
+Translate the following educational text into **simple Hindi**.
+
+Rules:
+- Keep ALL content
+- Do NOT summarize
+- Do NOT remove examples
+- Keep paragraph structure same
+
+Text:
+{text[:15000]}
+"""
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
-            max_tokens=2000
         )
-        
-        print("OpenAI Hindi response:", response_hi.choices[0].message.content)  # DEBUG
-        hindi_text = response_hi.choices[0].message.content if response_hi and response_hi.choices[0].message.content else text
 
-        # --- Clean up OpenAI output ---
-        def clean_text(t):
-            t = re.sub(r"```(?:\w+)?", "", t)  # Remove markdown code blocks
-            t = t.replace("```", "")
-            t = t.strip()
-            return t
-
-        hindi_text = clean_text(hindi_text)
-
-        # --- Step 5: Save PDF with proper font ---
-        hindi_font_path = os.path.join(os.path.dirname(__file__), "NotoSansDevanagari-Regular.ttf")
-
-        if not os.path.exists(hindi_font_path):
-            flash("Hindi font file not found. Please add NotoSansDevanagari-Regular.ttf to your project folder.")
-            return redirect(url_for("grade_1_dashboard"))
-
-        text_to_pdf(hindi_text, hindi_path, hindi_font_path)
+        hindi_text = response.choices[0].message.content.strip()
+        print("=== HINDI GENERATED ===")
 
     except Exception as e:
-        flash(f"Error during translation: {str(e)}")
-        return redirect(url_for("grade_1_dashboard"))
+        print("OPENAI TRANSLATION ERROR:", e)
+        flash("Translation failed.")
+        return redirect_to_dashboard(user)
 
-    flash("✅ Hindi translation ready for download!")
+    # ---------- FONT HANDLING (ROBUST) ----------
+    hindi_font_path = os.path.join(
+        os.path.dirname(__file__),
+        "NotoSansDevanagari-Regular.ttf"
+    )
 
-    # --- Step 6: Refresh uploads list for dashboard ---
-    user = session.get("user")
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM uploads WHERE student_id = ?", (user["id"],))
-    uploads = cur.fetchall()
-    
-    # Calculate progress metrics
-    total_uploads = len(uploads)
-    
-    # Get flashcards count
-    cur.execute("SELECT COUNT(*) as count, SUM(num_flashcards) as total FROM flashcards WHERE student_id = ?", (user["id"],))
-    flashcard_data = cur.fetchone()
-    total_flashcards = flashcard_data["total"] or 0
-    
-    # Get quiz attempts
-    cur.execute("SELECT COUNT(*) as count, AVG(score) as avg_score FROM quiz_attempts WHERE student_id = ?", (user["id"],))
-    quiz_data = cur.fetchone()
-    total_quizzes = quiz_data["count"] or 0
-    
-    # Calculate progress percentage (weighted average of activities)
-    progress_percentage = 0
-    # Only calculate progress if the student has any activities
-    if total_uploads > 0 or total_flashcards > 0 or total_quizzes > 0:
-        # Base progress on uploads, flashcards, and quizzes with more reasonable weighting
-        # Max points: 40 (uploads) + 30 (flashcards) + 30 (quizzes) = 100
-        upload_points = min(40, total_uploads * 10)  # Up to 40 points for uploads
-        flashcard_points = min(30, total_flashcards * 2)  # Up to 30 points for flashcards
-        quiz_points = min(30, total_quizzes * 10)  # Up to 30 points for quizzes
-        activity_score = upload_points + flashcard_points + quiz_points
-        progress_percentage = min(100, activity_score)
-    
-    # Calculate progress width as percentage
-    progress_width_percent = int(progress_percentage) if progress_percentage > 0 else 0
-    
-    conn.close()
+    font_to_use = None
 
-    # Redirect to grade-specific dashboard if user has a grade
-    if user and user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
-        return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+    if os.path.exists(hindi_font_path):
+        print("Hindi font found:", hindi_font_path)
+        font_to_use = hindi_font_path
     else:
-        return render_template(
-            "student_dashboard.html",
-            name=user.get("name"),
-            uploads=uploads,
-            hindi_file=hindi_file,
-            progress_percent=int(progress_percentage),
-            progress_width=progress_width_percent
-        )
+        print("Hindi font NOT found → using default Helvetica")
+        font_to_use = None  # fallback
+
+    # ---------- CREATE PDF SAFELY ----------
+    try:
+        os.makedirs("static/translations", exist_ok=True)
+
+        base = os.path.splitext(filename)[0]
+        hindi_file = f"{base}_hindi.pdf"
+        hindi_path = os.path.join("static", "translations", hindi_file)
+
+        print("Saving Hindi PDF to:", hindi_path)
+
+        if not hindi_text.strip():
+            flash("Translation returned empty text.")
+            return redirect_to_dashboard(user)
+
+        # If font exists → use custom font
+        if font_to_use:
+            text_to_pdf(hindi_text, hindi_path, font_to_use)
+        else:
+            # Fallback simple PDF writer without custom font
+            from reportlab.pdfgen import canvas
+            from reportlab.lib.pagesizes import A4
+
+            c = canvas.Canvas(hindi_path, pagesize=A4)
+            width, height = A4
+
+            y = height - 50
+            for line in hindi_text.split("\n"):
+                c.drawString(50, y, line[:90])
+                y -= 15
+                if y < 50:
+                    c.showPage()
+                    y = height - 50
+
+            c.save()
+
+        if not os.path.exists(hindi_path):
+            flash("Failed to generate Hindi PDF.")
+            return redirect_to_dashboard(user)
+
+        print("=== HINDI PDF CREATED SUCCESSFULLY ===")
+
+    except Exception as e:
+        print("PDF SAVE ERROR:", e)
+        flash("Failed to create Hindi PDF.")
+        return redirect_to_dashboard(user)
+
+    # ---------- STORE IN SESSION ----------
+    session["hindi_file"] = hindi_file
+    session.modified = True
+
+    flash("Hindi translation ready for download!")
+
+    return redirect_to_dashboard(user)
 
 @app.route("/dyslexic_friendly", methods=["GET", "POST"])
 @login_required(role="student")
@@ -1061,22 +1064,31 @@ def dyslexic_friendly():
       (it makes the cookie too large).
     - Always re-read from the uploaded PDF whenever this view is hit.
     """
+    user = session.get("user")
+    
+    # Clear unrelated session outputs
+    session.pop("audio_file", None)
+    session.pop("ai_summary", None)
+    session.pop("show_summary_once", None)
+    session.pop("latest_summary", None)
+    session.pop("hindi_file", None)
+
     filename = session.get("uploaded_file")
     if not filename:
         flash("No textbook uploaded yet.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(user)
 
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     if not os.path.exists(filepath):
         flash("File not found on server.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(user)
 
     # Use the existing hybrid extractor (PyPDF2 + OCR fallback)
     raw_text = extract_text_hybrid(filepath)
 
     if not raw_text or not raw_text.strip():
         flash("⚠️ Still no readable text found, even after OCR.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(user)
 
     # Keep the text as plain text with newlines.
     # We will handle formatting and word-wrapping on the client.
@@ -1084,7 +1096,7 @@ def dyslexic_friendly():
 
     print("DEBUG dyslexic_friendly: text length sent to template =", len(clean_text))
 
-    return render_template("dyslexic_reader.html", text=clean_text)
+    return render_template("dyslexic_reader.html", text=clean_text, user=user)
 
 
 
@@ -1092,12 +1104,21 @@ def dyslexic_friendly():
 @login_required(role="student")
 def generate_flashcards():
     import json, re
+    user = session.get("user")
+    
+    # Clear unrelated session outputs
+    session.pop("audio_file", None)
+    session.pop("ai_summary", None)
+    session.pop("show_summary_once", None)
+    session.pop("latest_summary", None)
+    session.pop("hindi_file", None)
+
     filename = session.get("uploaded_file")
 
     # Validate filename BEFORE any DB operation
     if not filename:
         flash("No textbook uploaded yet.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(user)
 
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
@@ -1116,7 +1137,7 @@ def generate_flashcards():
     cur = conn.cursor()
     cur.execute(
         "DELETE FROM flashcards WHERE student_id = ? AND filename = ?",
-        (session["user"]["id"], filename)
+        (user["id"], filename)
     )
     conn.commit()
     conn.close()
@@ -1143,7 +1164,7 @@ def generate_flashcards():
             text = "\n".join(ocr_text)
         except:
             flash("⚠️ Unable to extract text from PDF.")
-            return redirect(url_for("grade_1_dashboard"))
+            return redirect_to_dashboard(user)
 
     # ------------------------
     # Generate flashcards (10) using OpenAI
@@ -1208,7 +1229,7 @@ def generate_flashcards():
         VALUES (?, ?, ?, ?, ?)
         """,
         (
-            session["user"]["id"],
+            user["id"],
             filename,
             len(flashcards),
             datetime.now(timezone.utc).isoformat(),
@@ -1226,7 +1247,7 @@ def generate_flashcards():
                 VALUES (?, ?, ?, ?)
                 """,
                 (
-                    session["user"]["id"],
+                    user["id"],
                     filename,
                     json.dumps(puzzle_data),
                     datetime.now(timezone.utc).isoformat()
@@ -1238,16 +1259,24 @@ def generate_flashcards():
     conn.commit()
     conn.close()
 
-    user = session.get("user")
     return render_template("flashcard.html", flashcards=flashcards, user=user)
 
 @app.route("/generate_quiz", methods=["POST"])
 @login_required(role="student")
 def generate_quiz():
+    user = session.get("user")
+    
+    # Clear unrelated session outputs
+    session.pop("audio_file", None)
+    session.pop("ai_summary", None)
+    session.pop("show_summary_once", None)
+    session.pop("latest_summary", None)
+    session.pop("hindi_file", None)
+
     filename = session.get("uploaded_file")
     if not filename:
         flash("No textbook uploaded yet.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(user)
 
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
@@ -1259,7 +1288,7 @@ def generate_quiz():
             text += page.extract_text() or ""
     except Exception as e:
         flash(f"Error reading PDF: {str(e)}")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(user)
 
     # Fallback to OCR 
     if not text.strip():
@@ -1274,11 +1303,11 @@ def generate_quiz():
             text = "\n".join(ocr_text)
         except Exception as e:
             flash(f"⚠️ OCR failed: {str(e)}")
-            return redirect(url_for("grade_1_dashboard"))
+            return redirect_to_dashboard(user)
 
     if not text.strip():
         flash("⚠️ Still no readable text found after OCR.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(user)
 
     # Generate quiz with OpenAI
     try:
@@ -1330,7 +1359,7 @@ def generate_quiz():
     session["quiz"] = quiz
     session["quiz_file"] = filename  
 
-    return render_template("quiz.html", quiz=quiz)
+    return render_template("quiz.html", quiz=quiz, user=user)
 
 @app.route("/submit_quiz", methods=["POST"])
 @login_required(role="student")
@@ -1338,7 +1367,7 @@ def submit_quiz():
     quiz = session.get("quiz")
     if not quiz:
         flash("No quiz found.")
-        return redirect(url_for("grade_1_dashboard"))
+        return redirect_to_dashboard(session.get("user"))
 
     score = 0
     results = []
@@ -1591,13 +1620,21 @@ def api_read_selected_text():
             timings.append({"word": w, "start": start, "end": end})
             cursor += dur
 
-        # Generate audio using pyttsx3 (blocking)
+        # Generate audio using OpenAI TTS
         try:
-            engine = pyttsx3.init()
-            engine.save_to_file(raw_text, audio_path)
-            engine.runAndWait()
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            with client.audio.speech.with_streaming_response.create(
+                model="tts-1",
+                voice="alloy",
+                input=raw_text[:4000]  # Limit text to 4000 characters
+            ) as response:
+                response.stream_to_file(audio_path)
         except Exception as e:
             return {"error": f"TTS failed: {str(e)}"}, 500
+
+        # Verify the file was created
+        if not os.path.exists(audio_path):
+            return {"error": "Audio file was not created properly."}, 500
 
         # Audio file is already saved by pyttsx3 above
         # timings array is already built above
@@ -1615,6 +1652,14 @@ def api_read_selected_text():
 @login_required(role="student")
 def games_dashboard():
     user = session.get("user")
+    
+    # Clear unrelated session outputs
+    session.pop("audio_file", None)
+    session.pop("ai_summary", None)
+    session.pop("show_summary_once", None)
+    session.pop("latest_summary", None)
+    session.pop("hindi_file", None)
+    
     return render_template("games_dashboard.html", name=user.get("name"), user=user)
 
 # Game Routes
@@ -2117,6 +2162,13 @@ def api_get_chapter_text():
 @login_required(role="student")
 def ai_tutor():
     user = session.get("user")
+    
+    # Clear unrelated session outputs
+    session.pop("audio_file", None)
+    session.pop("ai_summary", None)
+    session.pop("show_summary_once", None)
+    session.pop("latest_summary", None)
+    session.pop("hindi_file", None)
     
     # Get the last uploaded PDF for this student
     conn = get_db()

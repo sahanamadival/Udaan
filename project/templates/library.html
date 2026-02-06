@@ -194,7 +194,7 @@
           Back to Dashboard
         </a>
       {% else %}
-        <a href="{{ url_for('student_dashboard') }}" class="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white shadow-lg transition-all duration-300">
+        <a href="{% if user and user.grade and user.grade in ['1', '2', '3', '4', '5'] %}{{ url_for('grade_' + user.grade + '_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}" class="px-5 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white shadow-lg transition-all duration-300">
           Back to Dashboard
         </a>
       {% endif %}

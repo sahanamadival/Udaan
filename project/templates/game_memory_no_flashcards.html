@@ -136,7 +136,7 @@
                 <p class="text-gray-300 text-lg mb-8">
                   Please upload a textbook and generate flashcards before starting the Memory Game.
                 </p>
-                <a href="{{ url_for('student_dashboard') }}" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-full py-3 px-8 text-white font-medium transition-all hover:scale-105 inline-block">
+                <a href="{% if user and user.grade and user.grade in ['1', '2', '3', '4', '5'] %}{{ url_for('grade_' + user.grade + '_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-full py-3 px-8 text-white font-medium transition-all hover:scale-105 inline-block">
                     Go Back to Dashboard
                 </a>
             </div>
