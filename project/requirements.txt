@@ -5,7 +5,7 @@ pyttsx3
 openai>=1.0.0
 deep-translator
 reportlab
-googletrans==4.0.0-rc1
+# googletrans==4.0.0-rc1  # Removed as we switched from Gemini to OpenAI API
 pillow
 pdf2image
 pytesseract

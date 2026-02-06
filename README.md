@@ -3,7 +3,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-Backend-lightgrey?logo=flask&logoColor=black)
 ![SQLite](https://img.shields.io/badge/SQLite-DB-yellow?logo=sqlite&logoColor=white)
-![AI](https://img.shields.io/badge/AI-Gemini-red?logo=google&logoColor=white)
+![AI](https://img.shields.io/badge/AI-OpenAI-red?logo=openai&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
@@ -19,10 +19,10 @@ It leverages **AI** to provide summaries, translations, dyslexia-friendly readin
 ### 👩‍🎓 Student Dashboard
 - 📚 Upload textbooks (PDF/DOCX/TXT → text extraction + OCR fallback)
 - 🎧 Audio narration (TTS)
-- 🤖 AI-generated summaries (Gemini)
+- 🤖 AI-generated summaries (GPT)
 - 🌐 Translations: Hindi PDFs with **Noto fonts**
 - 📝 Dyslexia-friendly reader: adjustable spacing, overlays, in-page TTS
-- 🃏 Flashcards & MCQ quizzes powered by Gemini
+- 🃏 Flashcards & MCQ quizzes powered by GPT
 - 📖 Library of uploaded books
 
 ### 👨‍🏫 Teacher Dashboard
@@ -38,7 +38,7 @@ It leverages **AI** to provide summaries, translations, dyslexia-friendly readin
 
 ## 🛠️ Tech Stack
 - **Backend:** Python, Flask, SQLite  
-- **AI:** Google Generative AI (Gemini)  
+- **AI:** OpenAI API (GPT)  
 - **PDF/Image Handling:** PyPDF2, pdf2image, PyMuPDF (fitz), Pillow  
 - **OCR:** Tesseract (pytesseract)  
 - **PDF Generation:** reportlab  
@@ -84,7 +84,7 @@ pip install -r requirements.txt
 3️⃣ **Configure environment variables**
 Create a `.env` file in `project/`:
 ```env
-GEMINI_API_KEY=your_gemini_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 4️⃣ **Verify asset paths**
@@ -132,7 +132,7 @@ python app.py
 ## ⚠️ Troubleshooting
 - **Tesseract not found:** Update path in `app.py`, confirm `tesseract.exe` works in terminal
 - **pdf2image errors on Windows:** Install Poppler & add `bin` to PATH
-- **Gemini errors:** Verify `GEMINI_API_KEY` & network/proxy
+- **OpenAI errors:** Verify `OPENAI_API_KEY` & network/proxy
 - **Missing fonts:** Ensure `NotoSansDevanagari-Regular.ttf` exists
 
 ---

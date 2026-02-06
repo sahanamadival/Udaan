@@ -1,26 +1,26 @@
 import os
-import google.generativeai as genai
+from openai import OpenAI
 from dotenv import load_dotenv
 
 # Load .env file
 load_dotenv()
 
 # Get the API key from .env
-api_key = os.getenv("GEMINI_API_KEY")
+api_key = os.getenv("OPENAI_API_KEY")
 
-# Configure Gemini
+# Initialize OpenAI client
 if api_key and api_key.strip():
-    genai.configure(api_key=api_key)
-    print("INFO: Gemini API key loaded successfully")
+    client = OpenAI(api_key=api_key)
+    print("INFO: OpenAI API key loaded successfully")
 else:
-    print("WARNING: GEMINI_API_KEY not found in .env file.")
+    print("WARNING: OPENAI_API_KEY not found in .env file.")
     exit(1)
 
 # List available models
 try:
     print("Available models:")
-    for model in genai.list_models():
-        if 'generateContent' in model.supported_generation_methods:
-            print(f"- {model.name}")
+    models = client.models.list()
+    for model in models.data:
+        print(f"- {model.id}")
 except Exception as e:
     print(f"Error listing models: {e}")

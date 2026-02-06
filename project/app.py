@@ -133,57 +133,43 @@ def get_db():
     return conn
 
 def extract_labels_for_dragdrop(text):
-    # Try to use Gemini model with fallback
-    model = None
-    model_names = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"]
-    
-    for model_name in model_names:
-        try:
-            model = genai.GenerativeModel(model_name)
-            # Test if model works
-            test_response = model.generate_content("Hello, are you there?")
-            if test_response and hasattr(test_response, 'text'):
-                break
-            model = None
-        except Exception as e:
-            continue
-    
-    if model is None:
-        return {"error": "No compatible Gemini model found"}
-    
-    # Ask Gemini to generate diagram data
-    prompt = f"""
-    From the following chapter text, generate a simple educational diagram model with exactly 4–6 components.  
-    Return JSON with:  
-    {{
-      'diagram_title': '...',
-      'diagram_description': '...',
-      'components': [
-          {{ 'label': '...', 'x': number(0–800), 'y': number(0–400) }}
-      ]
-    }}  
-    IMPORTANT: coordinates must be reasonable and non-overlapping.
-    
-    Chapter text: {text}
-    """
-    
+    # Use OpenAI model to generate diagram data
     try:
-        # Generate response
-        response = model.generate_content(prompt)
+        # Ask OpenAI to generate diagram data
+        prompt = f"""
+        From the following chapter text, generate a simple educational diagram model with exactly 4–6 components.  
+        Return JSON with:  
+        {{
+          'diagram_title': '...',
+          'diagram_description': '...',
+          'components': [
+              {{ 'label': '...', 'x': number(0–800), 'y': number(0–400) }}
+          ]
+        }}  
+        IMPORTANT: coordinates must be reasonable and non-overlapping.
         
-        if not response or not hasattr(response, 'text'):
-            return {"error": "Failed to generate diagram data"}
+        Chapter text: {text}
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=500
+        )
+        
+        response_text = response.choices[0].message.content
         
         # Parse the JSON response
         import json
         import re
         
         # Extract JSON from response (in case there's extra text)
-        json_match = re.search(r'\{{.*\}}', response.text, re.DOTALL)
+        json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
         if not json_match:
             return {"error": "Invalid response format from AI"}
         
-        diagram_data = json.loads(json_match.group().replace("'", '"'))
+        diagram_data = json.loads(json_match.group())
         
         return diagram_data
     
@@ -712,7 +698,7 @@ def upload_textbook():
     if user and user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
         return redirect(url_for(f"grade_{user['grade']}_dashboard"))
     else:
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
 @app.route("/library")
 @login_required(role="student")
@@ -737,12 +723,12 @@ def audio_narration():
     filename = session.get("uploaded_file")
     if not filename:
         flash("No textbook uploaded yet.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     if not os.path.exists(filepath):
         flash("File not found on server.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     # extracting text directly 
     text = ""
@@ -752,7 +738,7 @@ def audio_narration():
             text += page.extract_text() or ""
     except Exception as e:
         flash(f"Error reading PDF: {str(e)}")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     # Fallback to OCR 
     if not text.strip():
@@ -767,11 +753,11 @@ def audio_narration():
             text = "\n".join(ocr_text)
         except Exception as e:
             flash(f"⚠️ OCR failed: {str(e)}")
-            return redirect(url_for("student_dashboard"))
+            return redirect(url_for("grade_1_dashboard"))
 
     if not text.strip():
         flash("⚠️ Still no readable text found after OCR.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     # Generate narration
     student_id = session["user"]["id"]
@@ -787,7 +773,7 @@ def audio_narration():
         engine.runAndWait()
     except Exception as e:
         flash(f"Error generating narration: {str(e)}")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     flash("🎧 Audio narration generated successfully!")
 
@@ -862,7 +848,7 @@ def generate_summary():
 
     if not result:
         flash("⚠️ No textbook uploaded yet.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     filename = result["filename"]
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
@@ -872,7 +858,7 @@ def generate_summary():
 
     if not text.strip():
         flash("⚠️ Could not extract text from PDF.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     print("=== TEXT EXTRACTED SUCCESSFULLY ===")
 
@@ -902,7 +888,7 @@ def generate_summary():
         print("=== OPENAI ERROR ===")
         print(str(e))
         flash("⚠️ AI summary generation failed.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     # SAVE TO DATABASE
     conn = get_db()
@@ -923,7 +909,7 @@ def generate_summary():
 
     print("=== SUMMARY INSERTED INTO DATABASE ===")
 
-    return redirect(url_for("student_dashboard"))
+    return redirect(url_for("grade_1_dashboard"))
 
 @app.route("/translate_text", methods=["POST"])
 @login_required(role="student")
@@ -931,12 +917,12 @@ def translate_text():
     filename = session.get("uploaded_file")
     if not filename:
         flash("No textbook uploaded yet.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     if not os.path.exists(filepath):
         flash("File not found on server.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     # --- Step 1: Extract text directly from PDF ---
     text = ""
@@ -948,7 +934,7 @@ def translate_text():
                 text += page_text
     except Exception as e:
         flash(f"Error reading PDF: {str(e)}")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     # --- Step 2: Fallback to OCR if no text ---
     if not text.strip():
@@ -964,11 +950,11 @@ def translate_text():
             text = "\n".join(ocr_text)
         except Exception as e:
             flash(f"⚠️ OCR failed: {str(e)}")
-            return redirect(url_for("student_dashboard"))
+            return redirect(url_for("grade_1_dashboard"))
 
     if not text.strip():
         flash("⚠️ Still no readable text found after OCR.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     # --- Step 3: Prepare output file ---
     os.makedirs("static/translations", exist_ok=True)
@@ -976,17 +962,22 @@ def translate_text():
     hindi_file = f"{base}_hindi.pdf"
     hindi_path = os.path.join("static/translations", hindi_file)
 
-    # --- Step 4: Translation with Gemini ---
+    # --- Step 4: Translation with OpenAI ---
     try:
-        model = genai.GenerativeModel("gemini-2.0-flash")
-
-        # Translate to Hindi
+        # Translate to Hindi using OpenAI
         prompt_hi = f"Translate the following English educational text into Hindi, keep it clear and natural and don't bold anything. No * please:\n\n{text}"
-        response_hi = model.generate_content(prompt_hi)
-        print("Gemini Hindi response:", response_hi.text)  # DEBUG
-        hindi_text = response_hi.text if response_hi and response_hi.text else text
+        
+        response_hi = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt_hi}],
+            temperature=0.3,
+            max_tokens=2000
+        )
+        
+        print("OpenAI Hindi response:", response_hi.choices[0].message.content)  # DEBUG
+        hindi_text = response_hi.choices[0].message.content if response_hi and response_hi.choices[0].message.content else text
 
-        # --- Clean up Gemini output ---
+        # --- Clean up OpenAI output ---
         def clean_text(t):
             t = re.sub(r"```(?:\w+)?", "", t)  # Remove markdown code blocks
             t = t.replace("```", "")
@@ -1000,13 +991,13 @@ def translate_text():
 
         if not os.path.exists(hindi_font_path):
             flash("Hindi font file not found. Please add NotoSansDevanagari-Regular.ttf to your project folder.")
-            return redirect(url_for("student_dashboard"))
+            return redirect(url_for("grade_1_dashboard"))
 
         text_to_pdf(hindi_text, hindi_path, hindi_font_path)
 
     except Exception as e:
         flash(f"Error during translation: {str(e)}")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     flash("✅ Hindi translation ready for download!")
 
@@ -1073,19 +1064,19 @@ def dyslexic_friendly():
     filename = session.get("uploaded_file")
     if not filename:
         flash("No textbook uploaded yet.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     if not os.path.exists(filepath):
         flash("File not found on server.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     # Use the existing hybrid extractor (PyPDF2 + OCR fallback)
     raw_text = extract_text_hybrid(filepath)
 
     if not raw_text or not raw_text.strip():
         flash("⚠️ Still no readable text found, even after OCR.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     # Keep the text as plain text with newlines.
     # We will handle formatting and word-wrapping on the client.
@@ -1106,7 +1097,7 @@ def generate_flashcards():
     # Validate filename BEFORE any DB operation
     if not filename:
         flash("No textbook uploaded yet.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
@@ -1152,7 +1143,7 @@ def generate_flashcards():
             text = "\n".join(ocr_text)
         except:
             flash("⚠️ Unable to extract text from PDF.")
-            return redirect(url_for("student_dashboard"))
+            return redirect(url_for("grade_1_dashboard"))
 
     # ------------------------
     # Generate flashcards (10) using OpenAI
@@ -1256,7 +1247,7 @@ def generate_quiz():
     filename = session.get("uploaded_file")
     if not filename:
         flash("No textbook uploaded yet.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
@@ -1268,7 +1259,7 @@ def generate_quiz():
             text += page.extract_text() or ""
     except Exception as e:
         flash(f"Error reading PDF: {str(e)}")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     # Fallback to OCR 
     if not text.strip():
@@ -1283,11 +1274,11 @@ def generate_quiz():
             text = "\n".join(ocr_text)
         except Exception as e:
             flash(f"⚠️ OCR failed: {str(e)}")
-            return redirect(url_for("student_dashboard"))
+            return redirect(url_for("grade_1_dashboard"))
 
     if not text.strip():
         flash("⚠️ Still no readable text found after OCR.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     # Generate quiz with OpenAI
     try:
@@ -1347,7 +1338,7 @@ def submit_quiz():
     quiz = session.get("quiz")
     if not quiz:
         flash("No quiz found.")
-        return redirect(url_for("student_dashboard"))
+        return redirect(url_for("grade_1_dashboard"))
 
     score = 0
     results = []
@@ -1805,26 +1796,7 @@ def api_dragdrop_generate():
         # Limit text to first 2000 characters to avoid token limits
         pdf_text = pdf_text[:2000]
         
-        # Try to use Gemini model with fallback
-        model = None
-        model_names = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"]
-        
-        for model_name in model_names:
-            try:
-                model = genai.GenerativeModel(model_name)
-                # Test if model works
-                test_response = model.generate_content("Hello, are you there?")
-                if test_response and hasattr(test_response, 'text'):
-                    break
-                model = None
-            except Exception as e:
-                continue
-        
-        if model is None:
-            conn.close()
-            return {"error": "No compatible Gemini model found"}, 500
-        
-        # Ask Gemini to generate diagram data
+        # Use OpenAI model to generate diagram data
         prompt = f"""
         Based on this textbook content, generate a simple educational diagram with labels.
         
@@ -1852,19 +1824,21 @@ def api_dragdrop_generate():
         - Return ONLY valid JSON, no extra text
         """
         
-        # Generate response
-        response = model.generate_content(prompt)
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=800
+        )
         
-        if not response or not hasattr(response, 'text'):
-            conn.close()
-            return {"error": "Failed to generate diagram data"}, 500
+        response_text = response.choices[0].message.content
         
         # Parse the JSON response
         import json
         import re
         
         # Extract JSON from response (in case there's extra text)
-        json_match = re.search(r'\{.*\}', response.text, re.DOTALL)
+        json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
         if not json_match:
             conn.close()
             return {"error": "Invalid response format from AI"}, 500
@@ -1947,24 +1921,7 @@ def get_story_chunk(chapter_text, user_choice=None):
     Else: Continue story based on user choice + return next choices
     """
     
-    # Try to use Gemini model with fallback
-    model = None
-    model_names = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"]
-    
-    for model_name in model_names:
-        try:
-            model = genai.GenerativeModel(model_name)
-            # Test if model works
-            test_response = model.generate_content("Hello, are you there?")
-            if test_response and hasattr(test_response, 'text'):
-                break
-            model = None
-        except Exception as e:
-            continue
-    
-    if model is None:
-        return {"error": "No compatible Gemini model found"}
-    
+    # Use OpenAI model to generate story
     # Build prompt based on whether this is the start or continuation
     if user_choice is None:
         # Generate story introduction
@@ -2008,20 +1965,24 @@ Requirements:
 """
     
     try:
-        # Generate response
-        response = model.generate_content(prompt)
+        # Generate response using OpenAI
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=500
+        )
         
-        if not response or not hasattr(response, 'text'):
-            return {"error": "Failed to generate story"}
+        response_text = response.choices[0].message.content
         
         # Parse the JSON response
         import json
         import re
         
         # Extract JSON from response (in case there's extra text)
-        json_match = re.search(r'\{.*\}', response.text, re.DOTALL)
+        json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
         if not json_match:
-            print(f"No JSON found in response: {response.text}")
+            print(f"No JSON found in response: {response_text}")
             return {"error": "Invalid response format from AI"}
         
         try:
@@ -2254,28 +2215,15 @@ Text: {text_to_explain}
         else:
             prompt = user_message
         
-        # Try to use Gemini model with fallback
-        model = None
-        model_names = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"]
+        # Use OpenAI model to generate response
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=500
+        )
         
-        for model_name in model_names:
-            try:
-                model = genai.GenerativeModel(model_name)
-                # Test if model works
-                test_response = model.generate_content("Hello, are you there?")
-                if test_response and hasattr(test_response, 'text'):
-                    break
-                model = None
-            except Exception as e:
-                continue
-        
-        if model is None:
-            return {"error": "No compatible Gemini model found"}, 500
-        
-        # Generate response
-        response = model.generate_content(prompt)
-        
-        if not response or not hasattr(response, 'text'):
+        if not response or not response.choices:
             return {"error": "Failed to generate response"}, 500
         
         # Save to database
@@ -2293,13 +2241,13 @@ Text: {text_to_explain}
         cur.execute("""
             INSERT INTO ai_tutor_sessions (student_id, role, message, timestamp)
             VALUES (?, ?, ?, ?)
-        """, (user_id, "assistant", response.text, datetime.now(timezone.utc).isoformat()))
+        """, (user_id, "assistant", response.choices[0].message.content, datetime.now(timezone.utc).isoformat()))
         
         conn.commit()
         conn.close()
         
         return {
-            "response": response.text,
+            "response": response.choices[0].message.content,
             "session_id": session_id
         }
     
@@ -2312,6 +2260,5 @@ Text: {text_to_explain}
 # ---------- Run ----------
 if __name__ == "__main__":
     init_db()
-    port = int(os.environ.get("PORT", 5000))  # Use PORT environment variable or default to 5000
+    port = int(os.environ.get("PORT", 5000))  
     app.run(host='0.0.0.0', port=port, debug=True)
-
