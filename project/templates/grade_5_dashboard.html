@@ -98,11 +98,154 @@
             </div>
         </div>
 
+        <!-- Upload Section -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <span>📤</span> Upload Your Textbook
+            </h3>
+            <div class="grid grid-cols-1 gap-4">
+                <form action="{{ url_for('upload_textbook') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+                    <div class="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center bg-gray-50 hover:bg-gray-100 transition-all relative"
+                         ondrop="handleDrop(event)" ondragover="event.preventDefault();" ondragenter="event.preventDefault();">
+                        <p class="mb-4"><strong>Upload PDF, DOCX, or TXT</strong> to get started with AI-powered learning features.</p>
+                        <div class="flex flex-col sm:flex-row gap-4 items-center justify-center">
+                            <input type="file" name="textbook" accept=".pdf,.docx,.txt" required class="bg-white border border-gray-300 rounded-xl p-3 w-full text-gray-700">
+                            <button type="submit" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-full py-3 px-6 text-white font-medium transition-all hover:scale-105">
+                                Upload Textbook
+                            </button>
+                        </div>
+                        <p class="mt-4 text-gray-500">Drag and drop your file here, or click to browse</p>
+                    </div>
+                </form>
+                {% if session.get('uploaded_file') %}
+                <div class="text-center text-gray-700"><strong>Current Textbook:</strong> {{ session['uploaded_file'] }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Learning Features -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <span>✨</span> Learning Features
+            </h3>
+            <p class="text-gray-600 mb-6">Explore powerful tools designed to enhance your learning experience.</p>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-pink-50 border border-pink-100 rounded-xl p-6 hover:scale-105 transition-transform duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <span>📚</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800">Library</h4>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Access your uploaded textbooks and study materials.</p>
+                    <a class="bg-pink-500 hover:bg-pink-600 rounded-full py-2 px-6 text-white font-medium text-sm transition-colors inline-block" href="{{ url_for('library') }}">Open Library</a>
+                </div>
+                
+                <div class="bg-pink-50 border border-pink-100 rounded-xl p-6 hover:scale-105 transition-transform duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                            <span>🎧</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800">Audio Narration</h4>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Listen to your textbooks with high-quality text-to-speech.</p>
+                    <form action="{{ url_for('audio_narration') }}" method="POST">
+                        <button type="submit" class="bg-pink-500 hover:bg-pink-600 rounded-full py-2 px-6 text-white font-medium text-sm transition-colors">Generate Audio</button>
+                    </form>
+                </div>
+                
+                <div class="bg-pink-50 border border-pink-100 rounded-xl p-6 hover:scale-105 transition-transform duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                            <span>✍️</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800">AI Summary</h4>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Get simplified summaries of complex topics.</p>
+                    <form action="{{ url_for('generate_summary') }}" method="POST">
+                        <button type="submit" class="bg-pink-500 hover:bg-pink-600 rounded-full py-2 px-6 text-white font-medium text-sm transition-colors">Generate Summary</button>
+                    </form>
+                </div>
+                
+                <div class="bg-pink-50 border border-pink-100 rounded-xl p-6 hover:scale-105 transition-transform duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                            <span>🌍</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800">Translation</h4>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Translate content to Hindi and other languages.</p>
+                    <form action="{{ url_for('translate_text') }}" method="POST">
+                        <button type="submit" class="bg-pink-500 hover:bg-pink-600 rounded-full py-2 px-6 text-white font-medium text-sm transition-colors">Translate Text</button>
+                    </form>
+                </div>
+                
+                <div class="bg-pink-50 border border-pink-100 rounded-xl p-6 hover:scale-105 transition-transform duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <span>🔤</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800">Dyslexic Reader</h4>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Special reading mode for learning disabilities.</p>
+                    <form action="{{ url_for('dyslexic_friendly') }}" method="POST">
+                        <button type="submit" class="bg-pink-500 hover:bg-pink-600 rounded-full py-2 px-6 text-white font-medium text-sm transition-colors">Open Reader</button>
+                    </form>
+                </div>
+                
+                <div class="bg-pink-50 border border-pink-100 rounded-xl p-6 hover:scale-105 transition-transform duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                            <span>🃏</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800">Flashcards</h4>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Auto-generated flashcards from your materials.</p>
+                    <form action="{{ url_for('generate_flashcards') }}" method="POST">
+                        <button type="submit" class="bg-pink-500 hover:bg-pink-600 rounded-full py-2 px-6 text-white font-medium text-sm transition-colors">Create Flashcards</button>
+                    </form>
+                </div>
+                
+                <div class="bg-pink-50 border border-pink-100 rounded-xl p-6 hover:scale-105 transition-transform duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center">
+                            <span>🧠</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800">Quizzes</h4>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Generate a quiz from your current textbook.</p>
+                    <form action="{{ url_for('generate_quiz') }}" method="POST">
+                        <button type="submit" class="bg-pink-500 hover:bg-pink-600 rounded-full py-2 px-6 text-white font-medium text-sm transition-colors">Start Quiz</button>
+                    </form>
+                </div>
+                
+                <div class="bg-pink-50 border border-pink-100 rounded-xl p-6 hover:scale-105 transition-transform duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                            <span>🤖</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800">AI Tutor</h4>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Get personalized help from your AI learning assistant.</p>
+                    <a href="{{ url_for('ai_tutor') }}" class="bg-purple-500 hover:bg-purple-600 rounded-full py-2 px-6 text-white font-medium text-sm transition-colors inline-block">Launch AI Tutor</a>
+                </div>
+                
+                <div class="bg-pink-50 border border-pink-100 rounded-xl p-6 hover:scale-105 transition-transform duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                            <span>🎮</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800">Learning Games</h4>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Fun and interactive games to reinforce your learning.</p>
+                    <a href="{{ url_for('games_dashboard') }}" class="bg-green-500 hover:bg-green-600 rounded-full py-2 px-6 text-white font-medium text-sm transition-colors inline-block">Play Games</a>
+                </div>
+            </div>
+        </div>
+
         <!-- Quick Actions -->
         <div class="text-center">
-            <a href="{{ url_for('student_dashboard') }}" class="inline-block bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-lg font-semibold mr-4 transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>Back to Main Dashboard
-            </a>
             <a href="{{ url_for('logout') }}" class="inline-block bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
                 <i class="fas fa-sign-out-alt mr-2"></i>Logout
             </a>

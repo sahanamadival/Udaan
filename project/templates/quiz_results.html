@@ -27,7 +27,7 @@
     </div>
   {% endfor %}
 
-  <a href="{{ url_for('student_dashboard') }}">⬅ Back to Dashboard</a>
+  <a href="{% if user and user.grade and user.grade in ['1', '2', '3', '4', '5'] %}{{ url_for('grade_' + user.grade + '_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}">⬅ Back to Dashboard</a>
 {% endblock %}
 
 {% block extra_js %}

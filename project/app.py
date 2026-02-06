@@ -572,7 +572,8 @@ def library():
         reverse=True
     )
 
-    return render_template("library.html", books=books)
+    user = session.get("user")
+    return render_template("library.html", books=books, user=user)
 
 
 @app.route("/audio_narration", methods=["POST"])
@@ -1194,7 +1195,8 @@ def generate_flashcards():
     conn.commit()
     conn.close()
 
-    return render_template("flashcard.html", flashcards=flashcards)
+    user = session.get("user")
+    return render_template("flashcard.html", flashcards=flashcards, user=user)
 
 @app.route("/generate_quiz", methods=["POST"])
 @login_required(role="student")
@@ -1330,7 +1332,8 @@ def submit_quiz():
     session.pop("quiz", None)
     session.pop("quiz_file", None)
 
-    return render_template("quiz_results.html", score=score, total=len(quiz), results=results)
+    user = session.get("user")
+    return render_template("quiz_results.html", score=score, total=len(quiz), results=results, user=user)
 
 # ---------- Teacher Dashboard ----------
 @app.route("/dashboard/teacher")
