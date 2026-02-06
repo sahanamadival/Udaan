@@ -370,13 +370,15 @@ def login_student():
             return redirect(request.url)
 
         if user["password_hash"] and check_password_hash(user["password_hash"], password):
+            session.clear()  # Clear any previous session data
             session["user"] = {"role": "student", "id": user["id"], "name": user["name"], "grade": user["grade"]}
-            # Redirect to grade-specific dashboard for grades 1-5
+            # Redirect to grade-specific dashboard for all grades
             if user["grade"] and user["grade"] in ["1", "2", "3", "4", "5"]:
                 return redirect(url_for(f"grade_{user['grade']}_dashboard"))
             else:
-                # For grades outside 1-5, redirect to general student dashboard
-                return redirect(url_for("student_dashboard"))
+                # For grades outside 1-5, redirect to general dashboard if needed
+                # Since we removed the general dashboard, redirect to grade 1 as default
+                return redirect(url_for("grade_1_dashboard"))
         else:
             flash("Incorrect password.")
             return redirect(request.url)
@@ -434,6 +436,7 @@ def login_teacher():
             return redirect(request.url)
 
         if user["password_hash"] and check_password_hash(user["password_hash"], password):
+            session.clear()  # Clear any previous session data
             session["user"] = {"role": "teacher", "id": user["id"], "name": user["name"]}
             return redirect(url_for("teacher_dashboard"))
         else:
@@ -442,51 +445,9 @@ def login_teacher():
     return render_template("login_teacher.html")
 
 # Student Dashboard 
-@app.route("/dashboard/student")
-@login_required(role="student")
-def student_dashboard():
-    user = session.get("user")
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM uploads WHERE student_id = ?", (user["id"],))
-    uploads = cur.fetchall()
-    
-    # Calculate progress metrics
-    total_uploads = len(uploads)
-    
-    # Get flashcards count
-    cur.execute("SELECT COUNT(*) as count, SUM(num_flashcards) as total FROM flashcards WHERE student_id = ?", (user["id"],))
-    flashcard_data = cur.fetchone()
-    total_flashcards = flashcard_data["total"] or 0
-    
-    # Get quiz attempts
-    cur.execute("SELECT COUNT(*) as count, AVG(score) as avg_score FROM quiz_attempts WHERE student_id = ?", (user["id"],))
-    quiz_data = cur.fetchone()
-    total_quizzes = quiz_data["count"] or 0
-    avg_quiz_score = quiz_data["avg_score"] or 0
-    
-    # Calculate progress percentage (weighted average of activities)
-    progress_percentage = 0
-    # Only calculate progress if the student has any activities
-    if total_uploads > 0 or total_flashcards > 0 or total_quizzes > 0:
-        # Base progress on uploads, flashcards, and quizzes with more reasonable weighting
-        # Max points: 40 (uploads) + 30 (flashcards) + 30 (quizzes) = 100
-        upload_points = min(40, total_uploads * 10)  # Up to 40 points for uploads
-        flashcard_points = min(30, total_flashcards * 2)  # Up to 30 points for flashcards
-        quiz_points = min(30, total_quizzes * 10)  # Up to 30 points for quizzes
-        activity_score = upload_points + flashcard_points + quiz_points
-        progress_percentage = min(100, activity_score)
-    
-    # Calculate progress width as percentage
-    progress_width_percent = int(progress_percentage) if progress_percentage > 0 else 0
-    
-    conn.close()
-    return render_template("student_dashboard.html", 
-                         name=user.get("name"), 
-                         uploads=uploads,
-                         progress_percent=int(progress_percentage),
-                         progress_width=progress_width_percent)
+# Old general student dashboard removed - using grade-specific dashboards instead
 
+# Grade-specific Dashboard Routes
 # Grade-specific Dashboard Routes
 @app.route("/dashboard/grade/1")
 @login_required(role="student")
@@ -494,7 +455,11 @@ def grade_1_dashboard():
     user = session.get("user")
     if user.get("grade") != "1":
         flash("Access denied. This dashboard is for Grade 1 students only.")
-        return redirect(url_for("student_dashboard"))
+        # Redirect user to their actual grade dashboard
+        if user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
+            return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+        else:
+            return redirect(url_for("grade_1_dashboard"))
     return render_template("grade_1_dashboard.html", user=user)
 
 @app.route("/dashboard/grade/2")
@@ -503,7 +468,11 @@ def grade_2_dashboard():
     user = session.get("user")
     if user.get("grade") != "2":
         flash("Access denied. This dashboard is for Grade 2 students only.")
-        return redirect(url_for("student_dashboard"))
+        # Redirect user to their actual grade dashboard
+        if user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
+            return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+        else:
+            return redirect(url_for("grade_2_dashboard"))
     return render_template("grade_2_dashboard.html", user=user)
 
 @app.route("/dashboard/grade/3")
@@ -512,7 +481,11 @@ def grade_3_dashboard():
     user = session.get("user")
     if user.get("grade") != "3":
         flash("Access denied. This dashboard is for Grade 3 students only.")
-        return redirect(url_for("student_dashboard"))
+        # Redirect user to their actual grade dashboard
+        if user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
+            return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+        else:
+            return redirect(url_for("grade_3_dashboard"))
     return render_template("grade_3_dashboard.html", user=user)
 
 @app.route("/dashboard/grade/4")
@@ -521,7 +494,11 @@ def grade_4_dashboard():
     user = session.get("user")
     if user.get("grade") != "4":
         flash("Access denied. This dashboard is for Grade 4 students only.")
-        return redirect(url_for("student_dashboard"))
+        # Redirect user to their actual grade dashboard
+        if user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
+            return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+        else:
+            return redirect(url_for("grade_4_dashboard"))
     return render_template("grade_4_dashboard.html", user=user)
 
 @app.route("/dashboard/grade/5")
@@ -530,7 +507,11 @@ def grade_5_dashboard():
     user = session.get("user")
     if user.get("grade") != "5":
         flash("Access denied. This dashboard is for Grade 5 students only.")
-        return redirect(url_for("student_dashboard"))
+        # Redirect user to their actual grade dashboard
+        if user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
+            return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+        else:
+            return redirect(url_for("grade_5_dashboard"))
     return render_template("grade_5_dashboard.html", user=user)
 
 @app.route("/upload_textbook", methods=["POST"])
@@ -538,11 +519,19 @@ def grade_5_dashboard():
 def upload_textbook():
     if "textbook" not in request.files:
         flash("No file selected.")
-        return redirect(url_for("student_dashboard"))
+        user = session.get("user")
+        if user and user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
+            return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+        else:
+            return redirect(url_for("grade_1_dashboard"))
     file = request.files["textbook"]
     if file.filename == "":
         flash("No file selected.")
-        return redirect(url_for("student_dashboard"))
+        user = session.get("user")
+        if user and user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
+            return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+        else:
+            return redirect(url_for("grade_1_dashboard"))
 
     filename = file.filename
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
@@ -557,7 +546,11 @@ def upload_textbook():
     conn.commit()
     conn.close()
     flash(f"Uploaded {filename} successfully ✅")
-    return redirect(url_for("student_dashboard"))
+    user = session.get("user")
+    if user and user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
+        return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+    else:
+        return redirect(url_for("student_dashboard"))
 
 @app.route("/library")
 @login_required(role="student")
@@ -672,14 +665,18 @@ def audio_narration():
     
     conn.close()
     
-    return render_template(
-        "student_dashboard.html",
-        name=user.get("name"),
-        uploads=uploads,
-        audio_file=audio_filename,
-        progress_percent=int(progress_percentage),
-        progress_width=progress_width_percent
-    )
+    # Redirect to grade-specific dashboard if user has a grade
+    if user and user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
+        return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+    else:
+        return render_template(
+            "student_dashboard.html",
+            name=user.get("name"),
+            uploads=uploads,
+            audio_file=audio_filename,
+            progress_percent=int(progress_percentage),
+            progress_width=progress_width_percent
+        )
 
 
 @app.route("/generate_summary", methods=["POST"])
@@ -891,15 +888,19 @@ def generate_summary():
     
     conn.close()
 
-    return render_template(
-        "student_dashboard.html",
-        name=user.get("name"),
-        uploads=uploads,
-        summary=summary,
-        audio_file=session.get("audio_file"),
-        progress_percent=int(progress_percentage),
-        progress_width=progress_width_percent
-    )
+    # Redirect to grade-specific dashboard if user has a grade
+    if user and user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
+        return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+    else:
+        return render_template(
+            "student_dashboard.html",
+            name=user.get("name"),
+            uploads=uploads,
+            summary=summary,
+            audio_file=session.get("audio_file"),
+            progress_percent=int(progress_percentage),
+            progress_width=progress_width_percent
+        )
 
 @app.route("/translate_text", methods=["POST"])
 @login_required(role="student")
@@ -1023,14 +1024,18 @@ def translate_text():
     
     conn.close()
 
-    return render_template(
-        "student_dashboard.html",
-        name=user.get("name"),
-        uploads=uploads,
-        hindi_file=hindi_file,
-        progress_percent=int(progress_percentage),
-        progress_width=progress_width_percent
-    )
+    # Redirect to grade-specific dashboard if user has a grade
+    if user and user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
+        return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+    else:
+        return render_template(
+            "student_dashboard.html",
+            name=user.get("name"),
+            uploads=uploads,
+            hindi_file=hindi_file,
+            progress_percent=int(progress_percentage),
+            progress_width=progress_width_percent
+        )
 
 @app.route("/dyslexic_friendly", methods=["GET", "POST"])
 @login_required(role="student")
@@ -2250,5 +2255,5 @@ Text: {text_to_explain}
 if __name__ == "__main__":
     init_db()
     port = int(os.environ.get("PORT", 5000))  # Use PORT environment variable or default to 5000
-    app.run(host='0.0.0.0', port=port, debug=False) 
-`n`ndef get_font_path(font_filename):`n    """Helper function to get the correct font path for both local and Render environments"""`n    # Try multiple possible locations for font files`n    possible_paths = [`n        os.path.join(os.path.dirname(__file__), font_filename),  # Same directory as app.py`n        os.path.join(os.path.dirname(__file__), 'static', 'fonts', font_filename),  # In static/fonts/`n        os.path.join(os.path.dirname(__file__), '..', 'static', 'fonts', font_filename),  # Parent static/fonts/`n        os.path.join(os.getcwd(), font_filename),  # Current working directory`n    ]`n    `n    for path in possible_paths:`n        path = os.path.normpath(path)  # Normalize path separators`n        if os.path.exists(path):`n            print(f'Found font at: {path}')`n            return path`n    `n    print(f'Font file {font_filename} not found in any expected location')`n    return None`n`ndef text_to_pdf(text, output_pdf, font_path, font_size=12):`n    print('Registering font:', font_path)  # Debug`n    # Use helper function to find the correct font path`n    actual_font_path = get_font_path(font_path)`n    if actual_font_path:`n        pdfmetrics.registerFont(TTFont('CustomFont', actual_font_path))`n        font_name = 'CustomFont'`n    else:`n        print('Using default font instead of custom font')`n        font_name = 'Helvetica'  # Default font that's always available`n`n    c = canvas.Canvas(output_pdf, pagesize=A4)`n    width, height = A4`n    left_margin = 50`n    top_margin = height - 50`n    bottom_margin = 50`n    line_height = font_size + 4  # Add a little spacing`n`n    textobject = c.beginText(left_margin, top_margin)`n    textobject.setFont(font_name, font_size)`n`n    for line in text.split('\\n'):`n        if textobject.getY() < bottom_margin:`n            c.drawText(textobject)`n            c.showPage()`n            textobject = c.beginText(left_margin, top_margin)`n            textobject.setFont(font_name, font_size)`n        textobject.textLine(line)`n    c.drawText(textobject)`n    c.save()
+    app.run(host='0.0.0.0', port=port, debug=False)
+
