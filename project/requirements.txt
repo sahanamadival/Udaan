@@ -11,3 +11,5 @@ pdf2image
 pytesseract
 PyMuPDF
 python-dotenv
+gunicorn
+fonttools 

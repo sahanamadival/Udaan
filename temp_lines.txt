@@ -1,0 +1,2250 @@
+1:from flask import Flask, render_template, request, redirect, url_for, flash, session
+2:import sqlite3
+3:import os
+4:from werkzeug.security import generate_password_hash, check_password_hash
+5:from datetime import datetime, timezone
+6:from functools import wraps
+7:import PyPDF2
+8:import pyttsx3
+9:import time
+10:import google.generativeai as genai
+11:from deep_translator import GoogleTranslator
+12:from reportlab.platypus import SimpleDocTemplate, Paragraph
+13:from reportlab.lib.styles import getSampleStyleSheet
+14:# from googletrans import Translator
+15:from reportlab.lib.pagesizes import A4
+16:from reportlab.pdfgen import canvas
+17:from reportlab.pdfbase.ttfonts import TTFont
+18:from reportlab.pdfbase import pdfmetrics
+19:from PyPDF2 import PdfReader
+20:import fitz 
+21:import pytesseract
+22:from PIL import Image
+23:import json
+24:import re
+25:from pdf2image import convert_from_path
+26:import pytesseract
+27:import os
+28:from dotenv import load_dotenv
+29:import google.generativeai as genai
+30:
+31:# Load .env file
+32:load_dotenv()
+33:
+34:
+35:# Get the API key from .env
+36:api_key = os.getenv("GEMINI_API_KEY")
+37:
+38:# Configure Gemini (only once)
+39:if api_key and api_key.strip():
+40:    genai.configure(api_key=api_key)
+41:    print("INFO: Gemini API key loaded successfully")
+42:else:
+43:    print("WARNING: GEMINI_API_KEY not found in .env file. AI features will not work.")
+44:
+45:pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+46:
+47:
+48:app = Flask(__name__)
+49:app.secret_key = "dev-secret-change-this"  
+50:DB = "database.db"
+51:books=[]
+52:
+53:BOOKS_FOLDER = os.path.join("static", "books")
+54:os.makedirs(BOOKS_FOLDER, exist_ok=True)
+55:
+56:UPLOAD_FOLDER = "uploads"
+57:AUDIO_FOLDER = "static/audio"
+58:os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+59:os.makedirs(AUDIO_FOLDER, exist_ok=True)
+60:
+61:app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+62:
+63:# Hybrid PDF Text Extraction
+64:def extract_text_hybrid(pdf_path):
+65:    """Try PyPDF2 first, if no text then fallback to OCR."""
+66:    text = ""
+67:    try:
+68:        pdf_reader = PyPDF2.PdfReader(open(pdf_path, "rb"))
+69:        for page in pdf_reader.pages:
+70:            text += page.extract_text() or ""
+71:    except Exception as e:
+72:        print("⚠️ Error reading with PyPDF2:", e)
+73:
+74:    if text.strip():
+75:        return text
+76:
+77:    # Fallback: OCR
+78:    print("⚠️ No text found, using OCR...")
+79:    try:
+80:        pages = convert_from_path(pdf_path)
+81:        for page in pages:
+82:            text += pytesseract.image_to_string(page)
+83:    except Exception as e:
+84:        print("⚠️ OCR failed:", e)
+85:
+86:    return text
+87:
+88:def text_to_pdf(text, output_pdf, font_path, font_size=12):
+89:    print("Registering font:", font_path)  # Debug
+90:    pdfmetrics.registerFont(TTFont("CustomFont", font_path))
+91:    c = canvas.Canvas(output_pdf, pagesize=A4)
+92:    width, height = A4
+93:    left_margin = 50
+94:    top_margin = height - 50
+95:    bottom_margin = 50
+96:    line_height = font_size + 4  # Add a little spacing
+97:
+98:    textobject = c.beginText(left_margin, top_margin)
+99:    textobject.setFont("CustomFont", font_size)
+100:
+101:    for line in text.split("\n"):
+102:        if textobject.getY() < bottom_margin:
+103:            c.drawText(textobject)
+104:            c.showPage()
+105:            textobject = c.beginText(left_margin, top_margin)
+106:            textobject.setFont("CustomFont", font_size)
+107:        textobject.textLine(line)
+108:    c.drawText(textobject)
+109:    c.save()
+110:
+111:# Translation 
+112:def translate_pdf_to_pdf(input_pdf, output_pdf, target_lang, font_path):
+113:    font_name = f"Font_{target_lang}"
+114:    pdfmetrics.registerFont(TTFont(font_name, font_path))
+115:    # translator = Translator()
+116:
+117:    with open(input_pdf, "rb") as book:
+118:        reader = PyPDF2.PdfReader(book)
+119:        c = canvas.Canvas(output_pdf, pagesize=A4)
+120:        width, height = A4
+121:
+122:        for num in range(len(reader.pages)):
+123:            text = reader.pages[num].extract_text()
+124:            if text:
+125:                # Skip translation since translator is not properly configured
+126:                translated = text
+127:                textobject = c.beginText(50, height - 50)
+128:                textobject.setFont(font_name, 12)
+129:
+130:                for line in translated.split("\n"):
+131:                    textobject.textLine(line)
+132:
+133:                c.drawText(textobject)
+134:                c.showPage()
+135:
+136:        c.save()
+137:
+138:# DB Setup 
+139:def get_db():
+140:    conn = sqlite3.connect(DB)
+141:    conn.row_factory = sqlite3.Row
+142:    return conn
+143:
+144:def extract_labels_for_dragdrop(text):
+145:    # Try to use Gemini model with fallback
+146:    model = None
+147:    model_names = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"]
+148:    
+149:    for model_name in model_names:
+150:        try:
+151:            model = genai.GenerativeModel(model_name)
+152:            # Test if model works
+153:            test_response = model.generate_content("Hello, are you there?")
+154:            if test_response and hasattr(test_response, 'text'):
+155:                break
+156:            model = None
+157:        except Exception as e:
+158:            continue
+159:    
+160:    if model is None:
+161:        return {"error": "No compatible Gemini model found"}
+162:    
+163:    # Ask Gemini to generate diagram data
+164:    prompt = f"""
+165:    From the following chapter text, generate a simple educational diagram model with exactly 4–6 components.  
+166:    Return JSON with:  
+167:    {{
+168:      'diagram_title': '...',
+169:      'diagram_description': '...',
+170:      'components': [
+171:          {{ 'label': '...', 'x': number(0–800), 'y': number(0–400) }}
+172:      ]
+173:    }}  
+174:    IMPORTANT: coordinates must be reasonable and non-overlapping.
+175:    
+176:    Chapter text: {text}
+177:    """
+178:    
+179:    try:
+180:        # Generate response
+181:        response = model.generate_content(prompt)
+182:        
+183:        if not response or not hasattr(response, 'text'):
+184:            return {"error": "Failed to generate diagram data"}
+185:        
+186:        # Parse the JSON response
+187:        import json
+188:        import re
+189:        
+190:        # Extract JSON from response (in case there's extra text)
+191:        json_match = re.search(r'\{{.*\}}', response.text, re.DOTALL)
+192:        if not json_match:
+193:            return {"error": "Invalid response format from AI"}
+194:        
+195:        diagram_data = json.loads(json_match.group().replace("'", '"'))
+196:        
+197:        return diagram_data
+198:    
+199:    except json.JSONDecodeError as e:
+200:        print(f"JSON decode error: {e}")
+201:        return {"error": "Invalid JSON response from AI"}
+202:    except Exception as e:
+203:        print(f"Error in extract_labels_for_dragdrop: {e}")
+204:        return {"error": str(e)}
+205:
+206:def init_db():
+207:    conn = get_db()
+208:    c = conn.cursor()
+209:
+210:    c.execute("""CREATE TABLE IF NOT EXISTS students (
+211:        id INTEGER PRIMARY KEY AUTOINCREMENT,
+212:        name TEXT NOT NULL,
+213:        age INTEGER,
+214:        grade TEXT,
+215:        accessibility TEXT,
+216:        email TEXT,
+217:        phone TEXT,
+218:        password_hash TEXT,
+219:        created_at TEXT
+220:    )""")
+221:    c.execute("""CREATE TABLE IF NOT EXISTS teachers (
+222:        id INTEGER PRIMARY KEY AUTOINCREMENT,
+223:        name TEXT NOT NULL,
+224:        email TEXT,
+225:        phone TEXT,
+226:        password_hash TEXT,
+227:        created_at TEXT
+228:    )""")
+229:    c.execute("""CREATE TABLE IF NOT EXISTS uploads (
+230:        id INTEGER PRIMARY KEY AUTOINCREMENT,
+231:        student_id INTEGER,
+232:        filename TEXT,
+233:        uploaded_at TEXT,
+234:        FOREIGN KEY(student_id) REFERENCES students(id)
+235:    )""")
+236:    
+237:    c.execute("""CREATE TABLE IF NOT EXISTS flashcards (
+238:        id INTEGER PRIMARY KEY AUTOINCREMENT,
+239:        student_id INTEGER,
+240:        filename TEXT,
+241:        num_flashcards INTEGER,
+242:        created_at TEXT,
+243:        data TEXT,
+244:        FOREIGN KEY(student_id) REFERENCES students(id)
+245:    )""")
+246:
+247:    c.execute("""CREATE TABLE IF NOT EXISTS quiz_attempts (
+248:        id INTEGER PRIMARY KEY AUTOINCREMENT,
+249:        student_id INTEGER,
+250:        quiz_id TEXT,
+251:        score INTEGER,
+252:        total INTEGER,
+253:        attempted_at TEXT,
+254:        FOREIGN KEY(student_id) REFERENCES students(id)
+255:    )""")
+256:    
+257:    # Create AI Tutor sessions table
+258:    c.execute("""CREATE TABLE IF NOT EXISTS ai_tutor_sessions (
+259:        id INTEGER PRIMARY KEY AUTOINCREMENT,
+260:        student_id INTEGER,
+261:        role TEXT,          -- 'user' or 'assistant'
+262:        message TEXT,
+263:        difficulty INTEGER DEFAULT 3,
+264:        timestamp TEXT,
+265:        FOREIGN KEY(student_id) REFERENCES students(id)
+266:    )""")
+267:    
+268:    # Create puzzle_data table for drag-and-drop game
+269:    c.execute("""CREATE TABLE IF NOT EXISTS puzzle_data (
+270:        id INTEGER PRIMARY KEY AUTOINCREMENT,
+271:        student_id INTEGER,
+272:        filename TEXT,
+273:        puzzle_json TEXT,
+274:        created_at TEXT,
+275:        FOREIGN KEY(student_id) REFERENCES students(id)
+276:    )""")
+277:    
+278:    conn.commit()
+279:    conn.close()
+280:
+281:
+282:def login_required(role=None):
+283:    def decorator(f):
+284:        @wraps(f)
+285:        def wrapped(*args, **kwargs):
+286:            user = session.get("user")
+287:            if not user:
+288:                flash("Please log in first.")
+289:                return redirect(url_for("index"))
+290:            if role and user.get("role") != role:
+291:                flash(f"Access restricted to {role}s only.")
+292:                return redirect(url_for("index"))
+293:            return f(*args, **kwargs)
+294:        return wrapped
+295:    return decorator
+296:
+297:@app.route("/")
+298:def index():
+299:    return render_template("index.html")
+300:
+301:@app.route("/student")
+302:def student_portal():
+303:    return render_template("student_portal.html")
+304:
+305:@app.route("/teacher")
+306:def teacher_portal():
+307:    return render_template("teacher_portal.html")
+308:
+309:@app.route("/role/<role>")
+310:def role_page(role):
+311:    role = role.lower()
+312:    if role not in ("student", "teacher"):
+313:        flash("Invalid role selected.")
+314:        return redirect(url_for("index"))
+315:    return render_template("auth_options.html", role=role)
+316:
+317:# Student signup/login 
+318:@app.route("/signup/student", methods=["GET", "POST"])
+319:def signup_student():
+320:    if request.method == "POST":
+321:        name = request.form.get("name", "").strip()
+322:        age = request.form.get("age") or None
+323:        grade = request.form.get("grade") or None
+324:        accessibility = request.form.get("accessibility") or None
+325:        email = request.form.get("email") or None
+326:        phone = request.form.get("phone") or None
+327:        password = request.form.get("password") or None
+328:
+329:        if not name:
+330:            flash("Name is required.")
+331:            return redirect(request.url)
+332:
+333:        conn = get_db()
+334:        cur = conn.cursor()
+335:        cur.execute("SELECT id FROM students WHERE name = ?", (name,))
+336:        if cur.fetchone():
+337:            flash("A student with that name already exists.")
+338:            conn.close()
+339:            return redirect(url_for("index"))
+340:
+341:        if not password:
+342:            flash("Password is required.")
+343:            conn.close()
+344:            return redirect(request.url)
+345:
+346:        password_hash = generate_password_hash(password)
+347:        cur.execute("""
+348:            INSERT INTO students (name, age, grade, accessibility, email, phone, password_hash, created_at)
+349:            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+350:        """, (name, age, grade, accessibility, email, phone, password_hash, datetime.now(timezone.utc).isoformat()))
+351:        conn.commit()
+352:        conn.close()
+353:        flash("Student signed up successfully. Please login.")
+354:        return redirect(url_for("index"))
+355:    return render_template("signup_student.html")
+356:
+357:@app.route("/login/student", methods=["GET", "POST"])
+358:def login_student():
+359:    if request.method == "POST":
+360:        name = request.form.get("name", "").strip()
+361:        password = request.form.get("password", "")
+362:        conn = get_db()
+363:        cur = conn.cursor()
+364:        cur.execute("SELECT * FROM students WHERE name = ?", (name,))
+365:        user = cur.fetchone()
+366:        conn.close()
+367:
+368:        if not user:
+369:            flash("Student not found. Please sign up.")
+370:            return redirect(request.url)
+371:
+372:        if user["password_hash"] and check_password_hash(user["password_hash"], password):
+373:            session["user"] = {"role": "student", "id": user["id"], "name": user["name"], "grade": user["grade"]}
+374:            # Redirect to grade-specific dashboard for grades 1-5
+375:            if user["grade"] and user["grade"] in ["1", "2", "3", "4", "5"]:
+376:                return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+377:            else:
+378:                # For grades outside 1-5, redirect to general student dashboard
+379:                return redirect(url_for("student_dashboard"))
+380:        else:
+381:            flash("Incorrect password.")
+382:            return redirect(request.url)
+383:    return render_template("login_student.html")
+384:
+385:# Teacher signup/login
+386:@app.route("/signup/teacher", methods=["GET", "POST"])
+387:def signup_teacher():
+388:    if request.method == "POST":
+389:        name = request.form.get("name", "").strip()
+390:        email = request.form.get("email") or None
+391:        phone = request.form.get("phone") or None
+392:        password = request.form.get("password") or None
+393:        if not name:
+394:            flash("Name is required.")
+395:            return redirect(request.url)
+396:
+397:        conn = get_db()
+398:        cur = conn.cursor()
+399:        cur.execute("SELECT id FROM teachers WHERE name = ?", (name,))
+400:        if cur.fetchone():
+401:            flash("A teacher/parent with that name already exists.")
+402:            conn.close()
+403:            return redirect(url_for("index"))
+404:
+405:        if not password:
+406:            flash("Password is required.")
+407:            conn.close()
+408:            return redirect(request.url)
+409:
+410:        password_hash = generate_password_hash(password)
+411:        cur.execute("""
+412:            INSERT INTO teachers (name, email, phone, password_hash, created_at)
+413:            VALUES (?, ?, ?, ?, ?)
+414:        """, (name, email, phone, password_hash, datetime.now(timezone.utc).isoformat()))
+415:        conn.commit()
+416:        conn.close()
+417:        flash("Teacher/Parent signed up successfully. Please login.")
+418:        return redirect(url_for("index"))
+419:    return render_template("signup_teacher.html")
+420:
+421:@app.route("/login/teacher", methods=["GET", "POST"])
+422:def login_teacher():
+423:    if request.method == "POST":
+424:        name = request.form.get("name", "").strip()
+425:        password = request.form.get("password", "")
+426:        conn = get_db()
+427:        cur = conn.cursor()
+428:        cur.execute("SELECT * FROM teachers WHERE name = ?", (name,))
+429:        user = cur.fetchone()
+430:        conn.close()
+431:
+432:        if not user:
+433:            flash("Teacher/Parent not found. Please sign up.")
+434:            return redirect(request.url)
+435:
+436:        if user["password_hash"] and check_password_hash(user["password_hash"], password):
+437:            session["user"] = {"role": "teacher", "id": user["id"], "name": user["name"]}
+438:            return redirect(url_for("teacher_dashboard"))
+439:        else:
+440:            flash("Incorrect password.")
+441:            return redirect(request.url)
+442:    return render_template("login_teacher.html")
+443:
+444:# Student Dashboard 
+445:@app.route("/dashboard/student")
+446:@login_required(role="student")
+447:def student_dashboard():
+448:    user = session.get("user")
+449:    conn = get_db()
+450:    cur = conn.cursor()
+451:    cur.execute("SELECT * FROM uploads WHERE student_id = ?", (user["id"],))
+452:    uploads = cur.fetchall()
+453:    
+454:    # Calculate progress metrics
+455:    total_uploads = len(uploads)
+456:    
+457:    # Get flashcards count
+458:    cur.execute("SELECT COUNT(*) as count, SUM(num_flashcards) as total FROM flashcards WHERE student_id = ?", (user["id"],))
+459:    flashcard_data = cur.fetchone()
+460:    total_flashcards = flashcard_data["total"] or 0
+461:    
+462:    # Get quiz attempts
+463:    cur.execute("SELECT COUNT(*) as count, AVG(score) as avg_score FROM quiz_attempts WHERE student_id = ?", (user["id"],))
+464:    quiz_data = cur.fetchone()
+465:    total_quizzes = quiz_data["count"] or 0
+466:    avg_quiz_score = quiz_data["avg_score"] or 0
+467:    
+468:    # Calculate progress percentage (weighted average of activities)
+469:    progress_percentage = 0
+470:    # Only calculate progress if the student has any activities
+471:    if total_uploads > 0 or total_flashcards > 0 or total_quizzes > 0:
+472:        # Base progress on uploads, flashcards, and quizzes with more reasonable weighting
+473:        # Max points: 40 (uploads) + 30 (flashcards) + 30 (quizzes) = 100
+474:        upload_points = min(40, total_uploads * 10)  # Up to 40 points for uploads
+475:        flashcard_points = min(30, total_flashcards * 2)  # Up to 30 points for flashcards
+476:        quiz_points = min(30, total_quizzes * 10)  # Up to 30 points for quizzes
+477:        activity_score = upload_points + flashcard_points + quiz_points
+478:        progress_percentage = min(100, activity_score)
+479:    
+480:    # Calculate progress width as percentage
+481:    progress_width_percent = int(progress_percentage) if progress_percentage > 0 else 0
+482:    
+483:    conn.close()
+484:    return render_template("student_dashboard.html", 
+485:                         name=user.get("name"), 
+486:                         uploads=uploads,
+487:                         progress_percent=int(progress_percentage),
+488:                         progress_width=progress_width_percent)
+489:
+490:# Grade-specific Dashboard Routes
+491:@app.route("/dashboard/grade/1")
+492:@login_required(role="student")
+493:def grade_1_dashboard():
+494:    user = session.get("user")
+495:    if user.get("grade") != "1":
+496:        flash("Access denied. This dashboard is for Grade 1 students only.")
+497:        return redirect(url_for("student_dashboard"))
+498:    return render_template("grade_1_dashboard.html", user=user)
+499:
+500:@app.route("/dashboard/grade/2")
+501:@login_required(role="student")
+502:def grade_2_dashboard():
+503:    user = session.get("user")
+504:    if user.get("grade") != "2":
+505:        flash("Access denied. This dashboard is for Grade 2 students only.")
+506:        return redirect(url_for("student_dashboard"))
+507:    return render_template("grade_2_dashboard.html", user=user)
+508:
+509:@app.route("/dashboard/grade/3")
+510:@login_required(role="student")
+511:def grade_3_dashboard():
+512:    user = session.get("user")
+513:    if user.get("grade") != "3":
+514:        flash("Access denied. This dashboard is for Grade 3 students only.")
+515:        return redirect(url_for("student_dashboard"))
+516:    return render_template("grade_3_dashboard.html", user=user)
+517:
+518:@app.route("/dashboard/grade/4")
+519:@login_required(role="student")
+520:def grade_4_dashboard():
+521:    user = session.get("user")
+522:    if user.get("grade") != "4":
+523:        flash("Access denied. This dashboard is for Grade 4 students only.")
+524:        return redirect(url_for("student_dashboard"))
+525:    return render_template("grade_4_dashboard.html", user=user)
+526:
+527:@app.route("/dashboard/grade/5")
+528:@login_required(role="student")
+529:def grade_5_dashboard():
+530:    user = session.get("user")
+531:    if user.get("grade") != "5":
+532:        flash("Access denied. This dashboard is for Grade 5 students only.")
+533:        return redirect(url_for("student_dashboard"))
+534:    return render_template("grade_5_dashboard.html", user=user)
+535:
+536:@app.route("/upload_textbook", methods=["POST"])
+537:@login_required(role="student")
+538:def upload_textbook():
+539:    if "textbook" not in request.files:
+540:        flash("No file selected.")
+541:        return redirect(url_for("student_dashboard"))
+542:    file = request.files["textbook"]
+543:    if file.filename == "":
+544:        flash("No file selected.")
+545:        return redirect(url_for("student_dashboard"))
+546:
+547:    filename = file.filename
+548:    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+549:    file.save(filepath)
+550:
+551:    session["uploaded_file"] = filename
+552:    user = session.get("user")
+553:    conn = get_db()
+554:    cur = conn.cursor()
+555:    cur.execute("INSERT INTO uploads (student_id, filename, uploaded_at) VALUES (?, ?, ?)",
+556:                (user["id"], filename, datetime.now(timezone.utc).isoformat()))
+557:    conn.commit()
+558:    conn.close()
+559:    flash(f"Uploaded {filename} successfully ✅")
+560:    return redirect(url_for("student_dashboard"))
+561:
+562:@app.route("/library")
+563:@login_required(role="student")
+564:def library():
+565:    books_folder = os.path.join(app.static_folder, "books")
+566:    if not os.path.exists(books_folder):
+567:        os.makedirs(books_folder)
+568:
+569:    books = sorted(
+570:        os.listdir(books_folder),
+571:        key=lambda x: os.path.getmtime(os.path.join(books_folder, x)),
+572:        reverse=True
+573:    )
+574:
+575:    return render_template("library.html", books=books)
+576:
+577:
+578:@app.route("/audio_narration", methods=["POST"])
+579:@login_required(role="student")
+580:def audio_narration():
+581:    filename = session.get("uploaded_file")
+582:    if not filename:
+583:        flash("No textbook uploaded yet.")
+584:        return redirect(url_for("student_dashboard"))
+585:
+586:    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+587:    if not os.path.exists(filepath):
+588:        flash("File not found on server.")
+589:        return redirect(url_for("student_dashboard"))
+590:
+591:    # extracting text directly 
+592:    text = ""
+593:    try:
+594:        pdf_reader = PdfReader(open(filepath, "rb"))
+595:        for page in pdf_reader.pages:
+596:            text += page.extract_text() or ""
+597:    except Exception as e:
+598:        flash(f"Error reading PDF: {str(e)}")
+599:        return redirect(url_for("student_dashboard"))
+600:
+601:    # Fallback to OCR 
+602:    if not text.strip():
+603:        flash("⚠️ No text found, using OCR...")
+604:        try:
+605:            doc = fitz.open(filepath)
+606:            ocr_text = []
+607:            for page_num in range(len(doc)):
+608:                pix = doc[page_num].get_pixmap()
+609:                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+610:                ocr_text.append(pytesseract.image_to_string(img))
+611:            text = "\n".join(ocr_text)
+612:        except Exception as e:
+613:            flash(f"⚠️ OCR failed: {str(e)}")
+614:            return redirect(url_for("student_dashboard"))
+615:
+616:    if not text.strip():
+617:        flash("⚠️ Still no readable text found after OCR.")
+618:        return redirect(url_for("student_dashboard"))
+619:
+620:    # Generate narration
+621:    student_id = session["user"]["id"]
+622:    timestamp = int(time.time())
+623:    audio_filename = f"{student_id}_{timestamp}.mp3"
+624:    audio_path = os.path.join("static/narrations", audio_filename)
+625:    os.makedirs("static/narrations", exist_ok=True)
+626:
+627:    # Convert text to speech
+628:    try:
+629:        engine = pyttsx3.init()
+630:        engine.save_to_file(text, audio_path)
+631:        engine.runAndWait()
+632:    except Exception as e:
+633:        flash(f"Error generating narration: {str(e)}")
+634:        return redirect(url_for("student_dashboard"))
+635:
+636:    flash("🎧 Audio narration generated successfully!")
+637:
+638:    user = session.get("user")
+639:    conn = get_db()
+640:    cur = conn.cursor()
+641:    cur.execute("SELECT * FROM uploads WHERE student_id = ?", (user["id"],))
+642:    uploads = cur.fetchall()
+643:
+644:    # Calculate progress metrics
+645:    total_uploads = len(uploads)
+646:    
+647:    # Get flashcards count
+648:    cur.execute("SELECT COUNT(*) as count, SUM(num_flashcards) as total FROM flashcards WHERE student_id = ?", (user["id"],))
+649:    flashcard_data = cur.fetchone()
+650:    total_flashcards = flashcard_data["total"] or 0
+651:    
+652:    # Get quiz attempts
+653:    cur.execute("SELECT COUNT(*) as count, AVG(score) as avg_score FROM quiz_attempts WHERE student_id = ?", (user["id"],))
+654:    quiz_data = cur.fetchone()
+655:    total_quizzes = quiz_data["count"] or 0
+656:    
+657:    # Calculate progress percentage (weighted average of activities)
+658:    progress_percentage = 0
+659:    # Only calculate progress if the student has any activities
+660:    if total_uploads > 0 or total_flashcards > 0 or total_quizzes > 0:
+661:        # Base progress on uploads, flashcards, and quizzes with more reasonable weighting
+662:        # Max points: 40 (uploads) + 30 (flashcards) + 30 (quizzes) = 100
+663:        upload_points = min(40, total_uploads * 10)  # Up to 40 points for uploads
+664:        flashcard_points = min(30, total_flashcards * 2)  # Up to 30 points for flashcards
+665:        quiz_points = min(30, total_quizzes * 10)  # Up to 30 points for quizzes
+666:        activity_score = upload_points + flashcard_points + quiz_points
+667:        progress_percentage = min(100, activity_score)
+668:    
+669:    # Calculate progress width as percentage
+670:    progress_width_percent = int(progress_percentage) if progress_percentage > 0 else 0
+671:    
+672:    conn.close()
+673:    
+674:    return render_template(
+675:        "student_dashboard.html",
+676:        name=user.get("name"),
+677:        uploads=uploads,
+678:        audio_file=audio_filename,
+679:        progress_percent=int(progress_percentage),
+680:        progress_width=progress_width_percent
+681:    )
+682:
+683:
+684:@app.route("/generate_summary", methods=["POST"])
+685:@login_required(role="student")
+686:def generate_summary():
+687:    print("DEBUG: Starting generate_summary function")
+688:    
+689:    # Debug: Check what's in the session
+690:    filename = session.get("uploaded_file")
+691:    print(f"DEBUG: Session uploaded_file = {filename}")
+692:    flash(f"Debug: Session uploaded_file = {filename}")
+693:    
+694:    if not filename:
+695:        # Try to get the most recent upload from database as fallback
+696:        user = session.get("user")
+697:        print(f"DEBUG: No file in session, checking database for user {user['id'] if user else 'None'}")
+698:        conn = get_db()
+699:        cur = conn.cursor()
+700:        cur.execute("SELECT filename FROM uploads WHERE student_id = ? ORDER BY uploaded_at DESC LIMIT 1", (user["id"],))
+701:        result = cur.fetchone()
+702:        conn.close()
+703:        
+704:        if result:
+705:            filename = result["filename"]
+706:            print(f"DEBUG: Found recent upload = {filename}")
+707:            flash(f"Fallback: Found recent upload = {filename}")
+708:        else:
+709:            print("DEBUG: No uploaded file found in session or database")
+710:            flash("No textbook uploaded yet.")
+711:            return redirect(url_for("student_dashboard"))
+712:
+713:    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+714:    print(f"DEBUG: Looking for file at {filepath}")
+715:    flash(f"Debug: Looking for file at {filepath}")
+716:    
+717:    if not os.path.exists(filepath):
+718:        print(f"DEBUG: File not found at {filepath}")
+719:        flash(f"File not found on server at {filepath}.")
+720:        return redirect(url_for("student_dashboard"))
+721:
+722:    # extracting text directly 
+723:    text = ""
+724:    try:
+725:        print(f"DEBUG: Attempting to read PDF file {filepath}")
+726:        pdf_reader = PdfReader(open(filepath, "rb"))
+727:        for page in pdf_reader.pages:
+728:            text += page.extract_text() or ""
+729:        print(f"DEBUG: Successfully read PDF, extracted {len(text)} characters")
+730:    except Exception as e:
+731:        print(f"DEBUG: Error reading PDF: {str(e)}")
+732:        flash(f"Error reading PDF: {str(e)}")
+733:        return redirect(url_for("student_dashboard"))
+734:
+735:    # Fallback to OCR 
+736:    if not text.strip():
+737:        print("DEBUG: No text found in PDF, attempting OCR")
+738:        flash("⚠️ No text found, using OCR...")
+739:        try:
+740:            doc = fitz.open(filepath)
+741:            ocr_text = []
+742:            for page_num in range(len(doc)):
+743:                pix = doc[page_num].get_pixmap()
+744:                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+745:                ocr_text.append(pytesseract.image_to_string(img))
+746:            text = "\n".join(ocr_text)
+747:            print(f"DEBUG: OCR completed, extracted {len(text)} characters")
+748:        except Exception as e:
+749:            print(f"DEBUG: OCR failed: {str(e)}")
+750:            flash(f"⚠️ OCR failed: {str(e)}")
+751:            return redirect(url_for("student_dashboard"))
+752:
+753:    if not text.strip():
+754:        print("DEBUG: Still no readable text found after OCR")
+755:        flash("⚠️ Still no readable text found after OCR.")
+756:        return redirect(url_for("student_dashboard"))
+757:
+758:    # Show text length for debugging
+759:    print(f"DEBUG: Final text length: {len(text)} characters")
+760:    flash(f"Extracted text length: {len(text)} characters")
+761:    
+762:    # Generate summary via Gemini 
+763:    flash("Generating summary... this may take a few seconds.")
+764:
+765:    try:
+766:        # Check if API key is configured
+767:        print(f"DEBUG: Checking API key - api_key = {'SET' if api_key and api_key.strip() else 'NOT SET'}")
+768:        if not api_key or not api_key.strip():
+769:            print("DEBUG: API key not configured")
+770:            flash("⚠️ Gemini API key is not configured. Please contact administrator.")
+771:            flash("To fix this, add your Gemini API key to the .env file in the project directory.")
+772:            return redirect(url_for("student_dashboard"))
+773:            
+774:        # Check if Gemini is configured
+775:        try:
+776:            print("DEBUG: Initializing Gemini model")
+777:            # Try different model names that are commonly available
+778:            model_names = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro", "models/gemini-2.0-flash", "models/gemini-1.5-flash", "models/gemini-pro"]
+779:            model = None
+780:            
+781:            for model_name in model_names:
+782:                try:
+783:                    model = genai.GenerativeModel(model_name)
+784:                    # Test if model works
+785:                    test_response = model.generate_content("Hello, are you there?")
+786:                    if test_response and hasattr(test_response, 'text'):
+787:                        print(f"DEBUG: Successfully initialized model {model_name}")
+788:                        flash(f"Using model: {model_name}")
+789:                        break
+790:                    model = None
+791:                except Exception as e:
+792:                    print(f"DEBUG: Model {model_name} not available: {str(e)}")
+793:                    continue
+794:                    
+795:            if model is None:
+796:                flash("⚠️ No compatible Gemini model found. Please check your API key and quota.")
+797:                return redirect(url_for("student_dashboard"))
+798:                
+799:        except Exception as e:
+800:            print(f"DEBUG: Failed to initialize Gemini API: {str(e)}")
+801:            flash("⚠️ Failed to initialize Gemini API. Please check your API key.")
+802:            return redirect(url_for("student_dashboard"))
+803:            
+804:        # Limit text to prevent token overflow
+805:        prompt = f"Please provide a simplified summary of the following textbook content. Keep it concise but informative:\n\n{text[:8000]}"
+806:        print(f"DEBUG: Sending prompt with {len(prompt)} characters to Gemini API")
+807:        
+808:        # Add debug info
+809:        flash(f"Sending prompt with {len(prompt)} characters to Gemini API")
+810:        
+811:        response = model.generate_content(prompt)
+812:        print(f"DEBUG: Received response from Gemini API")
+813:        
+814:        # Check if we got a response
+815:        if response is None:
+816:            print("DEBUG: No response received from Gemini API")
+817:            flash("⚠️ No response received from Gemini API.")
+818:            return redirect(url_for("student_dashboard"))
+819:            
+820:        if not hasattr(response, 'text'):
+821:            print(f"DEBUG: Response missing text attribute. Response type: {type(response)}")
+822:            # Check for safety ratings or other blocking issues
+823:            if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
+824:                print(f"DEBUG: Prompt blocked due to safety concerns: {response.prompt_feedback}")
+825:                flash(f"⚠️ Gemini API blocked the request due to safety concerns: {response.prompt_feedback}")
+826:                return redirect(url_for("student_dashboard"))
+827:                
+828:            if hasattr(response, 'candidates') and response.candidates:
+829:                for candidate in response.candidates:
+830:                    if hasattr(candidate, 'finish_reason') and candidate.finish_reason != "STOP":
+831:                        print(f"DEBUG: Generation stopped early. Reason: {candidate.finish_reason}")
+832:                        flash(f"⚠️ Gemini API stopped generation early. Reason: {candidate.finish_reason}")
+833:                        return redirect(url_for("student_dashboard"))
+834:                        
+835:            print("DEBUG: Unexpected response format from Gemini API")
+836:            flash("⚠️ Unexpected response format from Gemini API.")
+837:            return redirect(url_for("student_dashboard"))
+838:            
+839:        summary = response.text
+840:        print(f"DEBUG: Generated summary with {len(summary)} characters")
+841:        
+842:        # Check if summary is empty
+843:        if not summary.strip():
+844:            print("DEBUG: Generated summary was empty")
+845:            flash("⚠️ Generated summary was empty. Please try again.")
+846:            return redirect(url_for("student_dashboard"))
+847:            
+848:        flash(f"Successfully generated summary with {len(summary)} characters")
+849:        print(f"DEBUG: Successfully generated summary")
+850:        
+851:    except Exception as e:
+852:        print(f"DEBUG: Error generating summary: {str(e)}")
+853:        flash(f"Error generating summary: {str(e)}")
+854:        return redirect(url_for("student_dashboard"))
+855:
+856:    # Refresh uploads list for dashboard
+857:    user = session.get("user")
+858:    conn = get_db()
+859:    cur = conn.cursor()
+860:    cur.execute("SELECT * FROM uploads WHERE student_id = ?", (user["id"],))
+861:    uploads = cur.fetchall()
+862:    
+863:    # Calculate progress metrics
+864:    total_uploads = len(uploads)
+865:    
+866:    # Get flashcards count
+867:    cur.execute("SELECT COUNT(*) as count, SUM(num_flashcards) as total FROM flashcards WHERE student_id = ?", (user["id"],))
+868:    flashcard_data = cur.fetchone()
+869:    total_flashcards = flashcard_data["total"] or 0
+870:    
+871:    # Get quiz attempts
+872:    cur.execute("SELECT COUNT(*) as count, AVG(score) as avg_score FROM quiz_attempts WHERE student_id = ?", (user["id"],))
+873:    quiz_data = cur.fetchone()
+874:    total_quizzes = quiz_data["count"] or 0
+875:    
+876:    # Calculate progress percentage (weighted average of activities)
+877:    progress_percentage = 0
+878:    # Only calculate progress if the student has any activities
+879:    if total_uploads > 0 or total_flashcards > 0 or total_quizzes > 0:
+880:        # Base progress on uploads, flashcards, and quizzes with more reasonable weighting
+881:        # Max points: 40 (uploads) + 30 (flashcards) + 30 (quizzes) = 100
+882:        upload_points = min(40, total_uploads * 10)  # Up to 40 points for uploads
+883:        flashcard_points = min(30, total_flashcards * 2)  # Up to 30 points for flashcards
+884:        quiz_points = min(30, total_quizzes * 10)  # Up to 30 points for quizzes
+885:        activity_score = upload_points + flashcard_points + quiz_points
+886:        progress_percentage = min(100, activity_score)
+887:    
+888:    # Calculate progress width as percentage
+889:    progress_width_percent = int(progress_percentage) if progress_percentage > 0 else 0
+890:    
+891:    conn.close()
+892:
+893:    return render_template(
+894:        "student_dashboard.html",
+895:        name=user.get("name"),
+896:        uploads=uploads,
+897:        summary=summary,
+898:        audio_file=session.get("audio_file"),
+899:        progress_percent=int(progress_percentage),
+900:        progress_width=progress_width_percent
+901:    )
+902:
+903:@app.route("/translate_text", methods=["POST"])
+904:@login_required(role="student")
+905:def translate_text():
+906:    filename = session.get("uploaded_file")
+907:    if not filename:
+908:        flash("No textbook uploaded yet.")
+909:        return redirect(url_for("student_dashboard"))
+910:
+911:    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+912:    if not os.path.exists(filepath):
+913:        flash("File not found on server.")
+914:        return redirect(url_for("student_dashboard"))
+915:
+916:    # --- Step 1: Extract text directly from PDF ---
+917:    text = ""
+918:    try:
+919:        pdf_reader = PdfReader(open(filepath, "rb"))
+920:        for page in pdf_reader.pages:
+921:            page_text = page.extract_text()
+922:            if page_text:
+923:                text += page_text
+924:    except Exception as e:
+925:        flash(f"Error reading PDF: {str(e)}")
+926:        return redirect(url_for("student_dashboard"))
+927:
+928:    # --- Step 2: Fallback to OCR if no text ---
+929:    if not text.strip():
+930:        flash("⚠️ No text found, using OCR...")
+931:        try:
+932:            doc = fitz.open(filepath)
+933:            ocr_text = []
+934:            for page_num in range(len(doc)):
+935:                pix = doc[page_num].get_pixmap()
+936:                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+937:                ocr_result = pytesseract.image_to_string(img)
+938:                ocr_text.append(ocr_result if isinstance(ocr_result, str) else "")
+939:            text = "\n".join(ocr_text)
+940:        except Exception as e:
+941:            flash(f"⚠️ OCR failed: {str(e)}")
+942:            return redirect(url_for("student_dashboard"))
+943:
+944:    if not text.strip():
+945:        flash("⚠️ Still no readable text found after OCR.")
+946:        return redirect(url_for("student_dashboard"))
+947:
+948:    # --- Step 3: Prepare output file ---
+949:    os.makedirs("static/translations", exist_ok=True)
+950:    base = os.path.splitext(filename)[0]
+951:    hindi_file = f"{base}_hindi.pdf"
+952:    hindi_path = os.path.join("static/translations", hindi_file)
+953:
+954:    # --- Step 4: Translation with Gemini ---
+955:    try:
+956:        model = genai.GenerativeModel("gemini-2.0-flash")
+957:
+958:        # Translate to Hindi
+959:        prompt_hi = f"Translate the following English educational text into Hindi, keep it clear and natural and don't bold anything. No * please:\n\n{text}"
+960:        response_hi = model.generate_content(prompt_hi)
+961:        print("Gemini Hindi response:", response_hi.text)  # DEBUG
+962:        hindi_text = response_hi.text if response_hi and response_hi.text else text
+963:
+964:        # --- Clean up Gemini output ---
+965:        def clean_text(t):
+966:            t = re.sub(r"```(?:\w+)?", "", t)  # Remove markdown code blocks
+967:            t = t.replace("```", "")
+968:            t = t.strip()
+969:            return t
+970:
+971:        hindi_text = clean_text(hindi_text)
+972:
+973:        # --- Step 5: Save PDF with proper font ---
+974:        hindi_font_path = os.path.join(os.path.dirname(__file__), "NotoSansDevanagari-Regular.ttf")
+975:
+976:        if not os.path.exists(hindi_font_path):
+977:            flash("Hindi font file not found. Please add NotoSansDevanagari-Regular.ttf to your project folder.")
+978:            return redirect(url_for("student_dashboard"))
+979:
+980:        text_to_pdf(hindi_text, hindi_path, hindi_font_path)
+981:
+982:    except Exception as e:
+983:        flash(f"Error during translation: {str(e)}")
+984:        return redirect(url_for("student_dashboard"))
+985:
+986:    flash("✅ Hindi translation ready for download!")
+987:
+988:    # --- Step 6: Refresh uploads list for dashboard ---
+989:    user = session.get("user")
+990:    conn = get_db()
+991:    cur = conn.cursor()
+992:    cur.execute("SELECT * FROM uploads WHERE student_id = ?", (user["id"],))
+993:    uploads = cur.fetchall()
+994:    
+995:    # Calculate progress metrics
+996:    total_uploads = len(uploads)
+997:    
+998:    # Get flashcards count
+999:    cur.execute("SELECT COUNT(*) as count, SUM(num_flashcards) as total FROM flashcards WHERE student_id = ?", (user["id"],))
+1000:    flashcard_data = cur.fetchone()
+1001:    total_flashcards = flashcard_data["total"] or 0
+1002:    
+1003:    # Get quiz attempts
+1004:    cur.execute("SELECT COUNT(*) as count, AVG(score) as avg_score FROM quiz_attempts WHERE student_id = ?", (user["id"],))
+1005:    quiz_data = cur.fetchone()
+1006:    total_quizzes = quiz_data["count"] or 0
+1007:    
+1008:    # Calculate progress percentage (weighted average of activities)
+1009:    progress_percentage = 0
+1010:    # Only calculate progress if the student has any activities
+1011:    if total_uploads > 0 or total_flashcards > 0 or total_quizzes > 0:
+1012:        # Base progress on uploads, flashcards, and quizzes with more reasonable weighting
+1013:        # Max points: 40 (uploads) + 30 (flashcards) + 30 (quizzes) = 100
+1014:        upload_points = min(40, total_uploads * 10)  # Up to 40 points for uploads
+1015:        flashcard_points = min(30, total_flashcards * 2)  # Up to 30 points for flashcards
+1016:        quiz_points = min(30, total_quizzes * 10)  # Up to 30 points for quizzes
+1017:        activity_score = upload_points + flashcard_points + quiz_points
+1018:        progress_percentage = min(100, activity_score)
+1019:    
+1020:    # Calculate progress width as percentage
+1021:    progress_width_percent = int(progress_percentage) if progress_percentage > 0 else 0
+1022:    
+1023:    conn.close()
+1024:
+1025:    return render_template(
+1026:        "student_dashboard.html",
+1027:        name=user.get("name"),
+1028:        uploads=uploads,
+1029:        hindi_file=hindi_file,
+1030:        progress_percent=int(progress_percentage),
+1031:        progress_width=progress_width_percent
+1032:    )
+1033:
+1034:@app.route("/dyslexic_friendly", methods=["GET", "POST"])
+1035:@login_required(role="student")
+1036:def dyslexic_friendly():
+1037:    """
+1038:    Show a dyslexic-friendly reader for the currently uploaded PDF.
+1039:
+1040:    - Do NOT store the extracted text in the Flask session
+1041:      (it makes the cookie too large).
+1042:    - Always re-read from the uploaded PDF whenever this view is hit.
+1043:    """
+1044:    filename = session.get("uploaded_file")
+1045:    if not filename:
+1046:        flash("No textbook uploaded yet.")
+1047:        return redirect(url_for("student_dashboard"))
+1048:
+1049:    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+1050:    if not os.path.exists(filepath):
+1051:        flash("File not found on server.")
+1052:        return redirect(url_for("student_dashboard"))
+1053:
+1054:    # Use the existing hybrid extractor (PyPDF2 + OCR fallback)
+1055:    raw_text = extract_text_hybrid(filepath)
+1056:
+1057:    if not raw_text or not raw_text.strip():
+1058:        flash("⚠️ Still no readable text found, even after OCR.")
+1059:        return redirect(url_for("student_dashboard"))
+1060:
+1061:    # Keep the text as plain text with newlines.
+1062:    # We will handle formatting and word-wrapping on the client.
+1063:    clean_text = raw_text
+1064:
+1065:    print("DEBUG dyslexic_friendly: text length sent to template =", len(clean_text))
+1066:
+1067:    return render_template("dyslexic_reader.html", text=clean_text)
+1068:
+1069:
+1070:
+1071:@app.route("/generate_flashcards", methods=["POST"])
+1072:@login_required(role="student")
+1073:def generate_flashcards():
+1074:    import json, re
+1075:    filename = session.get("uploaded_file")
+1076:
+1077:    # Validate filename BEFORE any DB operation
+1078:    if not filename:
+1079:        flash("No textbook uploaded yet.")
+1080:        return redirect(url_for("student_dashboard"))
+1081:
+1082:    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+1083:
+1084:    # Ensure table column exists
+1085:    conn = get_db()
+1086:    cur = conn.cursor()
+1087:    cur.execute("PRAGMA table_info(flashcards)")
+1088:    cols = [c[1] for c in cur.fetchall()]
+1089:    if "data" not in cols:
+1090:        cur.execute("ALTER TABLE flashcards ADD COLUMN data TEXT")
+1091:        conn.commit()
+1092:    conn.close()
+1093:
+1094:    # Safely delete previous flashcards for this file + user
+1095:    conn = get_db()
+1096:    cur = conn.cursor()
+1097:    cur.execute(
+1098:        "DELETE FROM flashcards WHERE student_id = ? AND filename = ?",
+1099:        (session["user"]["id"], filename)
+1100:    )
+1101:    conn.commit()
+1102:    conn.close()
+1103:
+1104:    # ------------------------
+1105:    # Extract text from PDF
+1106:    # ------------------------
+1107:    text = ""
+1108:    try:
+1109:        pdf_reader = PdfReader(open(filepath, "rb"))
+1110:        for page in pdf_reader.pages:
+1111:            text += page.extract_text() or ""
+1112:    except:
+1113:        text = ""
+1114:
+1115:    if not text.strip():
+1116:        try:
+1117:            doc = fitz.open(filepath)
+1118:            ocr_text = []
+1119:            for page_num in range(len(doc)):
+1120:                pix = doc[page_num].get_pixmap()
+1121:                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+1122:                ocr_text.append(pytesseract.image_to_string(img))
+1123:            text = "\n".join(ocr_text)
+1124:        except:
+1125:            flash("⚠️ Unable to extract text from PDF.")
+1126:            return redirect(url_for("student_dashboard"))
+1127:
+1128:    # ------------------------
+1129:    # Generate flashcards (10)
+1130:    # ------------------------
+1131:    model = genai.GenerativeModel("gemini-2.0-flash")
+1132:
+1133:    prompt = (
+1134:        "Generate 10 flashcards from the following text. "
+1135:        "Return ONLY JSON array in this format: "
+1136:        "[{\"question\":\"...\", \"answer\":\"...\"}]\n\n"
+1137:        f"{text[:4000]}"
+1138:    )
+1139:
+1140:    try:
+1141:        resp = model.generate_content(prompt)
+1142:        raw = resp.text.strip()
+1143:        raw = re.sub(r"```(?:json)?", "", raw).replace("```", "").strip()
+1144:
+1145:        match = re.search(r"\[.*\]", raw, re.S)
+1146:        if not match:
+1147:            raise ValueError("No JSON array found.")
+1148:
+1149:        json_array = match.group()
+1150:        flashcards = json.loads(json_array)
+1151:
+1152:    except Exception as e:
+1153:        flash(f"Error generating flashcards: {str(e)}")
+1154:        return redirect(url_for("student_dashboard"))
+1155:
+1156:    # ------------------------
+1157:    # Save to SQLite
+1158:    # ------------------------
+1159:    conn = get_db()
+1160:    cur = conn.cursor()
+1161:    cur.execute(
+1162:        """
+1163:        INSERT INTO flashcards (student_id, filename, num_flashcards, created_at, data)
+1164:        VALUES (?, ?, ?, ?, ?)
+1165:        """,
+1166:        (
+1167:            session["user"]["id"],
+1168:            filename,
+1169:            len(flashcards),
+1170:            datetime.now(timezone.utc).isoformat(),
+1171:            json.dumps(flashcards)
+1172:        )
+1173:    )
+1174:    
+1175:    # Generate and save puzzle data for drag-and-drop game
+1176:    try:
+1177:        puzzle_data = extract_labels_for_dragdrop(text[:2000])
+1178:        if "error" not in puzzle_data:
+1179:            cur.execute(
+1180:                """
+1181:                INSERT INTO puzzle_data (student_id, filename, puzzle_json, created_at)
+1182:                VALUES (?, ?, ?, ?)
+1183:                """,
+1184:                (
+1185:                    session["user"]["id"],
+1186:                    filename,
+1187:                    json.dumps(puzzle_data),
+1188:                    datetime.now(timezone.utc).isoformat()
+1189:                )
+1190:            )
+1191:    except Exception as e:
+1192:        print(f"Error generating puzzle data: {e}")
+1193:    
+1194:    conn.commit()
+1195:    conn.close()
+1196:
+1197:    return render_template("flashcard.html", flashcards=flashcards)
+1198:
+1199:@app.route("/generate_quiz", methods=["POST"])
+1200:@login_required(role="student")
+1201:def generate_quiz():
+1202:    filename = session.get("uploaded_file")
+1203:    if not filename:
+1204:        flash("No textbook uploaded yet.")
+1205:        return redirect(url_for("student_dashboard"))
+1206:
+1207:    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+1208:
+1209:    # Extract text
+1210:    text = ""
+1211:    try:
+1212:        pdf_reader = PdfReader(open(filepath, "rb"))
+1213:        for page in pdf_reader.pages:
+1214:            text += page.extract_text() or ""
+1215:    except Exception as e:
+1216:        flash(f"Error reading PDF: {str(e)}")
+1217:        return redirect(url_for("student_dashboard"))
+1218:
+1219:    # Fallback to OCR 
+1220:    if not text.strip():
+1221:        flash("⚠️ No text found, using OCR...")
+1222:        try:
+1223:            doc = fitz.open(filepath)
+1224:            ocr_text = []
+1225:            for page_num in range(len(doc)):
+1226:                pix = doc[page_num].get_pixmap()
+1227:                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+1228:                ocr_text.append(pytesseract.image_to_string(img))
+1229:            text = "\n".join(ocr_text)
+1230:        except Exception as e:
+1231:            flash(f"⚠️ OCR failed: {str(e)}")
+1232:            return redirect(url_for("student_dashboard"))
+1233:
+1234:    if not text.strip():
+1235:        flash("⚠️ Still no readable text found after OCR.")
+1236:        return redirect(url_for("student_dashboard"))
+1237:
+1238:    # Generate quiz with Gemini 
+1239:    try:
+1240:        model = genai.GenerativeModel("gemini-2.0-flash")
+1241:        prompt = f"""
+1242:Create a multiple-choice quiz (MCQ) of 10 questionsfrom the following text.  
+1243:Make sure to cover all important concepts.  
+1244:
+1245:⚠️ Important formatting rules:  
+1246:- Each option **must** start with a letter and a dot, like "A. ...", "B. ...", "C. ...", "D. ...".  
+1247:- The "answer" field must contain only the **letter** ("A", "B", "C", or "D"), not the full text.  
+1248:
+1249:Strictly return valid JSON in this format:
+1250:
+1251:[
+1252:  {{
+1253:    "question": "What is ...?",
+1254:    "options": ["A. ...", "B. ...", "C. ...", "D. ..."],
+1255:    "answer": "B"
+1256:  }},
+1257:  ...
+1258:]
+1259:
+1260:Text:
+1261:{text[:6000]}
+1262:"""
+1263:
+1264:
+1265:        response = model.generate_content(prompt)
+1266:        raw = response.text.strip()
+1267:        raw = re.sub(r"```(?:json)?", "", raw).replace("```", "").strip()
+1268:        quiz = json.loads(raw)
+1269:
+1270:    except Exception as e:
+1271:        flash(f"Error generating quiz: {str(e)}")
+1272:        return redirect(url_for("student_dashboard"))
+1273:
+1274:    session["quiz"] = quiz
+1275:    session["quiz_file"] = filename  
+1276:
+1277:    return render_template("quiz.html", quiz=quiz)
+1278:
+1279:@app.route("/submit_quiz", methods=["POST"])
+1280:@login_required(role="student")
+1281:def submit_quiz():
+1282:    quiz = session.get("quiz")
+1283:    if not quiz:
+1284:        flash("No quiz found.")
+1285:        return redirect(url_for("student_dashboard"))
+1286:
+1287:    score = 0
+1288:    results = []
+1289:
+1290:    for i, q in enumerate(quiz, start=1):
+1291:        user_answer = (request.form.get(f"q{i}") or "").strip()
+1292:        user_letter = user_answer[0].upper() if user_answer else ""
+1293:        correct_letter = q["answer"].strip().upper()
+1294:
+1295:        is_correct = (user_letter == correct_letter)
+1296:
+1297:    # Find the full correct option text by matching the letter
+1298:        correct_full = next(
+1299:        (opt for opt in q["options"] if opt.strip().upper().startswith(correct_letter)),
+1300:        correct_letter  # fallback in case nothing matches
+1301:        )
+1302:
+1303:        if is_correct:
+1304:            score += 1
+1305:
+1306:        results.append({
+1307:        "question": q["question"],
+1308:        "your_answer": user_answer,    # full text user selected
+1309:        "correct_answer": correct_full, # full text correct option
+1310:        "is_correct": is_correct
+1311:        })
+1312:
+1313:
+1314:    quiz_id = f"{session.get('quiz_file')}_{int(time.time())}"  
+1315:    conn = get_db()
+1316:    cur = conn.cursor()
+1317:    cur.execute("""
+1318:        INSERT INTO quiz_attempts (student_id, quiz_id, score, total, attempted_at)
+1319:        VALUES (?, ?, ?, ?, ?)
+1320:    """, (
+1321:        session["user"]["id"],
+1322:        quiz_id,
+1323:        score,             
+1324:        len(quiz),        
+1325:        datetime.now(timezone.utc).isoformat()
+1326:    ))
+1327:    conn.commit()
+1328:    conn.close()
+1329:
+1330:    session.pop("quiz", None)
+1331:    session.pop("quiz_file", None)
+1332:
+1333:    return render_template("quiz_results.html", score=score, total=len(quiz), results=results)
+1334:
+1335:# ---------- Teacher Dashboard ----------
+1336:@app.route("/dashboard/teacher")
+1337:@login_required(role="teacher")
+1338:def teacher_dashboard():
+1339:    user = session.get("user")
+1340:    conn = get_db()
+1341:    cur = conn.cursor()
+1342:
+1343:    cur.execute("SELECT * FROM students ORDER BY datetime(created_at) DESC")
+1344:    students = cur.fetchall()
+1345:
+1346:    recent_students = []
+1347:    total_uploads = 0
+1348:    total_flashcards = 0
+1349:    total_quizzes = 0
+1350:    total_scores = 0
+1351:
+1352:    for student in students:
+1353:        sid = student["id"]
+1354:        cur.execute("SELECT COUNT(*) FROM uploads WHERE student_id = ?", (sid,))
+1355:        uploads_count = cur.fetchone()[0]
+1356:        total_uploads += uploads_count
+1357:
+1358:        cur.execute("SELECT COALESCE(SUM(num_flashcards), 0) FROM flashcards WHERE student_id = ?", (sid,))
+1359:        fc_sum = cur.fetchone()[0] or 0
+1360:        total_flashcards += fc_sum
+1361:
+1362:        cur.execute("SELECT score, total FROM quiz_attempts WHERE student_id = ?", (sid,))
+1363:        quizzes = cur.fetchall()
+1364:        q_count = len(quizzes)
+1365:        total_quizzes += q_count
+1366:        if q_count:
+1367:            total_scores += sum(q["score"] for q in quizzes) / sum(q["total"] for q in quizzes) if sum(q["total"] for q in quizzes) else 0
+1368:
+1369:        avg_score_pct = 0
+1370:        if q_count and sum(q["total"] for q in quizzes):
+1371:            avg_score_pct = round((sum(q["score"] for q in quizzes) / sum(q["total"] for q in quizzes)) * 100, 1)
+1372:
+1373:        activity_score = uploads_count + fc_sum + q_count
+1374:        recent_students.append({
+1375:            "id": sid,
+1376:            "name": student["name"],
+1377:            "grade": student["grade"] or "-",
+1378:            "uploads": uploads_count,
+1379:            "flashcards": fc_sum,
+1380:            "avg_score_pct": avg_score_pct,
+1381:            "activity": activity_score,
+1382:        })
+1383:
+1384:    # Sort by activity descending and keep top 6 for the dashboard list
+1385:    recent_students.sort(key=lambda s: s["activity"], reverse=True)
+1386:    recent_students = recent_students[:6]
+1387:
+1388:    num_students = len(students)
+1389:    class_avg_pct = 0
+1390:    if num_students and total_quizzes:
+1391:        class_avg_pct = round((total_scores / num_students) * 100, 1)
+1392:
+1393:    conn.close()
+1394:
+1395:    return render_template(
+1396:        "teacher_dashboard.html",
+1397:        name=user.get("name"),
+1398:        recent_students=recent_students,
+1399:        num_students=num_students,
+1400:        total_uploads=total_uploads,
+1401:        total_flashcards=total_flashcards,
+1402:        total_quizzes=total_quizzes,
+1403:        class_avg_pct=class_avg_pct,
+1404:    )
+1405:
+1406:
+1407:@app.route("/upload_books", methods=["GET", "POST"])
+1408:@login_required(role="teacher")
+1409:def upload_books():
+1410:    if request.method == "POST":
+1411:        if "book" not in request.files:
+1412:            flash("No file selected")
+1413:            return redirect(request.url)
+1414:        file = request.files["book"]
+1415:        if file.filename.endswith(".pdf"):
+1416:            filepath = os.path.join(BOOKS_FOLDER, file.filename)
+1417:            file.save(filepath)
+1418:            flash("Book uploaded successfully!")
+1419:            return redirect(url_for("upload_books"))
+1420:        else:
+1421:            flash("Only PDF files allowed!")
+1422:            return redirect(request.url)
+1423:
+1424:    all_books = sorted(
+1425:        [f for f in os.listdir(BOOKS_FOLDER) if f.lower().endswith(".pdf")],
+1426:        key=lambda x: os.path.getmtime(os.path.join(BOOKS_FOLDER, x)),
+1427:        reverse=True
+1428:    )
+1429:    return render_template("upload_books.html", books=all_books)
+1430:
+1431:
+1432:@app.route("/student_progress")
+1433:@login_required(role="teacher")
+1434:def student_progress():
+1435:    conn = get_db()
+1436:    cur = conn.cursor()
+1437:
+1438:    filter_id = request.args.get("student_id")
+1439:    if filter_id:
+1440:        cur.execute("SELECT * FROM students WHERE id = ?", (filter_id,))
+1441:    else:
+1442:        cur.execute("SELECT * FROM students")
+1443:    students = cur.fetchall()
+1444:
+1445:    progress_data = []
+1446:    for student in students:
+1447:        student_id = student["id"]
+1448:
+1449:        cur.execute("SELECT * FROM uploads WHERE student_id = ?", (student_id,))
+1450:        uploads = cur.fetchall()
+1451:        total_uploads = len(uploads)
+1452:
+1453:        cur.execute("SELECT * FROM flashcards WHERE student_id = ?", (student_id,))
+1454:        flashcards = cur.fetchall()
+1455:        total_flashcards = sum(f['num_flashcards'] for f in flashcards)
+1456:
+1457:        cur.execute("SELECT * FROM quiz_attempts WHERE student_id = ?", (student_id,))
+1458:        quizzes = cur.fetchall()
+1459:        total_quizzes = len(quizzes)
+1460:        avg_score = round(sum(q['score'] for q in quizzes) / total_quizzes, 2) if total_quizzes else 0
+1461:        completion_rate = f"{total_quizzes}/{total_uploads}" if total_uploads else "0/0"
+1462:
+1463:        num_audiobooks = len([u for u in uploads if u['filename'].endswith('.mp3')])
+1464:
+1465:        progress_data.append({
+1466:            "student": student,
+1467:            "uploads": uploads,
+1468:            "total_uploads": total_uploads,
+1469:            "flashcards": flashcards,
+1470:            "total_flashcards": total_flashcards,
+1471:            "quizzes": quizzes,
+1472:            "total_quizzes": total_quizzes,
+1473:            "avg_score": avg_score,
+1474:            "completion_rate": completion_rate,
+1475:            "num_audiobooks": num_audiobooks
+1476:        })
+1477:
+1478:    conn.close()
+1479:
+1480:    return render_template("student_progress.html", progress_data=progress_data, filter_id=filter_id)
+1481:
+1482:# ---------- Logout ----------
+1483:@app.route("/logout")
+1484:def logout():
+1485:    session.clear()
+1486:    flash("Logged out.")
+1487:    return redirect(url_for("index"))
+1488:
+1489:@app.route("/api/read-selected-text", methods=["POST"])
+1490:@login_required(role="student")
+1491:def api_read_selected_text():
+1492:    try:
+1493:        data = request.get_json(silent=True) or {}
+1494:        raw_text = (data.get("text") or "").strip()
+1495:        if not raw_text:
+1496:            return {"error": "No text provided"}, 400
+1497:
+1498:        # Generate audio file path
+1499:        student_id = session["user"]["id"]
+1500:        timestamp = int(time.time())
+1501:        os.makedirs("static/narrations", exist_ok=True)
+1502:        audio_filename = f"tts_{student_id}_{timestamp}.mp3"
+1503:        audio_path = os.path.join("static/narrations", audio_filename)
+1504:
+1505:        # Length-weighted timings with punctuation pause bonuses
+1506:        def word_weight(w: str) -> float:
+1507:            core = re.sub(r"^[^\w]+|[^\w]+$", "", w)
+1508:            base = max(1, len(core))
+1509:            bonus = 0.0
+1510:            if re.search(r"[\.!?]$", w):
+1511:                bonus += 3.0  # sentence end pause
+1512:            elif re.search(r"[,;:]$", w):
+1513:                bonus += 1.5  # clause pause
+1514:            return base + bonus
+1515:
+1516:        words = re.findall(r"\S+|\n", raw_text)
+1517:        # Filter out standalone newline tokens for audio timing, but we keep them
+1518:        # for paragraph gaps on the client.
+1519:        words = [w for w in words if w.strip()]
+1520:        if not words:
+1521:            return {"error": "No readable words found"}, 400
+1522:            
+1523:        weights = [word_weight(w) for w in words]
+1524:        total_weight = sum(weights) or len(words)
+1525:        # Approximate duration scales with total weight; client rescales to true duration
+1526:        approx_seconds = max(1.8, total_weight / 9.0)
+1527:        timings = [
+1528:        ]
+1529:        cursor = 0.0
+1530:        for w, wt in zip(words, weights):
+1531:            dur = (wt / total_weight) * approx_seconds
+1532:            start = round(cursor, 3)
+1533:            end = round(cursor + dur, 3)
+1534:            timings.append({"word": w, "start": start, "end": end})
+1535:            cursor += dur
+1536:
+1537:        # Generate audio using pyttsx3 (blocking)
+1538:        try:
+1539:            engine = pyttsx3.init()
+1540:            engine.save_to_file(raw_text, audio_path)
+1541:            engine.runAndWait()
+1542:        except Exception as e:
+1543:            return {"error": f"TTS failed: {str(e)}"}, 500
+1544:
+1545:        # Audio file is already saved by pyttsx3 above
+1546:        # timings array is already built above
+1547:
+1548:        return {
+1549:            "audio_url": url_for("static", filename=f"narrations/{audio_filename}"),
+1550:            "timings": timings,
+1551:        }, 200
+1552:
+1553:    except Exception as e:
+1554:        return {"error": str(e)}, 500
+1555:
+1556:# Game Dashboard Route
+1557:@app.route("/games")
+1558:@login_required(role="student")
+1559:def games_dashboard():
+1560:    user = session.get("user")
+1561:    return render_template("games_dashboard.html", name=user.get("name"), user=user)
+1562:
+1563:# Game Routes
+1564:@app.route("/game/memory")
+1565:@login_required(role="student")
+1566:def game_memory():
+1567:    user_id = session["user"]["id"]
+1568:
+1569:    conn = get_db()
+1570:    cur = conn.cursor()
+1571:    cur.execute(
+1572:        "SELECT data FROM flashcards WHERE student_id = ? ORDER BY created_at DESC LIMIT 1",
+1573:        (user_id,)
+1574:    )
+1575:    row = cur.fetchone()
+1576:    conn.close()
+1577:
+1578:    if not row or not row["data"]:
+1579:        return render_template("game_memory_no_flashcards.html")
+1580:
+1581:    import json
+1582:    flashcards = json.loads(row["data"])
+1583:
+1584:    if not flashcards:
+1585:        return render_template("game_memory_no_flashcards.html")
+1586:
+1587:    return render_template("game_memory.html", flashcards=flashcards)
+1588:
+1589:@app.route("/game/dragdrop")
+1590:@login_required(role="student")
+1591:def game_dragdrop():
+1592:    user_id = session["user"]["id"]
+1593:    
+1594:    # Get the last uploaded PDF for this student
+1595:    conn = get_db()
+1596:    cur = conn.cursor()
+1597:    cur.execute("SELECT filename FROM uploads WHERE student_id = ? ORDER BY uploaded_at DESC LIMIT 1", (user_id,))
+1598:    result = cur.fetchone()
+1599:    
+1600:    puzzle_data = None
+1601:    if result:
+1602:        filename = result["filename"]
+1603:        # Try to get puzzle data from puzzle_data table
+1604:        cur.execute("SELECT puzzle_json FROM puzzle_data WHERE student_id = ? AND filename = ? ORDER BY created_at DESC LIMIT 1", (user_id, filename))
+1605:        puzzle_result = cur.fetchone()
+1606:        
+1607:        if puzzle_result and puzzle_result["puzzle_json"]:
+1608:            import json
+1609:            puzzle_data = json.loads(puzzle_result["puzzle_json"])
+1610:    
+1611:    conn.close()
+1612:    
+1613:    return render_template("game_dragdrop.html", puzzle=puzzle_data)
+1614:
+1615:@app.route("/game/story")
+1616:@login_required(role="student")
+1617:def game_story():
+1618:    user = session.get("user")
+1619:    return render_template("game_story.html", name=user.get("name"), user=user)
+1620:
+1621:# Word Highlight Speed Game Routes
+1622:@app.route("/game/wordspeed")
+1623:@login_required(role="student")
+1624:def game_wordspeed():
+1625:    user = session.get("user")
+1626:    return render_template("game_word_speed.html", name=user.get("name"))
+1627:
+1628:@app.route("/api/get_sentence")
+1629:@login_required(role="student")
+1630:def api_get_sentence():
+1631:    user_id = session["user"]["id"]
+1632:    
+1633:    # Get the last uploaded PDF for this student
+1634:    conn = get_db()
+1635:    cur = conn.cursor()
+1636:    cur.execute("SELECT filename FROM uploads WHERE student_id = ? ORDER BY uploaded_at DESC LIMIT 1", (user_id,))
+1637:    result = cur.fetchone()
+1638:    
+1639:    if not result:
+1640:        conn.close()
+1641:        return {"error": "No uploaded files found"}, 404
+1642:    
+1643:    filename = result["filename"]
+1644:    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+1645:    
+1646:    if not os.path.exists(filepath):
+1647:        conn.close()
+1648:        return {"error": "File not found"}, 404
+1649:    
+1650:    try:
+1651:        # Extract text from PDF
+1652:        pdf_text = extract_text_hybrid(filepath)
+1653:        
+1654:        if not pdf_text.strip():
+1655:            conn.close()
+1656:            return {"error": "No text found in the uploaded file"}, 404
+1657:        
+1658:        # Split text into sentences
+1659:        import re
+1660:        sentences = re.split(r'[.!?]+', pdf_text)
+1661:        sentences = [s.strip() for s in sentences if s.strip()]
+1662:        
+1663:        if not sentences:
+1664:            conn.close()
+1665:            return {"error": "No valid sentences found"}, 404
+1666:        
+1667:        # Find a sentence with a repeated word
+1668:        import random
+1669:        max_attempts = min(50, len(sentences))
+1670:        selected_sentence = None
+1671:        target_word = None
+1672:        
+1673:        for _ in range(max_attempts):
+1674:            sentence = random.choice(sentences)
+1675:            words = sentence.lower().split()
+1676:            
+1677:            # Find words that appear at least twice
+1678:            word_count = {}
+1679:            for word in words:
+1680:                # Clean word (remove punctuation)
+1681:                clean_word = re.sub(r'[^\w]', '', word)
+1682:                if clean_word:
+1683:                    word_count[clean_word] = word_count.get(clean_word, 0) + 1
+1684:            
+1685:            # Check if any word appears at least twice
+1686:            repeated_words = [word for word, count in word_count.items() if count >= 2]
+1687:            
+1688:            if repeated_words:
+1689:                selected_sentence = sentence
+1690:                target_word = random.choice(repeated_words)
+1691:                break
+1692:        
+1693:        conn.close()
+1694:        
+1695:        if not selected_sentence or not target_word:
+1696:            return {"error": "Could not find a sentence with repeated words"}, 404
+1697:        
+1698:        return {
+1699:            "sentence": selected_sentence,
+1700:            "target": target_word
+1701:        }
+1702:    
+1703:    except Exception as e:
+1704:        conn.close()
+1705:        print(f"Error in get_sentence: {e}")
+1706:        return {"error": str(e)}, 500
+1707:
+1708:# Drag & Drop Labels Game Routes
+1709:@app.route("/api/dragdrop/generate")
+1710:@login_required(role="student")
+1711:def api_dragdrop_generate():
+1712:    user_id = session["user"]["id"]
+1713:    
+1714:    # Get the last uploaded PDF for this student
+1715:    conn = get_db()
+1716:    cur = conn.cursor()
+1717:    cur.execute("SELECT filename FROM uploads WHERE student_id = ? ORDER BY uploaded_at DESC LIMIT 1", (user_id,))
+1718:    result = cur.fetchone()
+1719:    
+1720:    if not result:
+1721:        conn.close()
+1722:        return {"error": "No uploaded files found"}, 404
+1723:    
+1724:    filename = result["filename"]
+1725:    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+1726:    
+1727:    if not os.path.exists(filepath):
+1728:        conn.close()
+1729:        return {"error": "File not found"}, 404
+1730:    
+1731:    try:
+1732:        # Extract text from PDF
+1733:        pdf_text = extract_text_hybrid(filepath)
+1734:        
+1735:        if not pdf_text.strip():
+1736:            conn.close()
+1737:            return {"error": "No text found in the uploaded file"}, 404
+1738:        
+1739:        # Limit text to first 2000 characters to avoid token limits
+1740:        pdf_text = pdf_text[:2000]
+1741:        
+1742:        # Try to use Gemini model with fallback
+1743:        model = None
+1744:        model_names = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"]
+1745:        
+1746:        for model_name in model_names:
+1747:            try:
+1748:                model = genai.GenerativeModel(model_name)
+1749:                # Test if model works
+1750:                test_response = model.generate_content("Hello, are you there?")
+1751:                if test_response and hasattr(test_response, 'text'):
+1752:                    break
+1753:                model = None
+1754:            except Exception as e:
+1755:                continue
+1756:        
+1757:        if model is None:
+1758:            conn.close()
+1759:            return {"error": "No compatible Gemini model found"}, 500
+1760:        
+1761:        # Ask Gemini to generate diagram data
+1762:        prompt = f"""
+1763:        Based on this textbook content, generate a simple educational diagram with labels.
+1764:        
+1765:        Textbook content: {pdf_text}
+1766:        
+1767:        Respond ONLY with valid JSON in this exact format:
+1768:        {{
+1769:          "title": "Diagram Title",
+1770:          "svg": "<svg>...</svg>",
+1771:          "labels": ["Label 1", "Label 2", "Label 3", "Label 4"],
+1772:          "positions": [
+1773:            {{"label": "Label 1", "x": 100, "y": 150}},
+1774:            {{"label": "Label 2", "x": 200, "y": 250}},
+1775:            {{"label": "Label 3", "x": 300, "y": 100}},
+1776:            {{"label": "Label 4", "x": 400, "y": 200}}
+1777:          ]
+1778:        }}
+1779:        
+1780:        Requirements:
+1781:        - Choose a concept relevant to the textbook content
+1782:        - Create a simple SVG diagram with basic shapes (circles, rectangles, lines)
+1783:        - Include 4-8 labels
+1784:        - Provide exact coordinates for label positions
+1785:        - Make the SVG approximately 500x400 pixels
+1786:        - Return ONLY valid JSON, no extra text
+1787:        """
+1788:        
+1789:        # Generate response
+1790:        response = model.generate_content(prompt)
+1791:        
+1792:        if not response or not hasattr(response, 'text'):
+1793:            conn.close()
+1794:            return {"error": "Failed to generate diagram data"}, 500
+1795:        
+1796:        # Parse the JSON response
+1797:        import json
+1798:        import re
+1799:        
+1800:        # Extract JSON from response (in case there's extra text)
+1801:        json_match = re.search(r'\{.*\}', response.text, re.DOTALL)
+1802:        if not json_match:
+1803:            conn.close()
+1804:            return {"error": "Invalid response format from AI"}, 500
+1805:        
+1806:        diagram_data = json.loads(json_match.group())
+1807:        
+1808:        conn.close()
+1809:        
+1810:        return diagram_data
+1811:    
+1812:    except json.JSONDecodeError as e:
+1813:        conn.close()
+1814:        print(f"JSON decode error: {e}")
+1815:        return {"error": "Invalid JSON response from AI"}, 500
+1816:    except Exception as e:
+1817:        conn.close()
+1818:        print(f"Error in dragdrop generate: {e}")
+1819:        return {"error": str(e)}, 500
+1820:
+1821:
+1822:# AI Story Adventure Game Routes
+1823:@app.route("/story/start", methods=["POST"])
+1824:@login_required(role="student")
+1825:def story_start():
+1826:    try:
+1827:        print("Story start endpoint called")
+1828:        data = request.get_json()
+1829:        chapter_text = data.get("chapter_text", "")
+1830:        print(f"Chapter text received: {chapter_text[:100]}...")
+1831:        
+1832:        # Store chapter_text in session for reuse
+1833:        session["story_chapter_text"] = chapter_text
+1834:        print("Chapter text stored in session")
+1835:        
+1836:        # Get story introduction
+1837:        story_data = get_story_chunk(chapter_text)
+1838:        print(f"Story data generated: {story_data}")
+1839:        return story_data
+1840:    except Exception as e:
+1841:        print(f"Story Start Error: {e}")
+1842:        import traceback
+1843:        traceback.print_exc()
+1844:        return {"error": str(e)}, 500
+1845:
+1846:
+1847:@app.route("/story/continue", methods=["POST"])
+1848:@login_required(role="student")
+1849:def story_continue():
+1850:    try:
+1851:        print("Story continue endpoint called")
+1852:        data = request.get_json()
+1853:        user_choice = data.get("choice", "")
+1854:        print(f"User choice received: {user_choice}")
+1855:        
+1856:        # Get chapter_text from session
+1857:        chapter_text = session.get("story_chapter_text", "")
+1858:        print(f"Chapter text from session: {chapter_text[:100]}...")
+1859:        
+1860:        if not chapter_text:
+1861:            print("No chapter text found in session")
+1862:            return {"error": "No chapter text found in session"}, 400
+1863:        
+1864:        # Continue story based on user choice
+1865:        story_data = get_story_chunk(chapter_text, user_choice)
+1866:        print(f"Story data generated: {story_data}")
+1867:        return story_data
+1868:    except Exception as e:
+1869:        print(f"Story Continue Error: {e}")
+1870:        import traceback
+1871:        traceback.print_exc()
+1872:        return {"error": str(e)}, 500
+1873:
+1874:
+1875:# AI Story Generator Function
+1876:def get_story_chunk(chapter_text, user_choice=None):
+1877:    """
+1878:    Generate a story chunk based on chapter text and user choice.
+1879:    
+1880:    If user_choice is None: Generate story introduction + 2–3 choices
+1881:    Else: Continue story based on user choice + return next choices
+1882:    """
+1883:    
+1884:    # Try to use Gemini model with fallback
+1885:    model = None
+1886:    model_names = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"]
+1887:    
+1888:    for model_name in model_names:
+1889:        try:
+1890:            model = genai.GenerativeModel(model_name)
+1891:            # Test if model works
+1892:            test_response = model.generate_content("Hello, are you there?")
+1893:            if test_response and hasattr(test_response, 'text'):
+1894:                break
+1895:            model = None
+1896:        except Exception as e:
+1897:            continue
+1898:    
+1899:    if model is None:
+1900:        return {"error": "No compatible Gemini model found"}
+1901:    
+1902:    # Build prompt based on whether this is the start or continuation
+1903:    if user_choice is None:
+1904:        # Generate story introduction
+1905:        prompt = f"""
+1906:You are an educational story generator.  
+1907:Create a fun, interactive 'choose your own adventure' style story  
+1908:based ONLY on the chapter text provided.
+1909:
+1910:Requirements:
+1911:- Keep story simple, engaging, educational.
+1912:- Make the student part of the story.
+1913:- After each story chunk, ALWAYS give 2–3 choices.
+1914:- Return ONLY valid JSON (no extra text) in this exact format:
+1915:
+1916:{{
+1917:  "story": "story paragraph here",
+1918:  "choices": ["choice 1", "choice 2", "choice 3"]
+1919:}}
+1920:
+1921:Chapter text: {chapter_text}
+1922:"""
+1923:    else:
+1924:        # Continue story based on user choice
+1925:        prompt = f"""
+1926:You are an educational story generator.  
+1927:Continue the 'choose your own adventure' style story based on the user's choice.
+1928:
+1929:Previous chapter text: {chapter_text}
+1930:User's choice: {user_choice}
+1931:
+1932:Requirements:
+1933:- Keep story simple, engaging, educational.
+1934:- Make the student part of the story.
+1935:- After each story chunk, ALWAYS give 2–3 choices.
+1936:- Return ONLY valid JSON (no extra text) in this exact format:
+1937:
+1938:{{
+1939:  "story": "story paragraph here",
+1940:  "choices": ["choice 1", "choice 2", "choice 3"]
+1941:}}
+1942:"""
+1943:    
+1944:    try:
+1945:        # Generate response
+1946:        response = model.generate_content(prompt)
+1947:        
+1948:        if not response or not hasattr(response, 'text'):
+1949:            return {"error": "Failed to generate story"}
+1950:        
+1951:        # Parse the JSON response
+1952:        import json
+1953:        import re
+1954:        
+1955:        # Extract JSON from response (in case there's extra text)
+1956:        json_match = re.search(r'\{.*\}', response.text, re.DOTALL)
+1957:        if not json_match:
+1958:            print(f"No JSON found in response: {response.text}")
+1959:            return {"error": "Invalid response format from AI"}
+1960:        
+1961:        try:
+1962:            story_data = json.loads(json_match.group())
+1963:            # Ensure we have the required fields
+1964:            if 'story' not in story_data or 'choices' not in story_data:
+1965:                print(f"Missing required fields in story data: {story_data}")
+1966:                return {"error": "Invalid story format from AI"}
+1967:            # Ensure story is a string
+1968:            if not isinstance(story_data['story'], str):
+1969:                print(f"Story is not a string: {story_data}")
+1970:                return {"error": "Invalid story format from AI"}
+1971:            # Limit story length to prevent overly long responses
+1972:            if len(story_data['story']) > 1000:
+1973:                story_data['story'] = story_data['story'][:1000] + "..."
+1974:                print("Limited story length to 1000 characters")
+1975:            # Ensure choices is a list
+1976:            if not isinstance(story_data['choices'], list):
+1977:                print(f"Choices is not a list: {story_data}")
+1978:                return {"error": "Invalid story format from AI"}
+1979:            # If choices is empty, it's the end of the story
+1980:            if len(story_data['choices']) == 0:
+1981:                print("Story has reached the end (empty choices)")
+1982:            # Limit choices to maximum 3
+1983:            if len(story_data['choices']) > 3:
+1984:                story_data['choices'] = story_data['choices'][:3]
+1985:                print(f"Limited choices to 3: {story_data['choices']}")
+1986:            # Ensure all choices are strings
+1987:            for i, choice in enumerate(story_data['choices']):
+1988:                if not isinstance(choice, str):
+1989:                    print(f"Choice {i} is not a string: {choice}")
+1990:                    return {"error": "Invalid story format from AI"}
+1991:            return story_data
+1992:        except json.JSONDecodeError as e:
+1993:            print(f"JSON decode error: {e}")
+1994:            print(f"Response text: {response.text}")
+1995:            # Try to fix common JSON issues
+1996:            try:
+1997:                fixed_json = json_match.group().replace("'", '"')
+1998:                story_data = json.loads(fixed_json)
+1999:                # Ensure we have the required fields
+2000:                if 'story' not in story_data or 'choices' not in story_data:
+2001:                    print(f"Missing required fields in fixed story data: {story_data}")
+2002:                    return {"error": "Invalid story format from AI"}
+2003:                # Ensure story is a string
+2004:                if not isinstance(story_data['story'], str):
+2005:                    print(f"Story is not a string: {story_data}")
+2006:                    return {"error": "Invalid story format from AI"}
+2007:                # Limit story length to prevent overly long responses
+2008:                if len(story_data['story']) > 1000:
+2009:                    story_data['story'] = story_data['story'][:1000] + "..."
+2010:                    print("Limited story length to 1000 characters")
+2011:                # Ensure choices is a list
+2012:                if not isinstance(story_data['choices'], list):
+2013:                    print(f"Choices is not a list: {story_data}")
+2014:                    return {"error": "Invalid story format from AI"}
+2015:                # If choices is empty, it's the end of the story
+2016:                if len(story_data['choices']) == 0:
+2017:                    print("Story has reached the end (empty choices)")
+2018:                # Limit choices to maximum 3
+2019:                if len(story_data['choices']) > 3:
+2020:                    story_data['choices'] = story_data['choices'][:3]
+2021:                    print(f"Limited choices to 3: {story_data['choices']}")
+2022:                # Ensure all choices are strings
+2023:                for i, choice in enumerate(story_data['choices']):
+2024:                    if not isinstance(choice, str):
+2025:                        print(f"Choice {i} is not a string: {choice}")
+2026:                        return {"error": "Invalid story format from AI"}
+2027:                return story_data
+2028:            except json.JSONDecodeError:
+2029:                print(f"Failed to parse even after fixing: {response.text}")
+2030:                return {"error": "Invalid JSON response from AI"}
+2031:    
+2032:    except json.JSONDecodeError as e:
+2033:        print(f"JSON decode error: {e}")
+2034:        return {"error": "Invalid JSON response from AI"}
+2035:    except Exception as e:
+2036:        print(f"Error in get_story_chunk: {e}")
+2037:        return {"error": str(e)}
+2038:
+2039:
+2040:# API endpoint to get chapter text for story game
+2041:@app.route("/api/get_chapter_text")
+2042:@login_required(role="student")
+2043:def api_get_chapter_text():
+2044:    try:
+2045:        user_id = session["user"]["id"]
+2046:        
+2047:        # Get the last uploaded PDF for this student
+2048:        conn = get_db()
+2049:        cur = conn.cursor()
+2050:        cur.execute("SELECT filename FROM uploads WHERE student_id = ? ORDER BY uploaded_at DESC LIMIT 1", (user_id,))
+2051:        result = cur.fetchone()
+2052:        
+2053:        if not result:
+2054:            conn.close()
+2055:            return {"error": "No uploaded files found"}, 404
+2056:        
+2057:        filename = result["filename"]
+2058:        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+2059:        
+2060:        if not os.path.exists(filepath):
+2061:            conn.close()
+2062:            return {"error": "File not found"}, 404
+2063:        
+2064:        try:
+2065:            # Extract text from PDF
+2066:            pdf_text = extract_text_hybrid(filepath)
+2067:            
+2068:            if not pdf_text.strip():
+2069:                conn.close()
+2070:                return {"error": "No text found in the uploaded file"}, 404
+2071:            
+2072:            # Limit text to first 2000 characters to avoid token limits
+2073:            pdf_text = pdf_text[:2000]
+2074:            
+2075:            conn.close()
+2076:            
+2077:            return {"text": pdf_text}
+2078:        
+2079:        except Exception as e:
+2080:            conn.close()
+2081:            print(f"Error extracting text: {e}")
+2082:            return {"error": str(e)}, 500
+2083:    
+2084:    except Exception as e:
+2085:        print(f"Error in api_get_chapter_text: {e}")
+2086:        return {"error": str(e)}, 500
+2087:
+2088:# AI Tutor Route
+2089:@app.route("/ai_tutor")
+2090:@login_required(role="student")
+2091:def ai_tutor():
+2092:    user = session.get("user")
+2093:    
+2094:    # Get the last uploaded PDF for this student
+2095:    conn = get_db()
+2096:    cur = conn.cursor()
+2097:    cur.execute("SELECT filename FROM uploads WHERE student_id = ? ORDER BY uploaded_at DESC LIMIT 1", (user["id"],))
+2098:    result = cur.fetchone()
+2099:    
+2100:    pdf_text = ""
+2101:    if result:
+2102:        filename = result["filename"]
+2103:        filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+2104:        if os.path.exists(filepath):
+2105:            try:
+2106:                # Try to extract text from PDF
+2107:                pdf_reader = PyPDF2.PdfReader(open(filepath, "rb"))
+2108:                for page in pdf_reader.pages:
+2109:                    pdf_text += page.extract_text() or ""
+2110:                
+2111:                # If no text found, try OCR
+2112:                if not pdf_text.strip():
+2113:                    pdf_text = extract_text_hybrid(filepath)
+2114:            except Exception as e:
+2115:                print(f"Error reading PDF: {e}")
+2116:                pdf_text = "Error loading textbook content."
+2117:    
+2118:    # Create or restore tutor session
+2119:    # For now, we'll use a simple session ID based on user ID and timestamp
+2120:    # In a production environment, you'd want to store this in the database
+2121:    session_id = f"tutor_{user['id']}_{int(time.time())}"
+2122:    
+2123:    conn.close()
+2124:    
+2125:    return render_template("ai_tutor.html", 
+2126:                         name=user.get("name"), 
+2127:                         user=user,
+2128:                         pdf_text=pdf_text,
+2129:                         session_id=session_id)
+2130:
+2131:# AI Tutor API
+2132:@app.route("/api/ai_tutor", methods=["POST"])
+2133:@login_required(role="student")
+2134:def api_ai_tutor():
+2135:    try:
+2136:        data = request.get_json()
+2137:        user_id = data.get("user_id")
+2138:        mode = data.get("mode", "teach")
+2139:        user_message = data.get("user_message", "")
+2140:        selected_text = data.get("selected_text", "")
+2141:        pdf_text = data.get("pdf_text", "")
+2142:        session_id = data.get("session_id", "")
+2143:        
+2144:        # Get last 8 messages from database for context
+2145:        conn = get_db()
+2146:        cur = conn.cursor()
+2147:        cur.execute("""
+2148:            SELECT role, message FROM ai_tutor_sessions 
+2149:            WHERE student_id = ? 
+2150:            ORDER BY id DESC 
+2151:            LIMIT 8
+2152:        """, (user_id,))
+2153:        
+2154:        context_messages = cur.fetchall()
+2155:        conn.close()
+2156:        
+2157:        # Build prompt based on mode
+2158:        prompt = ""
+2159:        
+2160:        if mode == "teach":
+2161:            prompt = f"Teach this chapter step-by-step using simple explanations, examples, analogies, and include 3 micro-questions. Chapter text: {pdf_text}"
+2162:        elif mode == "doubt":
+2163:            prompt = f"Explain this question in simple terms + real-world analogy + example: {user_message}"
+2164:        elif mode == "quiz":
+2165:            prompt = f"""
+2166:You are an adaptive quiz tutor with difficulty levels 1–10.
+2167:
+2168:Difficulty: 3
+2169:Student answer: {user_message}
+2170:Generate:
+2171:- Whether answer is correct
+2172:- Explanation
+2173:- Next question
+2174:- Updated difficulty
+2175:"""
+2176:        elif mode == "explain":
+2177:            text_to_explain = selected_text if selected_text else user_message
+2178:            prompt = f"""
+2179:Explain this passage in 4 styles:
+2180:1. Simple  
+2181:2. Real-world analogy  
+2182:3. Story version  
+2183:4. Technical explanation  
+2184:Text: {text_to_explain}
+2185:"""
+2186:        elif mode == "diagram":
+2187:            prompt = f"Generate a clean ASCII diagram explaining this topic under 40 lines: {user_message}"
+2188:        else:
+2189:            prompt = user_message
+2190:        
+2191:        # Try to use Gemini model with fallback
+2192:        model = None
+2193:        model_names = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"]
+2194:        
+2195:        for model_name in model_names:
+2196:            try:
+2197:                model = genai.GenerativeModel(model_name)
+2198:                # Test if model works
+2199:                test_response = model.generate_content("Hello, are you there?")
+2200:                if test_response and hasattr(test_response, 'text'):
+2201:                    break
+2202:                model = None
+2203:            except Exception as e:
+2204:                continue
+2205:        
+2206:        if model is None:
+2207:            return {"error": "No compatible Gemini model found"}, 500
+2208:        
+2209:        # Generate response
+2210:        response = model.generate_content(prompt)
+2211:        
+2212:        if not response or not hasattr(response, 'text'):
+2213:            return {"error": "Failed to generate response"}, 500
+2214:        
+2215:        # Save to database
+2216:        conn = get_db()
+2217:        cur = conn.cursor()
+2218:        
+2219:        # Save user message
+2220:        if user_message:
+2221:            cur.execute("""
+2222:                INSERT INTO ai_tutor_sessions (student_id, role, message, timestamp)
+2223:                VALUES (?, ?, ?, ?)
+2224:            """, (user_id, "user", user_message, datetime.now(timezone.utc).isoformat()))
+2225:        
+2226:        # Save AI response
+2227:        cur.execute("""
+2228:            INSERT INTO ai_tutor_sessions (student_id, role, message, timestamp)
+2229:            VALUES (?, ?, ?, ?)
+2230:        """, (user_id, "assistant", response.text, datetime.now(timezone.utc).isoformat()))
+2231:        
+2232:        conn.commit()
+2233:        conn.close()
+2234:        
+2235:        return {
+2236:            "response": response.text,
+2237:            "session_id": session_id
+2238:        }
+2239:    
+2240:    except Exception as e:
+2241:        print(f"AI Tutor Error: {e}")
+2242:        return {"error": str(e)}, 500
+2243:
+2244:
+2245:
+2246:# ---------- Run ----------
+2247:if __name__ == "__main__":
+2248:    init_db()
+2249:    port = int(os.environ.get("PORT", 5000))  # Use PORT environment variable or default to 5000
+2250:    app.run(host='0.0.0.0', port=port, debug=False)
