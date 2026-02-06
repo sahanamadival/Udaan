@@ -6,10 +6,11 @@
   <title>{% block title %}Udaan – Transform Learning{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='grade1-enhancements.css') }}">
   
   {% block extra_css %}{% endblock %}
 </head>
-<body class="{% block body_class %}relative h-screen bg-[#020410] text-white overflow-hidden{% endblock %}">
+<body class="{% block body_class %}relative min-h-screen bg-[#020410] text-white{% endblock %}">
   <!-- Theme Toggle Button -->
   <button id="theme-toggle" class="theme-toggle">
     <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">

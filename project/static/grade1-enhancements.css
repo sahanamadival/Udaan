@@ -1,0 +1,195 @@
+/* Grade 1 Enhancements for Better Interactivity */
+
+/* Smooth scrolling and proper overflow */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Enhanced card hover effects */
+.alphabet-card, .subject-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.alphabet-card:hover, .subject-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Interactive button effects */
+.interactive-btn {
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.interactive-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.interactive-btn:active {
+    transform: scale(0.98);
+}
+
+/* Pronunciation result animations */
+#pronunciation-result {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Flashcard flip animation */
+.flashcard {
+    perspective: 1000px;
+    cursor: pointer;
+}
+
+.flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.flashcard.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+}
+
+.flashcard-front, .flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+.flashcard-back {
+    transform: rotateY(180deg);
+}
+
+/* Quiz answer selection */
+.answer-option {
+    transition: all 0.2s ease;
+}
+
+.answer-option:hover {
+    background-color: #f3f4f6 !important;
+    transform: translateX(5px);
+}
+
+.answer-option.selected {
+    background-color: #dbeafe !important;
+    border-color: #3b82f6 !important;
+}
+
+/* Progress indicators */
+.progress-bar {
+    height: 8px;
+    background-color: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    transition: width 0.5s ease;
+}
+
+/* Interactive number counting */
+.counting-objects div {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.counting-objects div:hover {
+    transform: scale(1.2);
+}
+
+/* Color learning interactive */
+.color-swatch {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.color-swatch:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Animal and plant cards */
+.animal-card, .plant-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.animal-card:hover, .plant-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Math problem interaction */
+.math-problem {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.math-problem:hover {
+    background-color: #f0f9ff;
+    transform: translateY(-2px);
+}
+
+/* Responsive adjustments for better touch targets */
+@media (max-width: 768px) {
+    .alphabet-card, .subject-card {
+        min-height: 120px;
+    }
+    
+    .interactive-btn {
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+    
+    .counting-objects div {
+        width: 20px !important;
+        height: 20px !important;
+    }
+}
+
+/* Focus states for accessibility */
+.alphabet-card:focus, .subject-card:focus, .interactive-btn:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

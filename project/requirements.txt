@@ -2,7 +2,7 @@ Flask
 Werkzeug
 PyPDF2
 pyttsx3
-google-generativeai
+openai>=1.0.0
 deep-translator
 reportlab
 googletrans==4.0.0-rc1

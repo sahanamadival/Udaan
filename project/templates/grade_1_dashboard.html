@@ -18,17 +18,17 @@
 
         <!-- Learning Modules -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <!-- Reading Module -->
+            <!-- Alphabets Module -->
             <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
                 <div class="text-center">
                     <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-book text-2xl text-green-600"></i>
+                        <i class="fas fa-font text-2xl text-green-600"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Reading Adventures</h3>
-                    <p class="text-gray-600 mb-4">Fun stories and phonics practice</p>
-                    <button class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        Start Reading
-                    </button>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Alphabet Learning</h3>
+                    <p class="text-gray-600 mb-4">Learn letters with images and pronunciation</p>
+                    <a href="{{ url_for('grade_1_alphabets') }}" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors inline-block">
+                        Start Learning
+                    </a>
                 </div>
             </div>
 
@@ -39,22 +39,67 @@
                         <i class="fas fa-calculator text-2xl text-blue-600"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Math Magic</h3>
-                    <p class="text-gray-600 mb-4">Numbers and counting games</p>
-                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
+                    <p class="text-gray-600 mb-4">Numbers and counting with objects</p>
+                    <a href="{{ url_for('grade_1_math') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors inline-block">
                         Practice Math
-                    </button>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Shapes, Colors, Animals, Plants -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-shapes text-2xl text-purple-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Shapes & More</h3>
+                    <p class="text-gray-600 mb-4">Learn shapes, colors, animals and plants</p>
+                    <a href="{{ url_for('grade_1_shapes') }}" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-colors inline-block">
+                        Explore Now
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Learning Modules -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Flashcards -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-id-card text-2xl text-yellow-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Interactive Flashcards</h3>
+                    <p class="text-gray-600 mb-4">Practice with flashcards for all subjects</p>
+                    <a href="{{ url_for('grade_1_flashcards') }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-colors inline-block">
+                        Start Flashcards
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quizzes -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-question-circle text-2xl text-red-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Fun Quizzes</h3>
+                    <p class="text-gray-600 mb-4">Test your knowledge with quizzes</p>
+                    <a href="{{ url_for('grade_1_quiz') }}" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors inline-block">
+                        Take Quiz
+                    </a>
                 </div>
             </div>
 
             <!-- Art & Creativity -->
             <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
                 <div class="text-center">
-                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-palette text-2xl text-purple-600"></i>
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-palette text-2xl text-indigo-600"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Creative Corner</h3>
                     <p class="text-gray-600 mb-4">Drawing and coloring activities</p>
-                    <button class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-colors">
+                    <button class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg transition-colors">
                         Get Creative
                     </button>
                 </div>

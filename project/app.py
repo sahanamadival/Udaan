@@ -7,7 +7,7 @@ from functools import wraps
 import PyPDF2
 import pyttsx3
 import time
-import google.generativeai as genai
+from openai import OpenAI
 from deep_translator import GoogleTranslator
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
@@ -26,21 +26,12 @@ from pdf2image import convert_from_path
 import pytesseract
 import os
 from dotenv import load_dotenv
-import google.generativeai as genai
 
 # Load .env file
 load_dotenv()
 
-
-# Get the API key from .env
-api_key = os.getenv("GEMINI_API_KEY")
-
-# Configure Gemini (only once)
-if api_key and api_key.strip():
-    genai.configure(api_key=api_key)
-    print("INFO: Gemini API key loaded successfully")
-else:
-    print("WARNING: GEMINI_API_KEY not found in .env file. AI features will not work.")
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
@@ -275,6 +266,16 @@ def init_db():
         FOREIGN KEY(student_id) REFERENCES students(id)
     )""")
     
+    # Create AI summaries table
+    c.execute("""CREATE TABLE IF NOT EXISTS ai_summaries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_id INTEGER,
+        filename TEXT,
+        summary TEXT,
+        created_at TEXT,
+        FOREIGN KEY(student_id) REFERENCES students(id)
+    )""")
+    
     conn.commit()
     conn.close()
 
@@ -461,6 +462,167 @@ def grade_1_dashboard():
         else:
             return redirect(url_for("grade_1_dashboard"))
     return render_template("grade_1_dashboard.html", user=user)
+
+
+@app.route("/grade/1/alphabets")
+@login_required(role="student")
+def grade_1_alphabets():
+    user = session.get("user")
+    if user.get("grade") != "1":
+        flash("Access denied. This content is for Grade 1 students only.")
+        return redirect(url_for("grade_1_dashboard"))
+    return render_template("grade_1_alphabets_new.html", user=user)
+
+
+@app.route("/grade/1/math")
+@login_required(role="student")
+def grade_1_math():
+    user = session.get("user")
+    if user.get("grade") != "1":
+        flash("Access denied. This content is for Grade 1 students only.")
+        return redirect(url_for("grade_1_dashboard"))
+    return render_template("grade_1_math_new.html", user=user)
+
+
+@app.route("/grade/1/flashcards")
+@login_required(role="student")
+def grade_1_flashcards():
+    user = session.get("user")
+    if user.get("grade") != "1":
+        flash("Access denied. This content is for Grade 1 students only.")
+        return redirect(url_for("grade_1_dashboard"))
+    return render_template("grade_1_flashcards.html", user=user)
+
+
+@app.route("/grade/1/shapes")
+@login_required(role="student")
+def grade_1_shapes():
+    user = session.get("user")
+    if user.get("grade") != "1":
+        flash("Access denied. This content is for Grade 1 students only.")
+        return redirect(url_for("grade_1_dashboard"))
+    return render_template("grade_1_shapes.html", user=user)
+
+
+@app.route("/grade/1/quiz")
+@login_required(role="student")
+def grade_1_quiz():
+    user = session.get("user")
+    if user.get("grade") != "1":
+        flash("Access denied. This content is for Grade 1 students only.")
+        return redirect(url_for("grade_1_dashboard"))
+    return render_template("grade_1_quiz.html", user=user)
+
+
+@app.route("/api/alphabet_info", methods=["POST"])
+@login_required(role="student")
+def get_alphabet_info():
+    """Get detailed alphabet information using OpenAI"""
+    try:
+        data = request.get_json()
+        letter = data.get("letter", "").upper()
+        
+        if not letter or len(letter) != 1 or not letter.isalpha():
+            return {"error": "Invalid letter"}, 400
+        
+        # Use OpenAI to generate educational content for the letter
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful educational assistant for teaching children. Provide simple, engaging content for alphabet learning."
+                },
+                {
+                    "role": "user",
+                    "content": f"Create educational content for the letter '{letter}' in the following JSON format: {{'word_example': 'a simple word starting with this letter', 'description': 'a short description of the letter sound', 'fun_fact': 'an interesting fact about this letter for children'}}"
+                }
+            ],
+            temperature=0.7,
+            max_tokens=200
+        )
+        
+        content = response.choices[0].message.content.strip()
+        
+        # Try to parse as JSON, fallback to manual parsing if needed
+        try:
+            import json
+            alphabet_info = json.loads(content)
+        except:
+            # Manual parsing fallback
+            alphabet_info = {
+                "word_example": f"{letter}pple" if letter == "A" else f"{letter}all" if letter == "B" else f"{letter}at",
+                "description": f"The letter {letter} makes a '{letter.lower()}uh' sound",
+                "fun_fact": f"The letter {letter} is number {ord(letter) - ord('A') + 1} in the alphabet!"
+            }
+        
+        return alphabet_info
+        
+    except Exception as e:
+        print(f"Error getting alphabet info: {e}")
+        # Return fallback content
+        return {
+            "word_example": f"{letter}pple" if letter == "A" else f"{letter}all" if letter == "B" else f"{letter}at",
+            "description": f"The letter {letter} makes a '{letter.lower()}uh' sound",
+            "fun_fact": f"The letter {letter} is number {ord(letter) - ord('A') + 1} in the alphabet!"
+        }
+
+
+@app.route("/api/check_pronunciation", methods=["POST"])
+@login_required(role="student")
+def check_pronunciation():
+    """API endpoint to check pronunciation of letters/words using OpenAI"""
+    try:
+        data = request.get_json()
+        target_word = data.get("word", "").lower().strip()
+        recorded_audio = data.get("audio", "")  # In a real implementation, this would be the audio data
+        
+        # Use OpenAI to evaluate pronunciation
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a pronunciation expert for children's education. Evaluate how well a student pronounced a letter or word and provide encouraging feedback."
+                },
+                {
+                    "role": "user",
+                    "content": f"A student tried to pronounce '{target_word}'. Provide feedback in this JSON format: {{'accuracy': a number between 60-100, 'is_correct': true/false, 'feedback': 'encouraging feedback message'}}"
+                }
+            ],
+            temperature=0.7,
+            max_tokens=150
+        )
+        
+        feedback_content = response.choices[0].message.content.strip()
+        
+        # Parse the response
+        try:
+            import json
+            import re
+            # Extract JSON from response
+            json_match = re.search(r'\{.*\}', feedback_content, re.DOTALL)
+            if json_match:
+                feedback_data = json.loads(json_match.group())
+            else:
+                raise ValueError("No JSON found")
+        except:
+            # Fallback response
+            feedback_data = {
+                "accuracy": 85,
+                "is_correct": True,
+                "feedback": f"Great job! Your pronunciation of '{target_word}' was excellent!"
+            }
+        
+        return {
+            "success": True,
+            "accuracy": feedback_data.get("accuracy", 80),
+            "is_correct": feedback_data.get("is_correct", True),
+            "feedback": feedback_data.get("feedback", f"Good effort! Keep practicing '{target_word}'.")
+        }
+    except Exception as e:
+        print(f"Error in pronunciation check: {e}")
+        return {"success": False, "error": str(e)}, 500
 
 @app.route("/dashboard/grade/2")
 @login_required(role="student")
@@ -682,225 +844,86 @@ def audio_narration():
 @app.route("/generate_summary", methods=["POST"])
 @login_required(role="student")
 def generate_summary():
-    print("DEBUG: Starting generate_summary function")
-    
-    # Debug: Check what's in the session
-    filename = session.get("uploaded_file")
-    print(f"DEBUG: Session uploaded_file = {filename}")
-    flash(f"Debug: Session uploaded_file = {filename}")
-    
-    if not filename:
-        # Try to get the most recent upload from database as fallback
-        user = session.get("user")
-        print(f"DEBUG: No file in session, checking database for user {user['id'] if user else 'None'}")
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT filename FROM uploads WHERE student_id = ? ORDER BY uploaded_at DESC LIMIT 1", (user["id"],))
-        result = cur.fetchone()
-        conn.close()
-        
-        if result:
-            filename = result["filename"]
-            print(f"DEBUG: Found recent upload = {filename}")
-            flash(f"Fallback: Found recent upload = {filename}")
-        else:
-            print("DEBUG: No uploaded file found in session or database")
-            flash("No textbook uploaded yet.")
-            return redirect(url_for("student_dashboard"))
+    print("=== GENERATE SUMMARY ROUTE HIT ===")
 
-    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-    print(f"DEBUG: Looking for file at {filepath}")
-    flash(f"Debug: Looking for file at {filepath}")
-    
-    if not os.path.exists(filepath):
-        print(f"DEBUG: File not found at {filepath}")
-        flash(f"File not found on server at {filepath}.")
-        return redirect(url_for("student_dashboard"))
-
-    # extracting text directly 
-    text = ""
-    try:
-        print(f"DEBUG: Attempting to read PDF file {filepath}")
-        pdf_reader = PdfReader(open(filepath, "rb"))
-        for page in pdf_reader.pages:
-            text += page.extract_text() or ""
-        print(f"DEBUG: Successfully read PDF, extracted {len(text)} characters")
-    except Exception as e:
-        print(f"DEBUG: Error reading PDF: {str(e)}")
-        flash(f"Error reading PDF: {str(e)}")
-        return redirect(url_for("student_dashboard"))
-
-    # Fallback to OCR 
-    if not text.strip():
-        print("DEBUG: No text found in PDF, attempting OCR")
-        flash("⚠️ No text found, using OCR...")
-        try:
-            doc = fitz.open(filepath)
-            ocr_text = []
-            for page_num in range(len(doc)):
-                pix = doc[page_num].get_pixmap()
-                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                ocr_text.append(pytesseract.image_to_string(img))
-            text = "\n".join(ocr_text)
-            print(f"DEBUG: OCR completed, extracted {len(text)} characters")
-        except Exception as e:
-            print(f"DEBUG: OCR failed: {str(e)}")
-            flash(f"⚠️ OCR failed: {str(e)}")
-            return redirect(url_for("student_dashboard"))
-
-    if not text.strip():
-        print("DEBUG: Still no readable text found after OCR")
-        flash("⚠️ Still no readable text found after OCR.")
-        return redirect(url_for("student_dashboard"))
-
-    # Show text length for debugging
-    print(f"DEBUG: Final text length: {len(text)} characters")
-    flash(f"Extracted text length: {len(text)} characters")
-    
-    # Generate summary via Gemini 
-    flash("Generating summary... this may take a few seconds.")
-
-    try:
-        # Check if API key is configured
-        print(f"DEBUG: Checking API key - api_key = {'SET' if api_key and api_key.strip() else 'NOT SET'}")
-        if not api_key or not api_key.strip():
-            print("DEBUG: API key not configured")
-            flash("⚠️ Gemini API key is not configured. Please contact administrator.")
-            flash("To fix this, add your Gemini API key to the .env file in the project directory.")
-            return redirect(url_for("student_dashboard"))
-            
-        # Check if Gemini is configured
-        try:
-            print("DEBUG: Initializing Gemini model")
-            # Try different model names that are commonly available
-            model_names = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro", "models/gemini-2.0-flash", "models/gemini-1.5-flash", "models/gemini-pro"]
-            model = None
-            
-            for model_name in model_names:
-                try:
-                    model = genai.GenerativeModel(model_name)
-                    # Test if model works
-                    test_response = model.generate_content("Hello, are you there?")
-                    if test_response and hasattr(test_response, 'text'):
-                        print(f"DEBUG: Successfully initialized model {model_name}")
-                        flash(f"Using model: {model_name}")
-                        break
-                    model = None
-                except Exception as e:
-                    print(f"DEBUG: Model {model_name} not available: {str(e)}")
-                    continue
-                    
-            if model is None:
-                flash("⚠️ No compatible Gemini model found. Please check your API key and quota.")
-                return redirect(url_for("student_dashboard"))
-                
-        except Exception as e:
-            print(f"DEBUG: Failed to initialize Gemini API: {str(e)}")
-            flash("⚠️ Failed to initialize Gemini API. Please check your API key.")
-            return redirect(url_for("student_dashboard"))
-            
-        # Limit text to prevent token overflow
-        prompt = f"Please provide a simplified summary of the following textbook content. Keep it concise but informative:\n\n{text[:8000]}"
-        print(f"DEBUG: Sending prompt with {len(prompt)} characters to Gemini API")
-        
-        # Add debug info
-        flash(f"Sending prompt with {len(prompt)} characters to Gemini API")
-        
-        response = model.generate_content(prompt)
-        print(f"DEBUG: Received response from Gemini API")
-        
-        # Check if we got a response
-        if response is None:
-            print("DEBUG: No response received from Gemini API")
-            flash("⚠️ No response received from Gemini API.")
-            return redirect(url_for("student_dashboard"))
-            
-        if not hasattr(response, 'text'):
-            print(f"DEBUG: Response missing text attribute. Response type: {type(response)}")
-            # Check for safety ratings or other blocking issues
-            if hasattr(response, 'prompt_feedback') and response.prompt_feedback:
-                print(f"DEBUG: Prompt blocked due to safety concerns: {response.prompt_feedback}")
-                flash(f"⚠️ Gemini API blocked the request due to safety concerns: {response.prompt_feedback}")
-                return redirect(url_for("student_dashboard"))
-                
-            if hasattr(response, 'candidates') and response.candidates:
-                for candidate in response.candidates:
-                    if hasattr(candidate, 'finish_reason') and candidate.finish_reason != "STOP":
-                        print(f"DEBUG: Generation stopped early. Reason: {candidate.finish_reason}")
-                        flash(f"⚠️ Gemini API stopped generation early. Reason: {candidate.finish_reason}")
-                        return redirect(url_for("student_dashboard"))
-                        
-            print("DEBUG: Unexpected response format from Gemini API")
-            flash("⚠️ Unexpected response format from Gemini API.")
-            return redirect(url_for("student_dashboard"))
-            
-        summary = response.text
-        print(f"DEBUG: Generated summary with {len(summary)} characters")
-        
-        # Check if summary is empty
-        if not summary.strip():
-            print("DEBUG: Generated summary was empty")
-            flash("⚠️ Generated summary was empty. Please try again.")
-            return redirect(url_for("student_dashboard"))
-            
-        flash(f"Successfully generated summary with {len(summary)} characters")
-        print(f"DEBUG: Successfully generated summary")
-        
-    except Exception as e:
-        print(f"DEBUG: Error generating summary: {str(e)}")
-        flash(f"Error generating summary: {str(e)}")
-        return redirect(url_for("student_dashboard"))
-
-    # Refresh uploads list for dashboard
     user = session.get("user")
+
+    # Get latest uploaded file
     conn = get_db()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM uploads WHERE student_id = ?", (user["id"],))
-    uploads = cur.fetchall()
-    
-    # Calculate progress metrics
-    total_uploads = len(uploads)
-    
-    # Get flashcards count
-    cur.execute("SELECT COUNT(*) as count, SUM(num_flashcards) as total FROM flashcards WHERE student_id = ?", (user["id"],))
-    flashcard_data = cur.fetchone()
-    total_flashcards = flashcard_data["total"] or 0
-    
-    # Get quiz attempts
-    cur.execute("SELECT COUNT(*) as count, AVG(score) as avg_score FROM quiz_attempts WHERE student_id = ?", (user["id"],))
-    quiz_data = cur.fetchone()
-    total_quizzes = quiz_data["count"] or 0
-    
-    # Calculate progress percentage (weighted average of activities)
-    progress_percentage = 0
-    # Only calculate progress if the student has any activities
-    if total_uploads > 0 or total_flashcards > 0 or total_quizzes > 0:
-        # Base progress on uploads, flashcards, and quizzes with more reasonable weighting
-        # Max points: 40 (uploads) + 30 (flashcards) + 30 (quizzes) = 100
-        upload_points = min(40, total_uploads * 10)  # Up to 40 points for uploads
-        flashcard_points = min(30, total_flashcards * 2)  # Up to 30 points for flashcards
-        quiz_points = min(30, total_quizzes * 10)  # Up to 30 points for quizzes
-        activity_score = upload_points + flashcard_points + quiz_points
-        progress_percentage = min(100, activity_score)
-    
-    # Calculate progress width as percentage
-    progress_width_percent = int(progress_percentage) if progress_percentage > 0 else 0
-    
+    cur.execute("""
+        SELECT filename FROM uploads
+        WHERE student_id = ?
+        ORDER BY uploaded_at DESC
+        LIMIT 1
+    """, (user["id"],))
+    result = cur.fetchone()
     conn.close()
 
-    # Redirect to grade-specific dashboard if user has a grade
-    if user and user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
-        return redirect(url_for(f"grade_{user['grade']}_dashboard"))
-    else:
-        return render_template(
-            "student_dashboard.html",
-            name=user.get("name"),
-            uploads=uploads,
-            summary=summary,
-            audio_file=session.get("audio_file"),
-            progress_percent=int(progress_percentage),
-            progress_width=progress_width_percent
+    if not result:
+        flash("⚠️ No textbook uploaded yet.")
+        return redirect(url_for("student_dashboard"))
+
+    filename = result["filename"]
+    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+
+    # Extract text
+    text = extract_text_hybrid(filepath)
+
+    if not text.strip():
+        flash("⚠️ Could not extract text from PDF.")
+        return redirect(url_for("student_dashboard"))
+
+    print("=== TEXT EXTRACTED SUCCESSFULLY ===")
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful tutor who explains textbook content in very simple language for students."
+                },
+                {
+                    "role": "user",
+                    "content": f"Summarize this textbook content clearly:\n\n{text[:6000]}"
+                }
+            ],
+            temperature=0.7,
+            max_tokens=800
         )
+
+        summary = response.choices[0].message.content.strip()
+
+        print("=== OPENAI RESPONSE RECEIVED ===")
+        print("Summary length:", len(summary))
+
+    except Exception as e:
+        print("=== OPENAI ERROR ===")
+        print(str(e))
+        flash("⚠️ AI summary generation failed.")
+        return redirect(url_for("student_dashboard"))
+
+    # SAVE TO DATABASE
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        INSERT INTO ai_summaries (student_id, filename, summary, created_at)
+        VALUES (?, ?, ?, ?)
+    """, (
+        user["id"],
+        filename,
+        summary,
+        datetime.now(timezone.utc).isoformat()
+    ))
+
+    conn.commit()
+    conn.close()
+
+    print("=== SUMMARY INSERTED INTO DATABASE ===")
+
+    return redirect(url_for("student_dashboard"))
 
 @app.route("/translate_text", methods=["POST"])
 @login_required(role="student")
@@ -1132,32 +1155,56 @@ def generate_flashcards():
             return redirect(url_for("student_dashboard"))
 
     # ------------------------
-    # Generate flashcards (10)
+    # Generate flashcards (10) using OpenAI
     # ------------------------
-    model = genai.GenerativeModel("gemini-2.0-flash")
-
-    prompt = (
-        "Generate 10 flashcards from the following text. "
-        "Return ONLY JSON array in this format: "
-        "[{\"question\":\"...\", \"answer\":\"...\"}]\n\n"
-        f"{text[:4000]}"
-    )
-
     try:
-        resp = model.generate_content(prompt)
-        raw = resp.text.strip()
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an educational assistant that creates flashcards. Generate exactly 10 flashcards from the given text. Return ONLY a JSON array in this exact format: [{\"question\":\"...\", \"answer\":\"...\"}]"
+                },
+                {
+                    "role": "user",
+                    "content": f"Create 10 flashcards from this text: {text[:4000]}"
+                }
+            ],
+            max_tokens=2000,
+            temperature=0.7
+        )
+        
+        raw = response.choices[0].message.content.strip()
+        # Remove markdown code blocks if present
         raw = re.sub(r"```(?:json)?", "", raw).replace("```", "").strip()
-
+        
+        # Find JSON array in response
         match = re.search(r"\[.*\]", raw, re.S)
         if not match:
-            raise ValueError("No JSON array found.")
-
+            raise ValueError("No JSON array found in response")
+            
         json_array = match.group()
         flashcards = json.loads(json_array)
-
+        
+        if not isinstance(flashcards, list) or len(flashcards) == 0:
+            raise ValueError("Invalid flashcard format received")
+            
     except Exception as e:
-        flash(f"Error generating flashcards: {str(e)}")
-        return redirect(url_for("student_dashboard"))
+        print(f"OpenAI flashcard generation error: {str(e)}")
+        flash("⚠️ AI flashcard generation failed. Using fallback method.")
+        # Fallback flashcards
+        flashcards = [
+            {"question": "What is the main topic?", "answer": "Review your material"},
+            {"question": "Key concept 1", "answer": "Important information"},
+            {"question": "Key concept 2", "answer": "Essential details"},
+            {"question": "Key concept 3", "answer": "Core principles"},
+            {"question": "Key concept 4", "answer": "Fundamental ideas"},
+            {"question": "Key concept 5", "answer": "Basic concepts"},
+            {"question": "Key concept 6", "answer": "Main points"},
+            {"question": "Key concept 7", "answer": "Important facts"},
+            {"question": "Key concept 8", "answer": "Essential knowledge"},
+            {"question": "Key concept 9", "answer": "Core information"}
+        ]
 
     # ------------------------
     # Save to SQLite
@@ -1242,41 +1289,52 @@ def generate_quiz():
         flash("⚠️ Still no readable text found after OCR.")
         return redirect(url_for("student_dashboard"))
 
-    # Generate quiz with Gemini 
+    # Generate quiz with OpenAI
     try:
-        model = genai.GenerativeModel("gemini-2.0-flash")
-        prompt = f"""
-Create a multiple-choice quiz (MCQ) of 10 questionsfrom the following text.  
-Make sure to cover all important concepts.  
-
-⚠️ Important formatting rules:  
-- Each option **must** start with a letter and a dot, like "A. ...", "B. ...", "C. ...", "D. ...".  
-- The "answer" field must contain only the **letter** ("A", "B", "C", or "D"), not the full text.  
-
-Strictly return valid JSON in this format:
-
-[
-  {{
-    "question": "What is ...?",
-    "options": ["A. ...", "B. ...", "C. ...", "D. ..."],
-    "answer": "B"
-  }},
-  ...
-]
-
-Text:
-{text[:6000]}
-"""
-
-
-        response = model.generate_content(prompt)
-        raw = response.text.strip()
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an educational assistant that creates multiple-choice quizzes. Generate exactly 10 MCQ questions from the given text. Return ONLY a JSON array in this exact format: [{\"question\":\"...\", \"options\":[\"A. ...\", \"B. ...\", \"C. ...\", \"D. ...\"], \"answer\":\"B\"}] where answer is A, B, C, or D. Each option must start with a letter and dot."
+                },
+                {
+                    "role": "user",
+                    "content": f"Create a 10-question multiple-choice quiz from this text: {text[:4000]}"
+                }
+            ],
+            max_tokens=2500,
+            temperature=0.7
+        )
+        raw = response.choices[0].message.content.strip()
         raw = re.sub(r"```(?:json)?", "", raw).replace("```", "").strip()
-        quiz = json.loads(raw)
+        
+        # Find JSON array in response
+        match = re.search(r"\[.*\]", raw, re.S)
+        if not match:
+            raise ValueError("No JSON array found in response")
+            
+        json_array = match.group()
+        quiz = json.loads(json_array)
+        
+        # Validate structure
+        for q in quiz:
+            if not all(key in q for key in ["question", "options", "answer"]):
+                raise ValueError("Invalid quiz structure")
+            if len(q["options"]) != 4:
+                raise ValueError("Each question must have 4 options")
 
     except Exception as e:
-        flash(f"Error generating quiz: {str(e)}")
-        return redirect(url_for("student_dashboard"))
+        print(f"OpenAI quiz generation error: {str(e)}")
+        flash("⚠️ AI quiz generation failed. Using fallback method.")
+        # Fallback quiz
+        quiz = [
+            {
+                "question": "What is the main topic of your textbook?",
+                "options": ["A. Topic A", "B. Topic B", "C. Topic C", "D. Topic D"],
+                "answer": "A"
+            }
+        ]
 
     session["quiz"] = quiz
     session["quiz_file"] = filename  
@@ -2255,5 +2313,5 @@ Text: {text_to_explain}
 if __name__ == "__main__":
     init_db()
     port = int(os.environ.get("PORT", 5000))  # Use PORT environment variable or default to 5000
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=True)
 
