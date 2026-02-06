@@ -12,3 +12,4 @@ pytesseract
 PyMuPDF
 python-dotenv
 gunicorn
+fonttools 
