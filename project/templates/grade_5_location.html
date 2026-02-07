@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Location Learning (Dyslexia Friendly) - Grade 5{% endblock %}
+
+{% block body_class %}bg-[#FFFDE7]{% endblock %} <!-- Soft yellow background is often better for dyslexia -->
+
+{% block content %}
+<style>
+    /* Dyslexia-friendly font settings */
+    body {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif !important;
+        /* OpenDyslexic fallback */
+        letter-spacing: 0.05em;
+        line-height: 1.6;
+    }
+
+    .dyslexia-box {
+        background-color: #FEF9C3;
+        /* Soft yellow */
+        border: 2px solid #333;
+        color: #111;
+        box-shadow: 8px 8px 0px #000;
+    }
+
+    .map-marker {
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .map-marker:hover {
+        transform: scale(1.2);
+    }
+</style>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+        <a href="{{ url_for('grade_5_dashboard') }}"
+            class="inline-flex items-center text-black font-bold text-xl hover:underline mb-8">
+            <i class="fas fa-arrow-left mr-3"></i> Back Home
+        </a>
+
+        <div class="dyslexia-box rounded-3xl p-8 mb-8">
+            <h1 class="text-4xl font-black mb-4 flex items-center gap-4">
+                <i class="fas fa-map-marked-alt text-blue-600"></i>
+                <span>Explore the World!</span>
+            </h1>
+            <p class="text-xl font-medium mb-6">Click on a location to learn fun facts.</p>
+
+            <!-- Simple CSS Map Concept (Interactive SVG) -->
+            <div class="bg-blue-200 rounded-2xl overflow-hidden shadow-inner relative h-[500px] border-4 border-black">
+                <!-- Simplified World Map SVG Background -->
+                <img src="https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg"
+                    alt="World Map" class="w-full h-full object-cover opacity-60">
+
+                <!-- Interactive Markers -->
+                <!-- North America -->
+                <div class="absolute top-[30%] left-[20%] map-marker" onclick="showLocation('North America')">
+                    <div
+                        class="w-12 h-12 bg-red-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-bounce">
+                        <i class="fas fa-star text-white"></i>
+                    </div>
+                </div>
+
+                <!-- South America -->
+                <div class="absolute top-[65%] left-[28%] map-marker" onclick="showLocation('Amazon Rainforest')">
+                    <div class="w-12 h-12 bg-green-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-bounce"
+                        style="animation-delay: 0.5s;">
+                        <i class="fas fa-tree text-white"></i>
+                    </div>
+                </div>
+
+                <!-- Africa -->
+                <div class="absolute top-[50%] left-[53%] map-marker" onclick="showLocation('Sahara Desert')">
+                    <div class="w-12 h-12 bg-yellow-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-bounce"
+                        style="animation-delay: 0.2s;">
+                        <i class="fas fa-sun text-white"></i>
+                    </div>
+                </div>
+
+                <!-- Europe -->
+                <div class="absolute top-[25%] left-[50%] map-marker" onclick="showLocation('Paris, France')">
+                    <div class="w-12 h-12 bg-purple-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-bounce"
+                        style="animation-delay: 0.7s;">
+                        <i class="fas fa-landmark text-white"></i>
+                    </div>
+                </div>
+
+                <!-- Asia -->
+                <div class="absolute top-[35%] left-[70%] map-marker" onclick="showLocation('Great Wall of China')">
+                    <div class="w-12 h-12 bg-orange-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-bounce"
+                        style="animation-delay: 0.3s;">
+                        <i class="fas fa-dragon text-white"></i>
+                    </div>
+                </div>
+
+                <!-- Australia -->
+                <div class="absolute top-[70%] left-[85%] map-marker" onclick="showLocation('Great Barrier Reef')">
+                    <div class="w-12 h-12 bg-cyan-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-bounce"
+                        style="animation-delay: 0.6s;">
+                        <i class="fas fa-fish text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Modal -->
+        <div id="infoModal"
+            class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+            <div class="bg-[#FFFDE7] w-full max-w-2xl rounded-3xl border-4 border-black shadow-2xl relative">
+                <button onclick="closeModal()"
+                    class="absolute -top-6 -right-6 bg-red-500 text-white w-12 h-12 rounded-full font-bold border-4 border-black text-xl hover:scale-110 transition-transform">X</button>
+
+                <div class="p-8">
+                    <h2 id="modalTitle" class="text-4xl font-black mb-6 text-center border-b-4 border-black pb-4">
+                        Loading...</h2>
+
+                    <div id="modalContent" class="space-y-6">
+                        <div class="animate-pulse flex space-x-4">
+                            <div class="flex-1 space-y-4 py-1">
+                                <div class="h-4 bg-gray-300 rounded w-3/4"></div>
+                                <div class="h-4 bg-gray-300 rounded"></div>
+                                <div class="h-4 bg-gray-300 rounded w-5/6"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="realContent" class="hidden">
+                        <div class="bg-white p-6 rounded-2xl border-2 border-black mb-4">
+                            <h3 class="text-xl font-bold mb-2">Did You Know?</h3>
+                            <ul id="factsList" class="list-disc list-outside ml-6 space-y-2 text-lg">
+                                <!-- Facts -->
+                            </ul>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-blue-100 p-4 rounded-xl border-2 border-blue-800">
+                                <h4 class="font-bold text-blue-900">Climate</h4>
+                                <p id="climateText">...</p>
+                            </div>
+                            <div class="bg-green-100 p-4 rounded-xl border-2 border-green-800">
+                                <h4 class="font-bold text-green-900">Famous For</h4>
+                                <p id="famousText">...</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 text-center">
+                            <button onclick="speakText()"
+                                class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg border-2 border-black flex items-center justify-center gap-3 mx-auto">
+                                <i class="fas fa-volume-up"></i> Listen to this
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function showLocation(name) {
+        document.getElementById('infoModal').classList.remove('hidden');
+        document.getElementById('modalTitle').textContent = name;
+        document.getElementById('modalContent').classList.remove('hidden');
+        document.getElementById('realContent').classList.add('hidden');
+
+        fetchLocationInfo(name);
+    }
+
+    function closeModal() {
+        document.getElementById('infoModal').classList.add('hidden');
+        // Stop speech if playing
+        window.speechSynthesis.cancel();
+    }
+
+    async function fetchLocationInfo(location) {
+        try {
+            const response = await fetch('/api/grade5/location_info', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ location })
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                document.getElementById('modalTitle').textContent = 'Error';
+                return;
+            }
+
+            // Update UI
+            const factsList = document.getElementById('factsList');
+            factsList.innerHTML = '';
+            data.facts.forEach(fact => {
+                const li = document.createElement('li');
+                li.textContent = fact;
+                factsList.appendChild(li);
+            });
+
+            document.getElementById('climateText').textContent = data.climate;
+            document.getElementById('famousText').textContent = data.famous_for;
+
+            // Show content
+            document.getElementById('modalContent').classList.add('hidden');
+            document.getElementById('realContent').classList.remove('hidden');
+
+            // Store text for speech
+            window.currentSpeechText = `${location}. Facts: ${data.facts.join('. ')}. Climate: ${data.climate}. Famous for: ${data.famous_for}`;
+
+        } catch (error) {
+            console.error(error);
+            document.getElementById('modalTitle').textContent = 'Something went wrong';
+        }
+    }
+
+    function speakText() {
+        if (window.currentSpeechText) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(window.currentSpeechText);
+            utterance.rate = 0.9; // Slightly slower for easier listening
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+</script>
+{% endblock %}
