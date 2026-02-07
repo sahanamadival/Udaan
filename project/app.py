@@ -3350,87 +3350,10 @@ def load_progress(activity_type):
     else:
         return jsonify({"success": True, "data": None})  # No progress yet
 
-# --- Grade 5 Vocab Builder API ---
-
-@app.route("/api/grade5/get_vocab_word")
-@login_required(role="student")
-def api_grade5_get_vocab_word():
-    subject = request.args.get("subject", "General")
-    
-    prompt = f"""
-    Generate a challenging but age-appropriate vocabulary word for a Grade 5 student related to the subject: {subject}.
-    Return ONLY a JSON object with:
-    {{
-        "word": "...",
-        "definition": "...",
-        "example_sentence": "...",
-        "synonyms": ["...", "..."],
-        "antonyms": ["...", "..."]
-    }}
-    """
-    
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=200
-        )
-        content = response.choices[0].message.content
-        import json
-        import re
-        # Extract JSON
-        json_match = re.search(r'\{.*\}', content, re.DOTALL)
-        if json_match:
-             data = json.loads(json_match.group())
-             return data
-        else:
-             return {"error": "Failed to parse AI response"}
-    except Exception as e:
-        print(f"Vocab API Error: {e}")
-        return {"error": str(e)}, 500
-
-# --- Grade 5 Vocab Builder API ---
-
-@app.route("/api/grade5/get_vocab_word")
-@login_required(role="student")
-def api_grade5_get_vocab_word():
-    subject = request.args.get("subject", "General")
-    
-    prompt = f"""
-    Generate a challenging but age-appropriate vocabulary word for a Grade 5 student related to the subject: {subject}.
-    Return ONLY a JSON object with:
-    {{
-        "word": "...",
-        "definition": "...",
-        "example_sentence": "...",
-        "synonyms": ["...", "..."],
-        "antonyms": ["...", "..."]
-    }}
-    """
-    
-    try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=200
-        )
-        content = response.choices[0].message.content
-        import json
-        import re
-        # Extract JSON
-        json_match = re.search(r'\{.*\}', content, re.DOTALL)
-        if json_match:
-             data = json.loads(json_match.group())
-             return data
-        else:
-             return {"error": "Failed to parse AI response"}
-    except Exception as e:
-        print(f"Vocab API Error: {e}")
-        return {"error": str(e)}, 500
 
 # ---------- Run ----------
+
+
 @app.route("/api/submit_progress", methods=["POST"])
 @login_required(role="student")
 def submit_progress():

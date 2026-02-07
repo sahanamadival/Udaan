@@ -1,0 +1,24 @@
+# Environment variables / Secrets
+env
+.env
+.flaskenv
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# Database
+project/database.db
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project-specific
+find_dupes.py
+project/temp/
