@@ -302,6 +302,16 @@ def init_db():
         FOREIGN KEY(student_id) REFERENCES students(id)
     )""")
 
+    c.execute("""CREATE TABLE IF NOT EXISTS student_progress (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        student_id INTEGER,
+        activity_type TEXT NOT NULL,
+        data_json TEXT,
+        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(student_id) REFERENCES students(id),
+        UNIQUE(student_id, activity_type)
+    )""")
+
     c.execute("""CREATE TABLE IF NOT EXISTS quiz_attempts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         student_id INTEGER,
@@ -982,7 +992,36 @@ def grade_5_location_learning():
     if user.get("grade") != "5":
         flash("Access denied. This content is for Grade 5 students only.")
         return redirect(url_for("grade_5_dashboard"))
-    return render_template("grade_5_location.html", user=user)
+    
+    # diverse locations with approximate coordinates on a standard world map
+    all_locations = [
+        {"name": "North America", "top": 30, "left": 20, "color": "bg-red-500", "icon": "fas fa-star"},
+        {"name": "Amazon Rainforest", "top": 65, "left": 28, "color": "bg-green-600", "icon": "fas fa-tree"},
+        {"name": "Sahara Desert", "top": 50, "left": 53, "color": "bg-yellow-500", "icon": "fas fa-sun"},
+        {"name": "Paris, France", "top": 28, "left": 49, "color": "bg-purple-500", "icon": "fas fa-landmark"}, # Adjusted
+        {"name": "Great Wall of China", "top": 35, "left": 70, "color": "bg-orange-500", "icon": "fas fa-dragon"},
+        {"name": "Great Barrier Reef", "top": 70, "left": 85, "color": "bg-cyan-500", "icon": "fas fa-fish"},
+        {"name": "Pyramids of Giza", "top": 42, "left": 55, "color": "bg-yellow-600", "icon": "fas fa-gopuram"},
+        {"name": "Taj Mahal, India", "top": 45, "left": 68, "color": "bg-pink-500", "icon": "fas fa-monument"},
+        {"name": "Statue of Liberty, USA", "top": 32, "left": 22, "color": "bg-blue-500", "icon": "fas fa-flag-usa"},
+        {"name": "Sydney Opera House", "top": 78, "left": 88, "color": "bg-indigo-500", "icon": "fas fa-music"},
+        {"name": "Mount Everest", "top": 38, "left": 72, "color": "bg-gray-500", "icon": "fas fa-mountain"},
+        {"name": "Machu Picchu, Peru", "top": 68, "left": 26, "color": "bg-emerald-600", "icon": "fas fa-ruins"},
+        {"name": "Colosseum, Rome", "top": 31, "left": 51, "color": "bg-rose-500", "icon": "fas fa-archway"},
+        {"name": "Christ the Redeemer, Brazil", "top": 72, "left": 32, "color": "bg-teal-500", "icon": "fas fa-praying-hands"},
+        {"name": "Madagascar", "top": 65, "left": 60, "color": "bg-lime-500", "icon": "fas fa-paw"},
+        {"name": "Greenland", "top": 10, "left": 35, "color": "bg-white border-gray-300", "icon": "fas fa-snowflake"},
+        {"name": "Tokyo, Japan", "top": 36, "left": 82, "color": "bg-red-600", "icon": "fas fa-torii-gate"},
+        {"name": "London, UK", "top": 24, "left": 48, "color": "bg-blue-700", "icon": "fas fa-crown"},
+        {"name": "Moscow, Russia", "top": 20, "left": 60, "color": "bg-red-700", "icon": "fas fa-church"},
+        {"name": "Cape Town, South Africa", "top": 80, "left": 55, "color": "bg-orange-400", "icon": "fas fa-umbrella-beach"}
+    ]
+    
+    import random
+    # Select 5 random locations
+    selected_locations = random.sample(all_locations, 5)
+    
+    return render_template("grade_5_location.html", user=user, locations=selected_locations)
 
 # API Endpoints for Grade 5 Features
 
@@ -2632,6 +2671,59 @@ Text: {text_to_explain}
         print(f"AI Tutor Error: {e}")
         return {"error": str(e)}, 500
 
+
+
+# --- Student Progress API ---
+
+@app.route("/api/save_progress", methods=["POST"])
+@login_required(role="student")
+def save_progress():
+    user = session.get("user")
+    data = request.json
+    
+    activity_type = data.get("activity_type")
+    # Store data as JSON string
+    import json
+    progress_data = json.dumps(data.get("data"))
+    
+    if not activity_type or not progress_data:
+        return jsonify({"error": "Missing data"}), 400
+        
+    conn = get_db()
+    c = conn.cursor()
+    
+    # Upsert (Insert or Replace) logic
+    try:
+        c.execute("""
+            INSERT INTO student_progress (student_id, activity_type, data_json, last_updated)
+            VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(student_id, activity_type) 
+            DO UPDATE SET data_json=excluded.data_json, last_updated=CURRENT_TIMESTAMP
+        """, (user["id"], activity_type, progress_data))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"Error saving progress: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route("/api/load_progress/<activity_type>", methods=["GET"])
+@login_required(role="student")
+def load_progress(activity_type):
+    user = session.get("user")
+    
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT data_json FROM student_progress WHERE student_id = ? AND activity_type = ?", (user["id"], activity_type))
+    row = c.fetchone()
+    conn.close()
+    
+    if row:
+        import json
+        return jsonify({"success": True, "data": json.loads(row["data_json"])})
+    else:
+        return jsonify({"success": True, "data": None})  # No progress yet
 
 
 # ---------- Run ----------
