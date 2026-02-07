@@ -2,27 +2,425 @@
 
 {% block title %}Grade 3 Science & Nature - Udaan{% endblock %}
 
-{% block body_class %}min-h-screen bg-gradient-to-br from-teal-50 to-cyan-100{% endblock %}
+{% block body_class %}min-h-screen bg-green-50 font-comic{% endblock %}
 
 {% block content %}
+<style>
+    .font-comic {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
+        letter-spacing: 0.05em;
+    }
+
+    .dyslexic-box {
+        background-color: #f0fff4;
+        border: 3px solid #68d391;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    .dyslexic-btn {
+        background-color: #48bb78;
+        color: white;
+        border: 2px solid #2f855a;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: bold;
+        transition: transform 0.1s;
+        width: 100%;
+    }
+
+    .dyslexic-btn:active {
+        transform: scale(0.95);
+    }
+
+    .nav-btn {
+        background-color: #38a169;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        font-weight: bold;
+        font-size: 1.2rem;
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    .speak-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.5rem;
+        margin-left: 0.5rem;
+    }
+
+    .speak-btn:hover {
+        transform: scale(1.1);
+    }
+
+    /* Tab Styles */
+    .tab-btn {
+        padding: 1rem 2rem;
+        font-weight: bold;
+        border-radius: 1rem 1rem 0 0;
+        background: #e2e8f0;
+        color: #4a5568;
+        margin-right: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+        background: #68d391;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Drag Drop Styles */
+    .drop-zone {
+        min-height: 15rem;
+        transition: all 0.3s ease;
+        border: 4px dashed rgba(0, 0, 0, 0.1);
+    }
+
+    .drop-zone.drag-over {
+        background-color: rgba(255, 255, 255, 0.5);
+        border-color: #48bb78;
+        transform: scale(1.02);
+    }
+
+    .draggable-item {
+        cursor: grab;
+        transition: transform 0.2s;
+        touch-action: none;
+    }
+
+    .draggable-item:active {
+        cursor: grabbing;
+        transform: scale(1.1);
+    }
+
+    .draggable-item.dragging {
+        opacity: 0.5;
+    }
+</style>
+
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-6xl mx-auto">
+        <!-- Header -->
         <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-teal-800 mb-2">🌿 Science & Nature</h1>
-            <p class="text-xl text-teal-600">Plants, Animals & Environment</p>
-            <div class="mt-4 inline-block bg-teal-100 text-teal-800 px-4 py-2 rounded-full font-semibold">
-                Grade 3 Science
+            <h1 class="text-5xl font-bold text-green-800 mb-4">🌍 World Explorer</h1>
+            <p class="text-2xl text-green-700">Science, Nature, Shelter & Transport</p>
+            <button class="speak-btn"
+                onclick="speak('World Explorer! Science, Nature, Shelter and Transport')">🔊</button>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="flex border-b-4 border-green-200 mb-8 overflow-x-auto">
+            <button class="tab-btn active" onclick="switchTab('nature')">🌿 Science & Nature</button>
+            <button class="tab-btn" onclick="switchTab('shelter')">🏠 Shelter & Housing</button>
+            <button class="tab-btn" onclick="switchTab('transport')">🚢 Transport & Travel</button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="text-center py-12 hidden">
+            <div class="text-6xl mb-4 animate-bounce">🤔</div>
+            <p class="text-2xl text-gray-600">Loading magic...</p>
+        </div>
+
+        <!-- CONTENT: SCIENCE -->
+        <div id="tab-nature" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Sink or Float -->
+                <div class="dyslexic-box">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-2xl font-bold text-blue-900">🌊 Sink or Float?</h3>
+                        <button class="speak-btn text-blue-600" onclick="speak('Sink or Float?')">🔊</button>
+                    </div>
+                    <div id="sink_float-container"></div>
+                    <p id="sink_float-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                    <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="sink_float-score">0</span>
+                    </div>
+                </div>
+                <!-- Five Senses -->
+                <div class="dyslexic-box">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-2xl font-bold text-purple-800">🖐️ Five Senses</h3>
+                        <button class="speak-btn text-purple-600" onclick="speak('Five Senses')">🔊</button>
+                    </div>
+                    <div id="senses-container"></div>
+                    <p id="senses-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                    <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="senses-score">0</span></div>
+                </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-lg p-8 text-center">
-            <div class="text-6xl mb-6">🔬</div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Science Module Coming Soon</h2>
-            <p class="text-gray-600 mb-6">Explore plants, animals, and environmental awareness.</p>
-            <a href="{{ url_for('grade_3_dashboard') }}" class="inline-block bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        <!-- CONTENT: SHELTER -->
+        <div id="tab-shelter" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Room Rumble -->
+                <div class="dyslexic-box bg-orange-50 border-orange-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-2xl font-bold text-orange-800">🛋️ Room Rumble</h3>
+                        <button class="speak-btn text-orange-600" onclick="speak('Room Rumble')">🔊</button>
+                    </div>
+                    <div id="rooms-container"></div>
+                    <p id="rooms-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                    <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="rooms-score">0</span></div>
+                </div>
+                <!-- Animal vs Human -->
+                <div class="dyslexic-box bg-stone-50 border-stone-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-2xl font-bold text-stone-700">🐾 Animal or Human?</h3>
+                        <button class="speak-btn text-stone-600" onclick="speak('Animal or Human?')">🔊</button>
+                    </div>
+                    <div id="homes-container"></div>
+                    <p id="homes-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                    <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="homes-score">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENT: TRANSPORT (Drag & Drop) -->
+        <div id="tab-transport" class="tab-content hidden">
+            <!-- Score & Progress -->
+            <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-md">
+                <div class="text-2xl font-bold text-gray-700">Vehicles Sorted: <span id="transport-score"
+                        class="text-blue-600">0</span></div>
+                <button onclick="fetchTransport(false)"
+                    class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">🔄 New Vehicles</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- AIR -->
+                <div class="drop-zone bg-sky-100 rounded-2xl p-4 flex flex-col items-center" data-category="Air">
+                    <div class="text-6xl mb-2">☁️</div>
+                    <h3 class="text-2xl font-bold text-sky-800 mb-4">Air</h3>
+                    <div
+                        class="w-full flex-grow flex flex-wrap justify-center content-start gap-2 items-container min-h-[100px]">
+                    </div>
+                </div>
+                <!-- LAND -->
+                <div class="drop-zone bg-green-100 rounded-2xl p-4 flex flex-col items-center" data-category="Land">
+                    <div class="text-6xl mb-2">🛣️</div>
+                    <h3 class="text-2xl font-bold text-green-800 mb-4">Land</h3>
+                    <div
+                        class="w-full flex-grow flex flex-wrap justify-center content-start gap-2 items-container min-h-[100px]">
+                    </div>
+                </div>
+                <!-- WATER -->
+                <div class="drop-zone bg-blue-100 rounded-2xl p-4 flex flex-col items-center" data-category="Water">
+                    <div class="text-6xl mb-2">🌊</div>
+                    <h3 class="text-2xl font-bold text-blue-800 mb-4">Water</h3>
+                    <div
+                        class="w-full flex-grow flex flex-wrap justify-center content-start gap-2 items-container min-h-[100px]">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Source Area -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 border-4 border-yellow-200">
+                <h3 class="text-center text-xl text-gray-500 mb-4 font-bold">👇 Pick up vehicles from here 👇</h3>
+                <div id="source-container" class="flex flex-wrap justify-center gap-4 min-h-[100px]"></div>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="text-center mt-12">
+            <a href="{{ url_for('grade_3_dashboard') }}" class="nav-btn inline-flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
             </a>
         </div>
     </div>
 </div>
+
+<script>
+    // State Management
+    let data = {
+        nature: { sink_float: [], senses: [] },
+        shelter: { rooms: [], homes: [] },
+        transport: { items: [] }
+    };
+    let scores = { sink_float: 0, senses: 0, rooms: 0, homes: 0, transport: 0 };
+    let indices = { sink_float: 0, senses: 0, rooms: 0, homes: 0 };
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initial load for nature (default tab)
+        fetchNature();
+    });
+
+    // --- Tab Switching ---
+    function switchTab(tabId) {
+        // Hide all contents
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+        // Show selected
+        document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+        // Update button style (simple approximation, better with IDs)
+        const buttons = document.querySelectorAll('.tab-btn');
+        if (tabId === 'nature') buttons[0].classList.add('active');
+        if (tabId === 'shelter') buttons[1].classList.add('active');
+        if (tabId === 'transport') buttons[2].classList.add('active');
+
+        // Lazy Load Data
+        if (tabId === 'shelter' && data.shelter.rooms.length === 0) fetchShelter();
+        if (tabId === 'transport' && data.transport.items.length === 0) fetchTransport();
+    }
+
+    // --- TTS ---
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+    }
+
+    // --- API Calls ---
+    async function fetchNature() {
+        try {
+            const res = await fetch('/api/grade3/generate_science'); // Assuming this route exists/is reused
+            const d = await res.json();
+            if (d.sink_float) data.nature.sink_float.push(...d.sink_float);
+            if (d.senses) data.nature.senses.push(...d.senses);
+            renderMCQ('sink_float', data.nature.sink_float);
+            renderMCQ('senses', data.nature.senses);
+        } catch (e) { console.error("Nature fetch fail", e); }
+    }
+
+    async function fetchShelter() {
+        try {
+            const res = await fetch('/api/grade3/generate_shelter');
+            const d = await res.json();
+            if (d.rooms) data.shelter.rooms.push(...d.rooms);
+            if (d.homes) data.shelter.homes.push(...d.homes);
+            renderMCQ('rooms', data.shelter.rooms);
+            renderMCQ('homes', data.shelter.homes);
+        } catch (e) { console.error("Shelter fetch fail", e); }
+    }
+
+    async function fetchTransport(append = true) {
+        try {
+            const res = await fetch('/api/grade3/generate_transport');
+            const d = await res.json();
+            if (d.items) {
+                data.transport.items = d.items; // Replace for drag/drop
+                initTransportGame();
+            }
+        } catch (e) { console.error("Transport fetch fail", e); }
+    }
+
+    // --- Renderers ---
+    function renderMCQ(type, list) {
+        const idx = indices[type];
+        if (!list || idx >= list.length) {
+            document.getElementById(`${type}-container`).innerHTML = "<div class='text-center animate-pulse'>Loading...</div>";
+            // Auto fetch more?
+            if (type.includes('float') || type.includes('senses')) fetchNature();
+            else fetchShelter();
+            return;
+        }
+        const q = list[idx];
+        const con = document.getElementById(`${type}-container`);
+        let html = `
+            <div class="text-center mb-4">
+                <p class="text-xl font-bold mb-2">"${q.clue}"</p>
+                <button onclick="speak('${q.clue}')" class="speak-btn">🔊</button>
+            </div>
+            <div class="grid grid-cols-1 gap-3">
+        `;
+        q.options.forEach(opt => {
+            html += `<button onclick="checkMCQ('${type}', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-opacity-90">${opt}</button>`;
+        });
+        html += `</div>`;
+        con.innerHTML = html;
+    }
+
+    // --- Logic: MCQ ---
+    async function checkMCQ(type, ans, corr) {
+        const feedbackEl = document.getElementById(`${type}-feedback`);
+        const scoreEl = document.getElementById(`${type}-score`);
+        if (ans === corr) {
+            feedbackEl.textContent = "✅ Correct!";
+            feedbackEl.className = "h-8 mt-2 text-xl font-bold text-center text-green-600";
+            speak("Correct!");
+            scores[type]++;
+            scoreEl.textContent = scores[type];
+            await saveProgress(`g3_science_${type}`, 1);
+            setTimeout(() => {
+                feedbackEl.textContent = "";
+                indices[type]++;
+                // Route to correct list
+                let list = (type === 'rooms' || type === 'homes') ? data.shelter[type] : data.nature[type];
+                renderMCQ(type, list);
+            }, 500);
+        } else {
+            feedbackEl.textContent = "❌ Try again";
+            feedbackEl.className = "h-8 mt-2 text-xl font-bold text-center text-red-500";
+            speak("Try again");
+        }
+    }
+
+    // --- Logic: Transport Drag Drop ---
+    function initTransportGame() {
+        const source = document.getElementById('source-container');
+        source.innerHTML = '';
+        document.querySelectorAll('.drop-zone .items-container').forEach(el => el.innerHTML = '');
+
+        data.transport.items.forEach((item, index) => {
+            const el = document.createElement('div');
+            el.className = 'draggable-item bg-white border-2 border-gray-300 rounded-xl p-3 shadow-sm text-center w-24 select-none';
+            el.draggable = true;
+            el.dataset.category = item.category;
+            el.dataset.name = item.name;
+            el.dataset.id = index;
+            el.innerHTML = `<div class="text-4xl pointer-events-none">${item.emoji}</div><div class="text-sm font-bold">${item.name}</div>`;
+            el.addEventListener('dragstart', dragStart);
+            el.addEventListener('click', () => speak(item.name));
+            source.appendChild(el);
+        });
+
+        document.querySelectorAll('.drop-zone').forEach(zone => {
+            zone.addEventListener('dragover', dragOver);
+            zone.addEventListener('dragleave', dragLeave);
+            zone.addEventListener('drop', drop);
+        });
+    }
+
+    function dragStart(e) {
+        e.dataTransfer.setData('text/plain', JSON.stringify({ category: e.target.dataset.category, name: e.target.dataset.name, id: e.target.dataset.id }));
+        setTimeout(() => e.target.style.display = 'none', 0);
+    }
+    function dragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+    function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+
+    async function drop(e) {
+        e.preventDefault();
+        const zone = e.currentTarget;
+        zone.classList.remove('drag-over');
+        const raw = e.dataTransfer.getData('text/plain');
+        if (!raw) return;
+        const d = JSON.parse(raw);
+        const originalEl = document.querySelector(`.draggable-item[data-id="${d.id}"]`);
+
+        if (d.category === zone.dataset.category) {
+            speak(`Correct! ${d.name} is ${d.category}.`);
+            const newEl = document.createElement('div');
+            newEl.innerHTML = `<div class="text-3xl">${originalEl.firstChild.innerText}</div>`;
+            zone.querySelector('.items-container').appendChild(newEl);
+            if (originalEl) originalEl.remove();
+            scores.transport++;
+            document.getElementById('transport-score').textContent = scores.transport;
+            if (scores.transport % 5 === 0) saveProgress('g3_transport', 5);
+        } else {
+            speak(`Oops! ${d.name} needs to go to ${d.category}.`);
+            if (originalEl) originalEl.style.display = 'block';
+        }
+    }
+
+    // --- Save ---
+    async function saveProgress(qid, pts) {
+        try { await fetch('/api/submit_progress', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quiz_id: qid, score: pts, total: pts }) }); } catch (e) { }
+    }
+</script>
 {% endblock %}

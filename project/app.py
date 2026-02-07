@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 import sqlite3
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -125,12 +125,12 @@ def extract_text_hybrid(file_path):
 
             # 2. Fallback: OCR (Scanned PDF)
             print("⚠️ No text found in PDF, attempting OCR...")
+            
             try:
                 # Check for Poppler (required for convert_from_path to work)
-                # Since we know Poppler is missing on this system, we skip or handle gracefully
                 try:
                     from pdf2image import convert_from_path
-                    pages = convert_from_path(file_path) # This will fail if Poppler is missing
+                    pages = convert_from_path(file_path) 
                     for page in pages:
                         text += pytesseract.image_to_string(page)
                 except Exception as e:
@@ -149,13 +149,13 @@ def extract_text_hybrid(file_path):
             except Exception as e:
                 print("⚠️ OCR failed completely:", e)
 
-            return text
-
+            return text if text.strip() else "ERROR_NO_TEXT: Could not read text. Please check the file."
     except Exception as e:
         print(f"General extraction error: {e}")
         return ""
 
     return text
+
 
 def text_to_pdf(text, output_pdf, font_path, font_size=12):
     print("Registering font:", font_path)  # Debug
@@ -379,6 +379,35 @@ def redirect_to_dashboard(user):
     flash("Grade dashboard not found. Redirecting to home.")
     return redirect(url_for("index"))
 
+def get_student_progress(student_id):
+    """Calculate dynamic progress stats for a student."""
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Count uploaded books
+    cur.execute("SELECT COUNT(*) FROM uploads WHERE student_id = ?", (student_id,))
+    books_read = cur.fetchone()[0]
+    
+    # Count quizzes taken
+    cur.execute("SELECT COUNT(*) FROM quiz_attempts WHERE student_id = ?", (student_id,))
+    quizzes_taken = cur.fetchone()[0]
+    
+    # Count flashcards sets created
+    cur.execute("SELECT COUNT(*) FROM flashcards WHERE student_id = ?", (student_id,))
+    flashcards_created = cur.fetchone()[0]
+    
+    conn.close()
+    
+    return {
+        "books_read": books_read,
+        "quizzes_taken": quizzes_taken,
+        "flashcards_created": flashcards_created,
+        # Placeholder for other stats until we have tables for them
+        "math_solved": quizzes_taken * 5, # Estimate
+        "science_projects": 0,
+        "stories_written": 0
+    }
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -546,14 +575,14 @@ def grade_1_dashboard():
         else:
             return redirect_to_dashboard(session.get("user"))
     
-    ai_summary = session.pop("summary", None)
-    audio_file = session.pop("audio_file", None)
+    ai_summary = session.get("summary")
+    audio_file = session.get("audio_file")
     return render_template(
         "grade_1_dashboard.html",
         user=user,
         ai_summary=ai_summary,
         audio_file=audio_file,
-        hindi_file=session.pop("hindi_file", None)
+        hindi_file=session.get("hindi_file")
     )
 
 
@@ -729,14 +758,14 @@ def grade_2_dashboard():
         else:
             return redirect_to_dashboard(session.get("user"))
     
-    ai_summary = session.pop("summary", None)
-    audio_file = session.pop("audio_file", None)
+    ai_summary = session.get("summary")
+    audio_file = session.get("audio_file")
     return render_template(
         "grade_2_dashboard.html",
         user=user,
         ai_summary=ai_summary,
         audio_file=audio_file,
-        hindi_file=session.pop("hindi_file", None)
+        hindi_file=session.get("hindi_file")
     )
 
 
@@ -811,14 +840,18 @@ def grade_3_dashboard():
         else:
             return redirect_to_dashboard(session.get("user"))
     
-    ai_summary = session.pop("summary", None)
-    audio_file = session.pop("audio_file", None)
+    ai_summary = session.get("summary")
+    audio_file = session.get("audio_file")
+    
+    progress = get_student_progress(user["id"])
+    
     return render_template(
         "grade_3_dashboard.html",
         user=user,
         ai_summary=ai_summary,
         audio_file=audio_file,
-        hindi_file=session.pop("hindi_file", None)
+        hindi_file=session.get("hindi_file"),
+        progress=progress
     )
 
 
@@ -831,6 +864,134 @@ def grade_3_grammar():
         return redirect_to_dashboard(session.get("user"))
     return render_template("grade_3_grammar.html", user=user)
 
+@app.route("/api/grade3/generate_grammar", methods=["GET"])
+@login_required(role="student")
+def generate_grade3_grammar():
+    try:
+        prompt = """
+        Generate 5 'Fill in the Blanks' questions and 5 'Sentence Builder' puzzles for a 3rd-grade grammar practice.
+        
+        Return strictly JSON with this structure:
+        {
+            "blanks": [
+                { "text": "The ______ cat sleeps.", "answers": ["big"], "options": [["big", "small"]] }
+            ],
+            "sentences": [
+                { "words": ["The", "cat", "sleeps"], "correct": "The cat sleeps" }
+            ]
+        }
+        
+        Constraints:
+        - Blanks: Use simple adjectives/verbs. 'options' must contain the correct answer and 1 distractor.
+        - Sentences: 4-6 words max. simple sentences.
+        - Randomize the content every time.
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.9,
+            max_tokens=1000
+        )
+        
+        content = response.choices[0].message.content
+        import json
+        import re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group())
+        else:
+            return {"error": "Failed to generate questions"}
+            
+    except Exception as e:
+        print(f"Grammar generation error: {e}")
+        return {"error": str(e)}, 500
+
+
+
+def get_math_questions_logic():
+    try:
+        # Optimized for speed, but ensuring coverage
+        prompt = """
+        Generate 2 questions FOR EACH of the 4 categories below for Grade 3 Math.
+        IMPORTANT: Randomize numbers/questions. Return valid JSON only.
+        
+        Structure:
+        {
+            "time": [ {"time_str": "Half past three", "correct": "3:30", "options": ["3:30", "4:30", "2:30"]} ],
+            "shapes": [ {"clue": "I have 3 sides.", "correct": "Triangle", "options": ["Square", "Triangle", "Circle"]} ],
+            "fractions": [ {"clue": "1 part of 2", "correct": "1/2", "options": ["1/2", "1/4", "3/4"]} ],
+            "word_problems": [ {"text": "Sam has 5 apples...", "correct": "10", "options": ["10", "15", "5"]} ]
+        }
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.9,
+            max_tokens=1500  # Increased to prevent JSON truncation
+        )
+        
+        content = response.choices[0].message.content
+        import json
+        import re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group())
+        else:
+            return {"error": "Failed to generate math questions"}
+            
+    except Exception as e:
+        print(f"Math generation error: {e}")
+        return {"error": str(e)}
+
+def get_food_questions_logic():
+    try:
+        # Optimized for speed: requesting 3 questions each
+        prompt = """
+        Generate 3 Grade 3 Food questions for a dyslexic student.
+        IMPORTANT: Randomize the items and questions every time.
+        
+        Return STRICT JSON:
+        {
+            "sorting": [
+                {"item": "Apple", "category": "Fruits", "options": ["Fruits", "Vegetables", "Grains"]}
+            ],
+            "healthy": [
+                {"text": "Which is good?", "correct": "Apple", "options": ["Apple", "Candy"]}
+            ]
+        }
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.9,
+            max_tokens=1000  # Increased for safety
+        )
+        
+        content = response.choices[0].message.content
+        import json
+        import re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group())
+        else:
+            return {"error": "Failed to generate food questions"}
+            
+    except Exception as e:
+        print(f"Food generation error: {e}")
+        return {"error": str(e)}
+
+@app.route("/api/grade3/generate_math", methods=["GET"])
+@login_required(role="student")
+def generate_grade3_math():
+    return get_math_questions_logic()
+
+@app.route("/api/grade3/generate_food", methods=["GET"])
+@login_required(role="student")
+def generate_grade3_food():
+    return get_food_questions_logic()
 
 @app.route("/grade/3/math")
 @login_required(role="student")
@@ -839,8 +1000,10 @@ def grade_3_math():
     if user.get("grade") != "3":
         flash("Access denied. This content is for Grade 3 students only.")
         return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_3_math.html", user=user)
-
+    
+    # SSR: Fetch initial questions
+    initial_data = get_math_questions_logic()
+    return render_template("grade_3_math.html", user=user, initial_data=initial_data)
 
 @app.route("/grade/3/food")
 @login_required(role="student")
@@ -849,58 +1012,187 @@ def grade_3_food():
     if user.get("grade") != "3":
         flash("Access denied. This content is for Grade 3 students only.")
         return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_3_food.html", user=user)
+        
+    # SSR: Fetch initial questions
+    initial_data = get_food_questions_logic()
+    return render_template("grade_3_food.html", user=user, initial_data=initial_data)
 
+# --- New Grade 3 Logic ---
 
-@app.route("/grade/3/shelter")
+def get_shelter_questions_logic():
+    try:
+        prompt = """
+        Generate 2 questions FOR EACH category for Grade 3 Shelter.
+        1. Category "rooms": Given a household item, identify the room it belongs in. (e.g., Bed -> Bedroom, Stove -> Kitchen).
+        2. Category "animal_human": Identify if a home is for an Animal or a Human. (e.g., Nest -> Animal, Apartment -> Human).
+        
+        Return JSON:
+        {
+            "rooms": [ {"clue": "Where do you sleep?", "correct": "Bedroom", "options": ["Bedroom", "Kitchen", "Bathroom"]} ],
+            "homes": [ {"clue": "Bird lives in a...", "correct": "Nest", "options": ["Nest", "Den", "House"]} ]
+        }
+        """
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.9,
+            max_tokens=1000
+        )
+        content = response.choices[0].message.content
+        import json, re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        return json.loads(json_match.group()) if json_match else {"error": "Failed"}
+    except Exception as e:
+        print(f"Shelter error: {e}")
+        return {"error": str(e)}
+
+def get_logic_questions_logic():
+    try:
+        prompt = """
+        Generate Grade 3 Logic Puzzles in JSON format.
+        1. Patterns: sequence of 3 items, user guesses 4th. (e.g., "🔴", "🔵", "🔴", "?").
+        2. Odd One Out: 4 items, 1 doesn't belong.
+        3. Analogies: "A is to B as C is to ?".
+        
+        Return JSON:
+        {
+            "patterns": [ {"sequence": ["🔺", "🟦", "🔺"], "correct": "🟦", "options": ["🟦", "🟢"]} ],
+            "odd_one_out": [ {"correct": "Car", "options": ["Apple", "Banana", "Car", "Grape"]} ],
+            "analogies": [ {"pair1": "Bird", "pair2": "Fly", "target": "Fish", "correct": "Swim", "options": ["Swim", "Walk"]} ]
+        }
+        """
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.9,
+            max_tokens=1000
+        )
+        content = response.choices[0].message.content
+        import json, re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        return json.loads(json_match.group()) if json_match else {"error": "Failed"}
+    except Exception as e:
+        print(f"Logic error: {e}")
+        return {"error": str(e)}
+
+def get_transport_questions_logic():
+    try:
+        prompt = """
+        Generate a list of 10 mixed transport items for a Drag-and-Drop sorting game for Grade 3.
+        Categories: "Land", "Water", "Air".
+        Items should be simple nouns (e.g., Car, Boat, Rocket, Bicycle, Submarine).
+        
+        Return JSON items only:
+        {
+            "items": [
+                {"name": "Car", "category": "Land", "emoji": "🚗"},
+                {"name": "Boat", "category": "Water", "emoji": "🛥️"},
+                {"name": "Plane", "category": "Air", "emoji": "✈️"}
+            ]
+        }
+        """
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.9,
+            max_tokens=1000
+        )
+        content = response.choices[0].message.content
+        import json, re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        return json.loads(json_match.group()) if json_match else {"error": "Failed"}
+    except Exception as e:
+        print(f"Transport error: {e}")
+        return {"error": str(e)}
+
+def get_science_questions_logic():
+    try:
+        prompt = """
+        Generate 2 questions FOR EACH category for Grade 3 Science/Nature.
+        1. Category "sink_float": Will this object sink or float in water? (e.g., Stone -> Sink, Feather -> Float).
+        2. Category "senses": Which sense organ do you use? (e.g., To smell a flower -> Nose).
+        
+        Return JSON:
+        {
+            "sink_float": [ {"clue": "A heavy stone will...", "correct": "Sink", "options": ["Sink", "Float", "Fly"]} ],
+            "senses": [ {"clue": "I use this to see stars", "correct": "Eyes", "options": ["Eyes", "Ears", "Nose"]} ]
+        }
+        """
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.9,
+            max_tokens=1000
+        )
+        content = response.choices[0].message.content
+        import json, re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        return json.loads(json_match.group()) if json_match else {"error": "Failed"}
+    except Exception as e:
+        print(f"Science error: {e}")
+        return {"error": str(e)}
+
+def get_art_idea_logic():
+    try:
+        prompt = "Generate a fun, simple, and creative drawing idea for a Grade 3 student. Return JSON: {'idea': '...'}"
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.9,
+            max_tokens=100
+        )
+        content = response.choices[0].message.content
+        import json, re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        return json.loads(json_match.group()) if json_match else {"idea": "Draw a futuristic city!"}
+    except Exception as e:
+        print(f"Art error: {e}")
+        return {"idea": "Draw your favorite animal superhero!"}
+
+# --- API Endpoints ---
+
+@app.route("/api/grade3/generate_shelter")
 @login_required(role="student")
-def grade_3_shelter():
+def generate_grade3_shelter(): return get_shelter_questions_logic()
+
+@app.route("/api/grade3/generate_logic")
+@login_required(role="student")
+def generate_grade3_logic(): return get_logic_questions_logic()
+
+@app.route("/api/grade3/generate_transport")
+@login_required(role="student")
+def generate_grade3_transport(): return get_transport_questions_logic()
+
+@app.route("/api/grade3/generate_science")
+@login_required(role="student")
+def generate_grade3_science(): return get_science_questions_logic()
+
+@app.route("/api/grade3/generate_art_idea")
+@login_required(role="student")
+def generate_grade3_art_idea(): return get_art_idea_logic()
+
+# --- Routes with SSR ---
+
+@app.route("/grade/3/logic")
+@login_required(role="student")
+def grade_3_logic():
     user = session.get("user")
     if user.get("grade") != "3":
-        flash("Access denied. This content is for Grade 3 students only.")
+        flash("Access denied.")
         return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_3_shelter.html", user=user)
-
-
-@app.route("/grade/3/transport")
-@login_required(role="student")
-def grade_3_transport():
-    user = session.get("user")
-    if user.get("grade") != "3":
-        flash("Access denied. This content is for Grade 3 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_3_transport.html", user=user)
-
-
-@app.route("/grade/3/stories")
-@login_required(role="student")
-def grade_3_stories():
-    user = session.get("user")
-    if user.get("grade") != "3":
-        flash("Access denied. This content is for Grade 3 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_3_stories.html", user=user)
-
+    initial_data = get_logic_questions_logic()
+    return render_template("grade_3_logic.html", user=user, initial_data=initial_data)
 
 @app.route("/grade/3/science")
 @login_required(role="student")
 def grade_3_science():
     user = session.get("user")
     if user.get("grade") != "3":
-        flash("Access denied. This content is for Grade 3 students only.")
+        flash("Access denied.")
         return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_3_science.html", user=user)
-
-
-@app.route("/grade/3/writing")
-@login_required(role="student")
-def grade_3_writing():
-    user = session.get("user")
-    if user.get("grade") != "3":
-        flash("Access denied. This content is for Grade 3 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_3_writing.html", user=user)
-
+    # Fetch initial data for the default tab (Science/Nature)
+    initial_data = get_science_questions_logic()
+    return render_template("grade_3_science.html", user=user, initial_data=initial_data)
 
 @app.route("/grade/3/art")
 @login_required(role="student")
@@ -923,14 +1215,14 @@ def grade_4_dashboard():
         else:
             return redirect_to_dashboard(session.get("user"))
     
-    ai_summary = session.pop("summary", None)
-    audio_file = session.pop("audio_file", None)
+    ai_summary = session.get("summary")
+    audio_file = session.get("audio_file")
     return render_template(
         "grade_4_dashboard.html",
         user=user,
         ai_summary=ai_summary,
         audio_file=audio_file,
-        hindi_file=session.pop("hindi_file", None)
+        hindi_file=session.get("hindi_file")
     )
 
 @app.route("/dashboard/grade/5")
@@ -947,13 +1239,78 @@ def grade_5_dashboard():
     
     ai_summary = session.pop("summary", None)
     audio_file = session.pop("audio_file", None)
+
+    # Fetch Progress Data
+    student_id = user["id"]
+    conn = get_db()
+    c = conn.cursor()
+
+    # 1. Books Mastered (Uploads)
+    c.execute("SELECT COUNT(*) FROM uploads WHERE student_id = ?", (student_id,))
+    books_count = c.fetchone()[0]
+
+    # Helper to get count from student_progress (local scope)
+    def get_count_local(activity):
+        c.execute("SELECT data_json FROM student_progress WHERE student_id = ? AND activity_type = ?", (student_id, activity))
+        row = c.fetchone()
+        if row and row["data_json"]:
+            import json
+            try:
+                return json.loads(row["data_json"]).get("count", 0)
+            except:
+                return 0
+        return 0
+
+    math_count = get_count_local("grade_5_math")
+    science_count = get_count_local("grade_5_location")
+    leadership_count = get_count_local("grade_5_paragraph")
+    
+    conn.close()
     return render_template(
         "grade_5_dashboard.html",
         user=user,
         ai_summary=ai_summary,
         audio_file=audio_file,
-        hindi_file=session.pop("hindi_file", None)
+        hindi_file=session.pop("hindi_file", None),
+        books_count=books_count,
+        math_count=math_count,
+        science_count=science_count,
+        leadership_count=leadership_count
     )
+
+
+# Helper function for Grade 5 progress
+def update_grade5_progress(student_id, activity_type):
+    try:
+        conn = get_db()
+        c = conn.cursor()
+        
+        # Check if exists
+        c.execute("SELECT data_json FROM student_progress WHERE student_id = ? AND activity_type = ?", (student_id, activity_type))
+        row = c.fetchone()
+        
+        count = 0
+        if row and row["data_json"]:
+            import json
+            try:
+                data = json.loads(row["data_json"])
+                count = data.get("count", 0)
+            except:
+                pass
+        
+        count += 1
+        import json
+        new_data = json.dumps({"count": count})
+        
+        if row:
+            c.execute("UPDATE student_progress SET data_json = ?, last_updated = CURRENT_TIMESTAMP WHERE student_id = ? AND activity_type = ?", (new_data, student_id, activity_type))
+        else:
+            c.execute("INSERT INTO student_progress (student_id, activity_type, data_json) VALUES (?, ?, ?)", (student_id, activity_type, new_data))
+            
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error updating progress: {e}")
 
 
 # Grade 5 Feature Routes
@@ -1061,6 +1418,8 @@ def check_paragraph():
         import re
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if json_match:
+            # Update Progress
+            update_grade5_progress(session["user"]["id"], "grade_5_paragraph")
             return json.loads(json_match.group())
         else:
             return {"error": "Failed to parse AI response"}
@@ -1069,11 +1428,104 @@ def check_paragraph():
         print(f"Error checking paragraph: {e}")
         return {"error": str(e)}, 500
 
+@app.route("/grade/5/history_learning")
+@login_required(role="student")
+def grade_5_history_learning():
+    user = session.get("user")
+    if user.get("grade") != "5":
+        flash("Access denied. This content is for Grade 5 students only.")
+        return redirect(url_for("grade_5_dashboard"))
+    
+    selected_era = request.args.get("era")
+    
+    if not selected_era:
+        # Show selection screen if no era is chosen
+        return render_template("grade_5_history_select.html", user=user)
+    
+    try:
+        prompt = f"""
+        You are a time-travel guide for a 5th-grade student (10-11 years old).
+        Generate engaging, age-appropriate historical content about the era: '{selected_era}'.
+        
+        Guidelines:
+        - Use simple, exciting storytelling language.
+        - Avoid complex political or economic details.
+        - Focus on daily life, famous inventions, or cool facts.
+        - Keep the 'fun_fact' short and surprising.
+        
+        Return JSON:
+        {{
+            "title": "Creative Title for the Era",
+            "icon": "font-awesome-icon-class (e.g., fas fa-crown)",
+            "description": "2-3 sentences description of what life was like, easy to read.",
+            "timeline": [
+                {{"year": "Year", "event": "Simple event description"}},
+                {{"year": "Year", "event": "Another simple event"}}
+            ],
+            "fun_fact": "Did you know? [Interesting fact]"
+        }}
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7
+        )
+        
+        content = response.choices[0].message.content
+        import json
+        import re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            history_data = json.loads(json_match.group())
+        else:
+            # Fallback
+            history_data = {
+                "title": selected_era,
+                "icon": "fas fa-history",
+                "description": "Explore the wonders of history!",
+                "timeline": [{"year": "Long ago", "event": "Something amazing happened."}],
+                "fun_fact": "History is full of surprises!"
+            }
+            
+    except Exception as e:
+        print(f"History Gen Error: {e}")
+        history_data = {
+            "title": "Time Travel Error",
+            "icon": "fas fa-exclamation-triangle",
+            "description": "The time machine hit a bump! Try again.",
+            "timeline": [],
+            "fun_fact": "Sometimes even time machines need a break."
+        }
+
+    return render_template("grade_5_history.html", user=user, data=history_data)
+
+@app.route("/grade/5/multiplication")
+@login_required(role="student")
+def grade_5_multiplication():
+    user = session.get("user")
+    if user.get("grade") != "5":
+        flash("Access denied. This content is for Grade 5 students only.")
+        return redirect(url_for("grade_5_dashboard"))
+    return render_template("grade_5_multiplication.html", user=user)
+
 @app.route("/api/grade5/get_vocab_word", methods=["GET"])
 @login_required(role="student")
 def get_vocab_word():
     try:
-        prompt = "Generate a challenging but age-appropriate vocabulary word for a 5th grader. Return JSON: {'word': '...', 'definition': '...', 'example_sentence': '...', 'synonyms': ['...'], 'antonyms': ['...']}"
+        subject = request.args.get("subject", "General")
+        
+        prompt = f"""
+        Generate a challenging but age-appropriate vocabulary word for a 5th grader related to the subject: '{subject}'.
+        
+        Examples:
+        - History: Civilization, Empire, Artifact
+        - Science: Photosynthesis, Gravity, Ecosystem
+        - Geography: Continent, Equator, Climate
+        - English: Metaphor, Narrative, Synonym
+        
+        Return JSON: {{'word': '...', 'definition': '...', 'example_sentence': '...', 'synonyms': ['...'], 'antonyms': ['...']}}
+        """
         
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -1101,15 +1553,24 @@ def check_math():
         student_answer = data.get("answer", "")
         
         prompt = f"""
-        A 5th-grade student is solving this math problem: "{problem}"
-        Student's answer: "{student_answer}"
+        You are a helpful and encouraging math tutor for a 5th-grade student.
         
-        Verify if the answer is correct and provide an explanation.
+        Math Problem: "{problem}"
+        Student's Answer: "{student_answer}"
+        
+        Instructions:
+        1. Solve the problem yourself first to determine the correct numerical answer.
+        2. Check if the student's answer matches the correct answer.
+        3. ACCEPT answers that show the full equation (e.g., "50 - 45 = 5") as long as the final result is correct.
+        4. IGNORE standard formatting differences (e.g., "$5" vs "5" vs "5.00").
+        5. If the student provides the correct logical steps but makes a minor typo, provide a helpful hint in the explanation but you may mark it incorrect if the final number is wrong.
+        6. If the answer is correct, "is_correct" MUST be true.
+        
         Return JSON:
         {{
             "is_correct": boolean,
             "correct_answer": "string",
-            "explanation": "string",
+            "explanation": "string (brief, helpful explanation)",
             "encouragement": "string"
         }}
         """
@@ -1117,7 +1578,7 @@ def check_math():
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.3
+            temperature=0.1
         )
         
         content = response.choices[0].message.content
@@ -1125,7 +1586,11 @@ def check_math():
         import re
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if json_match:
-            return json.loads(json_match.group())
+            result = json.loads(json_match.group())
+            # Update Progress if correct
+            if result.get("is_correct"):
+                 update_grade5_progress(session["user"]["id"], "grade_5_math")
+            return result
         else:
             return {"error": "Failed to check answer"}
     except Exception as e:
@@ -1161,11 +1626,55 @@ def location_info():
         import re
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if json_match:
+            # Update Progress
+            update_grade5_progress(session["user"]["id"], "grade_5_location")
             return json.loads(json_match.group())
         else:
             return {"error": "Failed to get location info"}
     except Exception as e:
         return {"error": str(e)}, 500
+
+@app.route("/api/grade5/get_math_problem", methods=["GET"])
+@login_required(role="student")
+def get_math_problem():
+    try:
+        prompt = """
+        Generate a strictly age-appropriate math word problem for a standard 5th grader (approx. 10-11 years old).
+        
+        Use one of these specific 5th-grade topics:
+        1. Multi-digit multiplication or division (e.g., 345 x 12 or 120 / 4).
+        2. Adding/Subtracting fractions with unlike denominators (e.g., 1/2 + 1/3).
+        3. Decimals (adding, subtracting, or multiplying simple decimals like money).
+        4. Volume of rectangular prisms.
+        5. Real-world scenarios involving Time or Money.
+        
+        Avoid overly complex logic. Ensure the numbers are clean and the answer is a whole number or simple decimal/fraction.
+        Keep the text clear, encouraging, and concise (1-3 sentences).
+        
+        Return JSON:
+        {
+            "problem": "The text of the word problem."
+        }
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.9
+        )
+        
+        content = response.choices[0].message.content
+        import json
+        import re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group())
+        else:
+            return {"problem": "A baker has 24 cookies and wants to share them equally among 4 friends. How many cookies does each friend get?"} # Fallback
+            
+    except Exception as e:
+        print(f"Error generating problem: {e}")
+        return {"problem": "Tom has 15 apples. He gives 5 to Jerry. How many apples does Tom have left?"} # Fallback
 
 @app.route("/upload_textbook", methods=["POST"])
 @login_required(role="student")
@@ -1244,8 +1753,15 @@ def audio_narration():
     # Extract text
     text = extract_text_hybrid(filepath)
 
+    if text.startswith("ERROR_"):
+        if "OCR_MISSING" in text:
+            flash("⚠️ This looks like a scanned PDF (image). We need a text-based PDF or Word doc because OCR is not installed.")
+        else:
+            flash("⚠️ Could not read text from this file. Please try a different file.")
+        return redirect_to_dashboard(user)
+
     if not text.strip():
-        flash("Could not extract text. If this is a scanned PDF, please use a selectable PDF or DOCX.")
+        flash("⚠️ File appears empty. Please check the content.")
         return redirect_to_dashboard(user)
 
     print("=== TEXT EXTRACTED ===")
@@ -1319,6 +1835,13 @@ def generate_summary():
 
     # Extract text
     text = extract_text_hybrid(filepath)
+    
+    if text.startswith("ERROR_"):
+        if "OCR_MISSING" in text:
+            flash("⚠️ This looks like a scanned PDF. We need a text-based PDF or Word doc because OCR is not installed.")
+        else:
+            flash("⚠️ Could not read text from this file.")
+        return redirect_to_dashboard(session.get("user"))
 
     if not text.strip():
         flash("Could not extract text. If this is a scanned PDF, please use a selectable PDF or DOCX.")
@@ -1381,6 +1904,14 @@ def translate_text():
     # ---------- Extract text ----------
     try:
         text = extract_text_hybrid(filepath)
+        
+        if text.startswith("ERROR_"):
+            if "OCR_MISSING" in text:
+                flash("⚠️ This looks like a scanned PDF. Please upload a text-based PDF or Word doc.")
+            else:
+                flash("⚠️ Could not read text from this file.")
+            return redirect_to_dashboard(user)
+            
     except Exception as e:
         print("TEXT EXTRACTION ERROR:", e)
         flash("Unable to read PDF.")
@@ -1572,6 +2103,10 @@ def generate_flashcards():
     # ------------------------
     text = extract_text_hybrid(filepath)
     
+    if text.startswith("ERROR_"):
+        flash("⚠️ Could not read text for flashcards. Please upload a clear text-based PDF or DOCX.")
+        return redirect_to_dashboard(user)
+    
     if not text or not text.strip():
         flash("⚠️ Unable to extract text. If this is a scanned PDF, please use a selectable PDF or DOCX.")
         return redirect_to_dashboard(user)
@@ -1685,6 +2220,10 @@ def generate_quiz():
 
     # Extract text
     text = extract_text_hybrid(filepath)
+
+    if text.startswith("ERROR_"):
+        flash("⚠️ Could not read text for quiz. Please upload a clear text-based PDF or DOCX.")
+        return redirect_to_dashboard(user)
 
     if not text or not text.strip():
         flash("⚠️ No text found. If this is a scanned PDF, please use a selectable PDF or DOCX.")
@@ -2598,38 +3137,84 @@ def api_ai_tutor():
         conn.close()
         
         # Build prompt based on mode
+        # Core Persona: Dyslexia Specialist
+        system_prompt = """
+You are a warm, patient, and encouraging AI tutor specialized in teaching students with dyslexia (Grades 1-5).
+Your goal is to make learning accessible, fun, and stress-free.
+
+**Crucial Guidelines:**
+1.  **Format for Readability:**
+    -   Use short, clear sentences.
+    -   **Bold** key terms (e.g., "**Photosynthesis** is how plants eat").
+    -   Use bullet points frequently.
+    -   Avoid big blocks of text. Max 2-3 sentences per paragraph.
+2.  **Tone:**
+    -   Be extremely encouraging ("You're doing great!", "Good try!").
+    -   Never describe things as "easy" or "simple" (this can be discouraging). Instead say "Let's break this down."
+3.  **Multi-Sensory Cues:**
+    -   Encourage visualization ("Imagine a big red apple").
+    -   Suggest actions ("Trace the letter A in the air").
+"""
+        
         prompt = ""
         
         if mode == "teach":
-            prompt = f"Teach this chapter step-by-step using simple explanations, examples, analogies, and include 3 micro-questions. Chapter text: {pdf_text}"
+            prompt = f"""
+{system_prompt}
+**Task: Teach Grade {grade if 'grade' in locals() else '1-5'} Content**
+-   Break the concept into small steps.
+-   Use emojis to create visual anchors (e.g., 🍎 for apple).
+-   End with a "Check-in" question to ensure they understood.
+-   Primary Source: {pdf_text[:2000] if pdf_text else 'No text provided. Use general knowledge.'}
+Student Question: {user_message}
+"""
         elif mode == "doubt":
-            prompt = f"Explain this question in simple terms + real-world analogy + example: {user_message}"
+            prompt = f"""
+{system_prompt}
+**Task: Doubt Solver**
+-   Directly answer the question.
+-   Use a real-world analogy (like pizza, colors, or games).
+-   User Question: {user_message}
+"""
         elif mode == "quiz":
             prompt = f"""
-You are an adaptive quiz tutor with difficulty levels 1–10.
+{system_prompt}
+**Task: Adaptive Assessment**
+Context: {pdf_text[:500] if pdf_text else 'General knowledge'}...
+Student Message: "{user_message}"
 
-Difficulty: 3
-Student answer: {user_message}
-Generate:
-- Whether answer is correct
-- Explanation
-- Next question
-- Updated difficulty
+If the student message looks like an answer, evaluate it efficiently.
+If it's a request (e.g., "start"), generate a question.
+
+Output format (Internal Use):
+- **Evaluation**: (Correct/Incorrect/N/A)
+- **Explanation**: (Short, encouraging feedback. If wrong, explain ONE key reason).
+- **New Question**: (Ask a relevant, single-choice question).
+- **Difficulty**: (1-10)
 """
         elif mode == "explain":
             text_to_explain = selected_text if selected_text else user_message
             prompt = f"""
-Explain this passage in 4 styles:
-1. Simple  
-2. Real-world analogy  
-3. Story version  
-4. Technical explanation  
-Text: {text_to_explain}
+{system_prompt}
+**Task: Explain Text**
+Explain this specific text: "{text_to_explain[:500]}"
+
+Provide 3 short sections:
+1.  **In a Nutshell** 🥜: One sentence summary.
+2.  **Picture This** 🖼️: A visual analogy.
+3.  **Why It Matters** 🌟: Connect it to their life.
 """
         elif mode == "diagram":
-            prompt = f"Generate a clean ASCII diagram explaining this topic under 40 lines: {user_message}"
+            prompt = f"""
+{system_prompt}
+**Task: Visual Diagram**
+Create a CLEAR, simple ASCII art diagram for: '{user_message}'.
+-   Use box-and-arrow style.
+-   Keep labels short.
+-   Add a 1-sentence caption explaining the drawing.
+"""
         else:
-            prompt = user_message
+            prompt = f"{system_prompt}\nJust chat nicely with the student. Respond to: {user_message}"
         
         # Use OpenAI model to generate response
         response = client.chat.completions.create(
@@ -2641,6 +3226,46 @@ Text: {text_to_explain}
         
         if not response or not response.choices:
             return {"error": "Failed to generate response"}, 500
+            
+        ai_reply = response.choices[0].message.content
+
+        # Post-process Quiz response for better display
+        if mode == "quiz":
+            try:
+                # Parse the structured response
+                lines = ai_reply.split('\n')
+                quiz_data = {}
+                for line in lines:
+                    if ':' in line:
+                        key, value = line.split(':', 1)
+                        quiz_data[key.strip('- *').lower()] = value.strip()
+                
+                # Format friendly response
+                formatted_reply = ""
+                
+                # Handle Evaluation
+                evaluation = quiz_data.get('evaluation', '').lower()
+                if 'correct' in evaluation and 'incorrect' not in evaluation:
+                    formatted_reply += "✅ **Correct!** 🎉\n\n"
+                elif 'incorrect' in evaluation:
+                    formatted_reply += "❌ **Not quite.** \n\n"
+                
+                # Add Explanation if present (and not just "N/A")
+                explanation = quiz_data.get('explanation', '')
+                if explanation and explanation != 'N/A':
+                    formatted_reply += f"_{explanation}_\n\n"
+                
+                # Add New Question
+                new_question = quiz_data.get('new question', '')
+                if new_question:
+                    formatted_reply += f"**Next Question:**\n{new_question}"
+                
+                # Fallback if parsing failed or empty
+                if formatted_reply:
+                    ai_reply = formatted_reply
+            except Exception as e:
+                print(f"Error parsing quiz response: {e}")
+                # Leave ai_reply as is if parsing fails
         
         # Save to database
         conn = get_db()
@@ -2657,13 +3282,13 @@ Text: {text_to_explain}
         cur.execute("""
             INSERT INTO ai_tutor_sessions (student_id, role, message, timestamp)
             VALUES (?, ?, ?, ?)
-        """, (user_id, "assistant", response.choices[0].message.content, datetime.now(timezone.utc).isoformat()))
+        """, (user_id, "assistant", ai_reply, datetime.now(timezone.utc).isoformat()))
         
         conn.commit()
         conn.close()
         
         return {
-            "response": response.choices[0].message.content,
+            "response": ai_reply,
             "session_id": session_id
         }
     
@@ -2725,9 +3350,82 @@ def load_progress(activity_type):
     else:
         return jsonify({"success": True, "data": None})  # No progress yet
 
+# --- Grade 5 Vocab Builder API ---
+
+@app.route("/api/grade5/get_vocab_word")
+@login_required(role="student")
+def api_grade5_get_vocab_word():
+    subject = request.args.get("subject", "General")
+    
+    prompt = f"""
+    Generate a challenging but age-appropriate vocabulary word for a Grade 5 student related to the subject: {subject}.
+    Return ONLY a JSON object with:
+    {{
+        "word": "...",
+        "definition": "...",
+        "example_sentence": "...",
+        "synonyms": ["...", "..."],
+        "antonyms": ["...", "..."]
+    }}
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=200
+        )
+        content = response.choices[0].message.content
+        import json
+        import re
+        # Extract JSON
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+             data = json.loads(json_match.group())
+             return data
+        else:
+             return {"error": "Failed to parse AI response"}
+    except Exception as e:
+        print(f"Vocab API Error: {e}")
+        return {"error": str(e)}, 500
 
 # ---------- Run ----------
+@app.route("/api/submit_progress", methods=["POST"])
+@login_required(role="student")
+def submit_progress():
+    """Save student progress/quiz attempts"""
+    try:
+        user = session.get("user")
+        data = request.get_json()
+        
+        quiz_id = data.get("quiz_id")
+        score = data.get("score")
+        total = data.get("total")
+        
+        if not all([quiz_id, score is not None, total]):
+            return {"error": "Missing data"}, 400
+            
+        conn = get_db()
+        c = conn.cursor()
+        
+        c.execute("""
+            INSERT INTO quiz_attempts (student_id, quiz_id, score, total, attempted_at)
+            VALUES (?, ?, ?, ?, ?)
+        """, (user["id"], quiz_id, score, total, datetime.now(timezone.utc).isoformat()))
+        
+        conn.commit()
+        conn.close()
+        
+        return {"success": True, "message": "Progress saved!"}
+        
+    except Exception as e:
+        print(f"Error submitting progress: {e}")
+        return {"error": str(e)}, 500
+
+
+
 if __name__ == "__main__":
     init_db()
-    port = int(os.environ.get("PORT", 5000))  
-    app.run(host='0.0.0.0', port=port, debug=True)
+    # app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

@@ -1,606 +1,320 @@
 {% extends "base.html" %}
 
-{% block title %}Grade 3 EVS - Food & Nutrition - Udaan{% endblock %}
+{% block title %}Grade 3 Food - Udaan{% endblock %}
 
-{% block body_class %}min-h-screen bg-gradient-to-br from-orange-50 to-amber-100{% endblock %}
+{% block body_class %}min-h-screen bg-green-50 font-comic{% endblock %}
 
 {% block content %}
+<style>
+    /* Simple Dyslexia-Friendly Styles */
+    .font-comic {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
+        letter-spacing: 0.05em;
+        line-height: 1.6;
+    }
+
+    .dyslexic-box {
+        background-color: #f0fff4;
+        /* Soft Mint */
+        border: 3px solid #68d391;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    .dyslexic-btn {
+        background-color: #ed8936;
+        color: white;
+        border: 2px solid #c05621;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: bold;
+        transition: transform 0.1s;
+    }
+
+    .dyslexic-btn:active {
+        transform: scale(0.95);
+    }
+
+    .nav-btn {
+        background-color: #48bb78;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        font-weight: bold;
+        font-size: 1.2rem;
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    .speak-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.5rem;
+        margin-left: 0.5rem;
+    }
+
+    .speak-btn:hover {
+        transform: scale(1.1);
+    }
+</style>
+
 <div class="container mx-auto px-4 py-8">
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-5xl mx-auto">
         <!-- Header -->
         <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-orange-800 mb-2">🍎 Food & Nutrition</h1>
-            <p class="text-xl text-orange-600">Healthy Eating & Food Groups</p>
-            <div class="mt-4 inline-block bg-orange-100 text-orange-800 px-4 py-2 rounded-full font-semibold">
-                Grade 3 EVS - Food & Nutrition
-            </div>
+            <h1 class="text-5xl font-bold text-green-800 mb-4">🍎 Food Fun!</h1>
+            <p class="text-2xl text-green-700">Eat Healthy, Grow Strong</p>
+            <button class="speak-btn" onclick="speak('Food Fun! Eat Healthy, Grow Strong')">🔊</button>
         </div>
 
-        <!-- Food Modules -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <!-- Food Groups -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-utensils text-2xl text-red-600"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Food Groups</h3>
-                    <p class="text-gray-600 mb-4">Grains, fruits, vegetables, proteins, and dairy</p>
-                    <button onclick="startFoodGroupsLesson()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        Learn Food Groups
-                    </button>
-                </div>
-            </div>
-
-            <!-- Healthy vs Unhealthy -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-apple-alt text-2xl text-green-600"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Healthy vs Unhealthy</h3>
-                    <p class="text-gray-600 mb-4">Making good food choices for your body</p>
-                    <button onclick="startHealthyFoodLesson()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        Learn Healthy Eating
-                    </button>
-                </div>
-            </div>
-
-            <!-- Where Food Comes From -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-seedling text-2xl text-blue-600"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Where Food Comes From</h3>
-                    <p class="text-gray-600 mb-4">Farms, animals, and how food reaches our plates</p>
-                    <button onclick="startFoodSourceLesson()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        Discover Food Sources
-                    </button>
-                </div>
-            </div>
-
-            <!-- Balanced Diet -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-balance-scale text-2xl text-purple-600"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Balanced Diet</h3>
-                    <p class="text-gray-600 mb-4">Eating the right amounts from each food group</p>
-                    <button onclick="startBalancedDietLesson()" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        Learn Balanced Diet
-                    </button>
-                </div>
-            </div>
-
-            <!-- Food Preservation -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-prescription-bottle text-2xl text-yellow-600"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Food Preservation</h3>
-                    <p class="text-gray-600 mb-4">How we keep food fresh and safe to eat</p>
-                    <button onclick="startPreservationLesson()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        Learn Preservation
-                    </button>
-                </div>
-            </div>
-
-            <!-- Cooking Methods -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-fire text-2xl text-orange-600"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Cooking Methods</h3>
-                    <p class="text-gray-600 mb-4">Boiling, frying, baking, and other ways to cook</p>
-                    <button onclick="startCookingLesson()" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        Learn Cooking
-                    </button>
-                </div>
-            </div>
+        <!-- Practice Zone -->
+        <div id="loading-state" class="text-center py-12">
+            <div class="text-6xl mb-4 animate-bounce">🥗</div>
+            <p class="text-2xl text-gray-600">Cooking up questions...</p>
         </div>
 
-        <!-- Interactive Food Activities -->
-        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🎯 Food & Nutrition Activities</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-orange-50 rounded-xl p-6">
-                    <h3 class="text-xl font-bold text-orange-800 mb-4">Build a Healthy Plate</h3>
-                    <div class="bg-white rounded-lg p-4 mb-4">
-                        <p class="text-gray-700 mb-4">Drag food items to create a balanced meal:</p>
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            <span class="bg-red-100 px-3 py-1 rounded cursor-move">🍎 Apple</span>
-                            <span class="bg-yellow-100 px-3 py-1 rounded cursor-move">🍞 Bread</span>
-                            <span class="bg-green-100 px-3 py-1 rounded cursor-move">🥦 Broccoli</span>
-                            <span class="bg-blue-100 px-3 py-1 rounded cursor-move">🥛 Milk</span>
-                            <span class="bg-purple-100 px-3 py-1 rounded cursor-move">🍗 Chicken</span>
-                        </div>
-                        <div class="border-2 border-dashed border-gray-300 rounded p-4 min-h-24">
-                            <p class="text-gray-500 text-center">Your healthy plate goes here</p>
-                        </div>
-                    </div>
-                    <button class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors">
-                        Check My Plate
-                    </button>
-                </div>
+        <div id="game-zone" class="grid grid-cols-1 md:grid-cols-2 gap-8 hidden">
 
-                <div class="bg-green-50 rounded-xl p-6">
-                    <h3 class="text-xl font-bold text-green-800 mb-4">Food Group Sorter</h3>
-                    <div class="bg-white rounded-lg p-4 mb-4">
-                        <p class="text-gray-700 mb-4">Sort these foods into the correct groups:</p>
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            <span class="bg-gray-100 px-3 py-1 rounded cursor-move">Rice</span>
-                            <span class="bg-gray-100 px-3 py-1 rounded cursor-move">Banana</span>
-                            <span class="bg-gray-100 px-3 py-1 rounded cursor-move">Egg</span>
-                            <span class="bg-gray-100 px-3 py-1 rounded cursor-move">Cheese</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div class="border-2 border-dashed border-red-300 rounded p-2 text-center">
-                                <span class="text-red-600 font-bold">Grains</span>
-                            </div>
-                            <div class="border-2 border-dashed border-green-300 rounded p-2 text-center">
-                                <span class="text-green-600 font-bold">Fruits</span>
-                            </div>
-                            <div class="border-2 border-dashed border-blue-300 rounded p-2 text-center">
-                                <span class="text-blue-600 font-bold">Proteins</span>
-                            </div>
-                            <div class="border-2 border-dashed border-purple-300 rounded p-2 text-center">
-                                <span class="text-purple-600 font-bold">Dairy</span>
-                            </div>
-                        </div>
-                    </div>
-                    <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
-                        Sort Foods
-                    </button>
+            <!-- Food Sorter -->
+            <div class="dyslexic-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-orange-800">🧺 Sort Food</h3>
+                    <button class="speak-btn text-orange-600" onclick="speak('Sort the Food')">🔊</button>
                 </div>
+                <div id="sort-container">
+                    <!-- Dynamic Sorting Question -->
+                </div>
+                <p id="sorting-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="sorting-score">0</span></div>
             </div>
-        </div>
 
-        <!-- Progress Tracker -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📊 Your Nutrition Progress</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-red-600 mb-2">5</div>
-                    <div class="text-gray-600">Food Groups Learned</div>
+            <!-- Healthy Choice -->
+            <div class="dyslexic-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-green-800">✅ Healthy Choice</h3>
+                    <button class="speak-btn text-green-600" onclick="speak('Make a Healthy Choice')">🔊</button>
                 </div>
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-green-600 mb-2">12</div>
-                    <div class="text-gray-600">Healthy Foods Identified</div>
+                <div id="healthy-container">
+                    <!-- Dynamic Healthy Question -->
                 </div>
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-blue-600 mb-2">8</div>
-                    <div class="text-gray-600">Balanced Meals Created</div>
-                </div>
+                <p id="healthy-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="healthy-score">0</span></div>
             </div>
+
         </div>
 
         <!-- Back Button -->
-        <div class="text-center">
-            <a href="{{ url_for('grade_3_dashboard') }}" class="inline-block bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        <div class="text-center mt-12">
+            <a href="{{ url_for('grade_3_dashboard') }}" class="nav-btn inline-flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Go Back
             </a>
         </div>
     </div>
 </div>
 
+<!-- Server Data -->
+<script id="server-data" type="application/json">
+        {{ initial_data | tojson | safe }}
+    </script>
+
 <script>
-    // Food Groups Lesson Functionality
-    function startFoodGroupsLesson() {
-        const lessonContent = `
-            <div class="bg-white rounded-2xl shadow-lg p-6 max-w-3xl mx-auto">
-                <h3 class="text-2xl font-bold text-red-800 mb-4">🍎 Food Groups Lesson</h3>
-                <p class="text-gray-700 mb-4">Learn about the 5 main food groups for a healthy diet!</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-                    <div class="text-center bg-red-50 p-4 rounded-lg">
-                        <div class="text-3xl mb-2">🍞</div>
-                        <h4 class="font-bold text-red-700">Grains</h4>
-                        <p class="text-sm">Bread, rice, pasta, cereals</p>
-                        <p class="text-xs text-gray-600 mt-1">Energy provider</p>
-                    </div>
-                    <div class="text-center bg-green-50 p-4 rounded-lg">
-                        <div class="text-3xl mb-2">🍎</div>
-                        <h4 class="font-bold text-green-700">Fruits</h4>
-                        <p class="text-sm">Apples, bananas, oranges</p>
-                        <p class="text-xs text-gray-600 mt-1">Vitamins & fiber</p>
-                    </div>
-                    <div class="text-center bg-orange-50 p-4 rounded-lg">
-                        <div class="text-3xl mb-2">🥦</div>
-                        <h4 class="font-bold text-orange-700">Vegetables</h4>
-                        <p class="text-sm">Carrots, spinach, tomatoes</p>
-                        <p class="text-xs text-gray-600 mt-1">Minerals & vitamins</p>
-                    </div>
-                    <div class="text-center bg-blue-50 p-4 rounded-lg">
-                        <div class="text-3xl mb-2">🍗</div>
-                        <h4 class="font-bold text-blue-700">Proteins</h4>
-                        <p class="text-sm">Meat, fish, eggs, beans</p>
-                        <p class="text-xs text-gray-600 mt-1">Body building</p>
-                    </div>
-                    <div class="text-center bg-purple-50 p-4 rounded-lg">
-                        <div class="text-3xl mb-2">🥛</div>
-                        <h4 class="font-bold text-purple-700">Dairy</h4>
-                        <p class="text-sm">Milk, cheese, yogurt</p>
-                        <p class="text-xs text-gray-600 mt-1">Strong bones</p>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                    <h4 class="font-bold text-gray-800 mb-2">Food Group Activity:</h4>
-                    <p class="text-gray-700 mb-3">Which food group does each item belong to?</p>
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between p-2 bg-white rounded">
-                            <span>Banana</span>
-                            <div class="flex gap-2">
-                                <button onclick="checkFoodGroup('Fruits', 'correct')" class="bg-green-100 hover:bg-green-200 px-3 py-1 rounded text-sm">Fruits</button>
-                                <button onclick="checkFoodGroup('Vegetables', 'incorrect')" class="bg-green-100 hover:bg-green-200 px-3 py-1 rounded text-sm">Veg</button>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between p-2 bg-white rounded">
-                            <span>Chicken</span>
-                            <div class="flex gap-2">
-                                <button onclick="checkFoodGroup('Proteins', 'correct')" class="bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded text-sm">Protein</button>
-                                <button onclick="checkFoodGroup('Dairy', 'incorrect')" class="bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded text-sm">Dairy</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <button onclick="closeLesson()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors">
-                    Close Lesson
-                </button>
-            </div>
-        `;
-        showLessonModal(lessonContent);
+    // State
+    let foodData = { sorting: [], healthy: [] };
+    let scores = { sorting: 0, healthy: 0 };
+    let indices = { sorting: 0, healthy: 0 };
+    let isFetching = false;
+
+    // TTS Function
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.9;
+        utterance.pitch = 1.1;
+        window.speechSynthesis.speak(utterance);
     }
-    
-    // Healthy Food Lesson Functionality
-    function startHealthyFoodLesson() {
-        const lessonContent = `
-            <div class="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto">
-                <h3 class="text-2xl font-bold text-green-800 mb-4">🍏 Healthy vs Unhealthy Foods</h3>
-                <p class="text-gray-700 mb-4">Learn to make smart food choices for your body!</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div class="bg-green-50 p-4 rounded-lg border-2 border-green-200">
-                        <h4 class="font-bold text-green-700 mb-2 text-center">✅ Healthy Foods</h4>
-                        <ul class="text-gray-600 space-y-1">
-                            <li class="flex items-center"><span class="mr-2">•</span>Fresh fruits and vegetables</li>
-                            <li class="flex items-center"><span class="mr-2">•</span>Whole grain bread and rice</li>
-                            <li class="flex items-center"><span class="mr-2">•</span>Milk, eggs, fish, lean meat</li>
-                            <li class="flex items-center"><span class="mr-2">•</span>Water and fresh juices</li>
-                        </ul>
-                    </div>
-                    <div class="bg-red-50 p-4 rounded-lg border-2 border-red-200">
-                        <h4 class="font-bold text-red-700 mb-2 text-center">❌ Unhealthy Foods</h4>
-                        <ul class="text-gray-600 space-y-1">
-                            <li class="flex items-center"><span class="mr-2">•</span>Chips, burgers, pizza</li>
-                            <li class="flex items-center"><span class="mr-2">•</span>Sugary drinks and candy</li>
-                            <li class="flex items-center"><span class="mr-2">•</span>Fried and processed foods</li>
-                            <li class="flex items-center"><span class="mr-2">•</span>Too much oily food</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                    <h4 class="font-bold text-gray-800 mb-2">Healthy Choice Challenge:</h4>
-                    <p class="text-gray-700 mb-2">You're hungry after school. Which is the healthier choice?</p>
-                    <div class="flex gap-2">
-                        <button onclick="checkHealthyChoice('Fruit', 'correct')" class="bg-green-100 hover:bg-green-200 px-4 py-2 rounded">Apple</button>
-                        <button onclick="checkHealthyChoice('Snack', 'incorrect')" class="bg-red-100 hover:bg-red-200 px-4 py-2 rounded">Chips</button>
-                        <button onclick="checkHealthyChoice('Drink', 'correct')" class="bg-green-100 hover:bg-green-200 px-4 py-2 rounded">Water</button>
-                    </div>
-                </div>
-                
-                <div class="text-center text-sm text-gray-600 bg-yellow-50 p-3 rounded">
-                    <p>🌟 Remember: Eat from all food groups in the right amounts!</p>
-                    <p>🎯 Aim for variety, moderation, and balance in your meals</p>
-                </div>
-                
-                <button onclick="closeLesson()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors mt-4">
-                    Close Lesson
-                </button>
-            </div>
-        `;
-        showLessonModal(lessonContent);
-    }
-    
-    // Food Source Lesson Functionality
-    function startFoodSourceLesson() {
-        const lessonContent = `
-            <div class="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto">
-                <h3 class="text-2xl font-bold text-blue-800 mb-4">🌱 Where Food Comes From</h3>
-                <p class="text-gray-700 mb-4">Discover the journey from farm to table!</p>
-                
-                <div class="space-y-4 mb-6">
-                    <div class="bg-white border-2 border-green-200 rounded-lg p-4">
-                        <div class="flex items-center">
-                            <div class="text-2xl mr-3">🚜</div>
-                            <div>
-                                <h4 class="font-bold text-green-700">Farmers grow our food</h4>
-                                <p class="text-sm text-gray-600">Wheat, rice, fruits, vegetables on farms</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white border-2 border-blue-200 rounded-lg p-4">
-                        <div class="flex items-center">
-                            <div class="text-2xl mr-3">🐄</div>
-                            <div>
-                                <h4 class="font-bold text-blue-700">Animals provide food</h4>
-                                <p class="text-sm text-gray-600">Milk from cows, eggs from hens</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white border-2 border-orange-200 rounded-lg p-4">
-                        <div class="flex items-center">
-                            <div class="text-2xl mr-3">📦</div>
-                            <div>
-                                <h4 class="font-bold text-orange-700">Transportation</h4>
-                                <p class="text-sm text-gray-600">Food travels in trucks to markets and stores</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-3 gap-4 text-center mb-6">
-                    <div>
-                        <div class="text-3xl mb-1">🚜</div>
-                        <p class="text-sm">Farmer grows</p>
-                    </div>
-                    <div>
-                        <div class="text-xl mb-1">➙</div>
-                        <p class="text-sm">Transport</p>
-                    </div>
-                    <div>
-                        <div class="text-3xl mb-1">🛒</div>
-                        <p class="text-sm">We buy</p>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                    <h4 class="font-bold text-gray-800 mb-2">Food Journey Quiz:</h4>
-                    <p class="text-gray-700 mb-2">Where does milk come from?</p>
-                    <div class="flex gap-2">
-                        <button onclick="checkFoodSource('Cow', 'correct')" class="bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded">Cow</button>
-                        <button onclick="checkFoodSource('Factory', 'incorrect')" class="bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded">Factory</button>
-                        <button onclick="checkFoodSource('Store', 'incorrect')" class="bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded">Store</button>
-                    </div>
-                </div>
-                
-                <button onclick="closeLesson()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
-                    Close Lesson
-                </button>
-            </div>
-        `;
-        showLessonModal(lessonContent);
-    }
-    
-    // Balanced Diet Lesson Functionality
-    function startBalancedDietLesson() {
-        const lessonContent = `
-            <div class="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto">
-                <h3 class="text-2xl font-bold text-purple-800 mb-4">⚖️ Balanced Diet</h3>
-                <p class="text-gray-700 mb-4">Learn how to eat the right amounts from each food group!</p>
-                
-                <div class="bg-purple-50 p-4 rounded-lg mb-6">
-                    <h4 class="font-bold text-purple-700 mb-2">What is a Balanced Diet?</h4>
-                    <p class="text-gray-600">Eating the right portions from all food groups to get all the nutrients your body needs.</p>
-                </div>
-                
-                <div class="space-y-3 mb-6">
-                    <div class="flex items-center bg-white p-3 rounded border">
-                        <div class="text-2xl mr-3">🍽️</div>
-                        <div>
-                            <h5 class="font-bold">Main Meal Plate</h5>
-                            <p class="text-sm text-gray-600">½ vegetables, ¼ grains, ¼ protein</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center bg-white p-3 rounded border">
-                        <div class="text-2xl mr-3">🍎</div>
-                        <div>
-                            <h5 class="font-bold">Daily Fruits</h5>
-                            <p class="text-sm text-gray-600">2-3 servings of fresh fruits</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center bg-white p-3 rounded border">
-                        <div class="text-2xl mr-3">🥛</div>
-                        <div>
-                            <h5 class="font-bold">Dairy Products</h5>
-                            <p class="text-sm text-gray-600">Milk, curd, paneer daily</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                    <h4 class="font-bold text-gray-800 mb-2">Balanced Plate Challenge:</h4>
-                    <p class="text-gray-700 mb-2">Which plate shows a balanced meal?</p>
-                    <div class="flex gap-2">
-                        <button onclick="checkBalanced('Balanced', 'correct')" class="bg-purple-100 hover:bg-purple-200 px-4 py-2 rounded">Rice + Dal + Vegetables</button>
-                        <button onclick="checkBalanced('Unbalanced', 'incorrect')" class="bg-red-100 hover:bg-red-200 px-4 py-2 rounded">Only Chips</button>
-                    </div>
-                </div>
-                
-                <div class="text-center text-sm bg-yellow-50 p-3 rounded">
-                    <p class="font-bold text-yellow-700">Golden Rule:</p>
-                    <p class="text-gray-600">Eat a variety of foods in the right amounts!</p>
-                </div>
-                
-                <button onclick="closeLesson()" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-colors mt-4">
-                    Close Lesson
-                </button>
-            </div>
-        `;
-        showLessonModal(lessonContent);
-    }
-    
-    // Food Preservation Lesson Functionality
-    function startPreservationLesson() {
-        const lessonContent = `
-            <div class="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto">
-                <h3 class="text-2xl font-bold text-yellow-800 mb-4">🧊 Food Preservation</h3>
-                <p class="text-gray-700 mb-4">Learn how to keep food fresh and safe to eat!</p>
-                
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="text-center bg-white border-2 border-yellow-200 rounded-lg p-4">
-                        <div class="text-3xl mb-2">❄️</div>
-                        <h4 class="font-bold text-yellow-700">Refrigeration</h4>
-                        <p class="text-sm">Keep in fridge to stay fresh longer</p>
-                    </div>
-                    <div class="text-center bg-white border-2 border-orange-200 rounded-lg p-4">
-                        <div class="text-3xl mb-2">☀️</div>
-                        <h4 class="font-bold text-orange-700">Drying</h4>
-                        <p class="text-sm">Sun drying or using dehydrators</p>
-                    </div>
-                    <div class="text-center bg-white border-2 border-green-200 rounded-lg p-4">
-                        <div class="text-3xl mb-2">🍯</div>
-                        <h4 class="font-bold text-green-700">Adding Salt/Sugar</h4>
-                        <p class="text-sm">Pickles, jams, and preserves</p>
-                    </div>
-                    <div class="text-center bg-white border-2 border-blue-200 rounded-lg p-4">
-                        <div class="text-3xl mb-2">🥫</div>
-                        <h4 class="font-bold text-blue-700">Canning</h4>
-                        <p class="text-sm">Sealing in airtight containers</p>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                    <h4 class="font-bold text-gray-800 mb-2">Preservation Quiz:</h4>
-                    <p class="text-gray-700 mb-2">How should you store milk to keep it fresh?</p>
-                    <div class="flex gap-2">
-                        <button onclick="checkPreservation('Refrigerator', 'correct')" class="bg-yellow-100 hover:bg-yellow-200 px-4 py-2 rounded">Refrigerator</button>
-                        <button onclick="checkPreservation('Room', 'incorrect')" class="bg-yellow-100 hover:bg-yellow-200 px-4 py-2 rounded">Room temperature</button>
-                        <button onclick="checkPreservation('Freezer', 'incorrect')" class="bg-yellow-100 hover:bg-yellow-200 px-4 py-2 rounded">Freezer</button>
-                    </div>
-                </div>
-                
-                <button onclick="closeLesson()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-colors">
-                    Close Lesson
-                </button>
-            </div>
-        `;
-        showLessonModal(lessonContent);
-    }
-    
-    // Cooking Methods Lesson Functionality
-    function startCookingLesson() {
-        const lessonContent = `
-            <div class="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto">
-                <h3 class="text-2xl font-bold text-orange-800 mb-4">🔥 Cooking Methods</h3>
-                <p class="text-gray-700 mb-4">Explore different ways to prepare delicious and healthy food!</p>
-                
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="text-center bg-white border-2 border-orange-200 rounded-lg p-4">
-                        <div class="text-3xl mb-2">🍳</div>
-                        <h4 class="font-bold text-orange-700">Frying</h4>
-                        <p class="text-sm">Cooking in oil or ghee</p>
-                    </div>
-                    <div class="text-center bg-white border-2 border-blue-200 rounded-lg p-4">
-                        <div class="text-3xl mb-2">💧</div>
-                        <h4 class="font-bold text-blue-700">Boiling</h4>
-                        <p class="text-sm">Cooking in hot water</p>
-                    </div>
-                    <div class="text-center bg-white border-2 border-green-200 rounded-lg p-4">
-                        <div class="text-3xl mb-2">🔥</div>
-                        <h4 class="font-bold text-green-700">Roasting</h4>
-                        <p class="text-sm">Cooking in oven or over fire</p>
-                    </div>
-                    <div class="text-center bg-white border-2 border-purple-200 rounded-lg p-4">
-                        <div class="text-3xl mb-2">🥢</div>
-                        <h4 class="font-bold text-purple-700">Steaming</h4>
-                        <p class="text-sm">Cooking with steam</p>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                    <h4 class="font-bold text-gray-800 mb-2">Healthy Cooking Challenge:</h4>
-                    <p class="text-gray-700 mb-2">Which is the healthiest way to cook vegetables?</p>
-                    <div class="flex gap-2">
-                        <button onclick="checkCooking('Steaming', 'correct')" class="bg-green-100 hover:bg-green-200 px-4 py-2 rounded">Steaming</button>
-                        <button onclick="checkCooking('Frying', 'incorrect')" class="bg-red-100 hover:bg-red-200 px-4 py-2 rounded">Deep Frying</button>
-                        <button onclick="checkCooking('Boiling', 'correct')" class="bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded">Boiling</button>
-                    </div>
-                </div>
-                
-                <div class="text-center text-sm bg-yellow-50 p-3 rounded">
-                    <p class="font-bold text-yellow-700">Cooking Tips:</p>
-                    <p class="text-gray-600">Use less oil, wash vegetables well, and cook just enough!</p>
-                </div>
-                
-                <button onclick="closeLesson()" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors mt-4">
-                    Close Lesson
-                </button>
-            </div>
-        `;
-        showLessonModal(lessonContent);
-    }
-    
-    // Utility Functions
-    function showLessonModal(content) {
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
-        modal.innerHTML = content;
-        modal.id = 'lessonModal';
-        document.body.appendChild(modal);
-        
-        // Close modal when clicking outside
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                closeLesson();
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            const dataEl = document.getElementById('server-data');
+            const serverData = dataEl ? JSON.parse(dataEl.textContent) : null;
+
+            if (serverData && !serverData.error) {
+                foodData = serverData;
+                renderAllQuestions();
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('game-zone').style.display = 'grid';
+                document.getElementById('game-zone').classList.remove('hidden');
+            } else {
+                fetchQuestions(false);
             }
-        });
-    }
-    
-    function closeLesson() {
-        const modal = document.getElementById('lessonModal');
-        if (modal) {
-            modal.remove();
+        } catch (e) {
+            console.error("Data parse error", e);
+            fetchQuestions(false);
+        }
+    });
+
+    async function fetchQuestions(isBackground = false) {
+        if (isFetching) return;
+        isFetching = true;
+
+        if (!isBackground && (!foodData.sorting || foodData.sorting.length === 0)) {
+            document.getElementById('loading-state').style.display = 'block';
+            document.getElementById('game-zone').style.display = 'none';
+        }
+
+        try {
+            const res = await fetch('/api/grade3/generate_food');
+            const data = await res.json();
+
+            if (data.error) throw new Error(data.error);
+
+            // Init if empty
+            if (!foodData.sorting) foodData = { sorting: [], healthy: [] };
+
+            // Append data safely
+            if (data.sorting) foodData.sorting.push(...data.sorting);
+            if (data.healthy) foodData.healthy.push(...data.healthy);
+
+            if (!isBackground) {
+                renderAllQuestions();
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('game-zone').style.display = 'grid';
+                document.getElementById('game-zone').classList.remove('hidden');
+            } else {
+                // Background update: Re-render to ensure any waiting states are cleared
+                renderAllQuestions();
+            }
+
+        } catch (err) {
+            console.error(err);
+            if (!isBackground) {
+                document.getElementById('loading-state').innerHTML = `<p class="text-red-600 text-xl">Oops! AI is hungry. <button onclick="location.reload()" class="underline">Try again</button></p>`;
+            }
+        } finally {
+            isFetching = false;
         }
     }
-    
-    function checkFoodGroup(answer, result) {
-        const feedback = result === 'correct' ? 
-            `✅ Correct! ${answer} is the right food group.` : 
-            `❌ Try again. Think about what type of food it is.`;
-        alert(feedback);
+
+    function renderAllQuestions() {
+        renderSort();
+        renderHealthy();
     }
-    
-    function checkHealthyChoice(answer, result) {
-        const feedback = result === 'correct' ? 
-            `✅ Great choice! ${answer} is healthy for you.` : 
-            `❌ Try again. Choose fresh, natural foods.`;
-        alert(feedback);
+
+    // --- Renderers ---
+    function getQuestion(type) {
+        const idx = indices[type];
+        if (!foodData[type] || idx >= foodData[type].length) return null;
+        return foodData[type][idx];
     }
-    
-    function checkFoodSource(answer, result) {
-        const feedback = result === 'correct' ? 
-            `✅ Correct! Milk comes from ${answer.toLowerCase()}s.` : 
-            `❌ Try again. Think about where milk is produced.`;
-        alert(feedback);
+
+    function renderSort() {
+        const q = getQuestion('sorting');
+        const container = document.getElementById('sort-container');
+
+        if (!q) {
+            container.innerHTML = `<div class="text-center py-4 text-gray-500 animate-pulse">Checking pantry...</div>`;
+            return;
+        }
+
+        let html = `
+            <div class="text-center mb-4">
+                <div class="text-4xl font-bold text-orange-600 mb-2">
+                    ${q.item}
+                </div>
+                <p class="text-xl">What group is this?</p>
+                <button class="speak-btn" onclick="speak('${q.item}. What group is this?')">🔊</button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+        `;
+
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('sorting', '${opt}', '${q.category}')" class="dyslexic-btn hover:bg-orange-600 bg-orange-500 border-orange-700">${opt}</button>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
     }
-    
-    function checkBalanced(answer, result) {
-        const feedback = result === 'correct' ? 
-            `✅ Perfect! A balanced meal has all food groups.` : 
-            `❌ Try again. Include grains, proteins, and vegetables.`;
-        alert(feedback);
+
+    function renderHealthy() {
+        const q = getQuestion('healthy');
+        const container = document.getElementById('healthy-container');
+
+        if (!q) {
+            container.innerHTML = `<div class="text-center py-4 text-gray-500 animate-pulse">Checking snacks...</div>`;
+            return;
+        }
+
+        let html = `
+            <div class="text-center mb-4">
+                <p class="text-xl font-bold">"${q.text}"</p>
+                <button class="speak-btn" onclick="speak('${q.text}')">🔊</button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+        `;
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('healthy', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-green-600 bg-green-500 border-green-700">${opt}</button>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
     }
-    
-    function checkPreservation(answer, result) {
-        const feedback = result === 'correct' ? 
-            `✅ Correct! ${answer} keeps milk fresh and safe.` : 
-            `❌ Try again. Milk needs to be kept cool.`;
-        alert(feedback);
+
+
+    // Logic
+    async function saveProgress(quizId, score) {
+        try {
+            await fetch('/api/submit_progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    quiz_id: quizId,
+                    score: score,
+                    total: 1 // Increment by 1 for each correct answer
+                })
+            });
+            console.log("Progress saved!");
+        } catch (e) {
+            console.error("Save failed", e);
+        }
     }
-    
-    function checkCooking(answer, result) {
-        const feedback = result === 'correct' ? 
-            `✅ Healthy choice! ${answer} preserves nutrients.` : 
-            `❌ Try again. Choose methods that use less oil.`;
-        alert(feedback);
+
+    function checkAnswer(type, selected, correct) {
+        const feedbackEl = document.getElementById(`${type}-feedback`);
+        const scoreEl = document.getElementById(`${type}-score`);
+
+        if (selected === correct) {
+            feedbackEl.textContent = "✅ Correct!";
+            feedbackEl.className = "h-8 mt-2 text-xl font-bold text-center text-green-600";
+            speak("Correct!");
+            scores[type]++;
+            scoreEl.textContent = scores[type];
+
+            // Save progress
+            saveProgress(`grade3_food_${type}`, 1);
+
+            // Pre-fetch check
+            const remaining = (foodData[type]?.length || 0) - indices[type];
+            if (remaining <= 2 && !isFetching) {
+                console.log("Pre-fetching food...");
+                fetchQuestions(true);
+            }
+
+            setTimeout(() => {
+                feedbackEl.textContent = "";
+                indices[type]++;
+
+                if (type === 'sorting') renderSort();
+                if (type === 'healthy') renderHealthy();
+
+            }, 500);
+
+        } else {
+            feedbackEl.textContent = "❌ Try again!";
+            feedbackEl.className = "h-8 mt-2 text-xl font-bold text-center text-red-500";
+            speak("Try again");
+        }
     }
+
 </script>
 {% endblock %}

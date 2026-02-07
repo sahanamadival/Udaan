@@ -11,8 +11,10 @@
         <div class="text-center mb-8">
             <h1 class="text-4xl font-bold text-pink-800 mb-2">Welcome, {{ user.name }}!</h1>
             <p class="text-xl text-pink-600">Grade 5 Learning Dashboard</p>
-            <div class="mt-4 inline-block bg-pink-100 text-pink-800 px-4 py-2 rounded-full font-semibold">
-                Grade 5 Student
+            <div class="mt-4 flex justify-center gap-4">
+                <div class="inline-block bg-pink-100 text-pink-800 px-4 py-2 rounded-full font-semibold">
+                    Grade 5 Student
+                </div>
             </div>
         </div>
 
@@ -22,7 +24,7 @@
             <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <span>📘</span> AI Summary
             </h3>
-            <p class="text-gray-700">{{ ai_summary }}</p>
+            <p class="text-gray-700 dyslexic-mode text-lg leading-relaxed">{{ ai_summary }}</p>
         </div>
         {% endif %}
 
@@ -113,6 +115,38 @@
                     </a>
                 </div>
             </div>
+
+            <!-- History Time Travel -->
+            <div
+                class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow border-2 border-dashed border-red-200 lg:col-start-2">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-hourglass-half text-2xl text-red-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Time Travel History</h3>
+                    <p class="text-gray-600 mb-4">Explore ancient eras and historical events.</p>
+                    <a href="{{ url_for('grade_5_history_learning') }}"
+                        class="inline-block bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors">
+                        Start Time Travel
+                    </a>
+                </div>
+            </div>
+
+            <!-- Galactic Multiplication -->
+            <div
+                class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow border-2 border-dashed border-purple-200">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-rocket text-2xl text-purple-600"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Galactic Math</h3>
+                    <p class="text-gray-600 mb-4">Power your spaceship with multiplication.</p>
+                    <a href="{{ url_for('grade_5_multiplication') }}"
+                        class="inline-block bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-colors">
+                        Launch Mission
+                    </a>
+                </div>
+            </div>
         </div>
 
         <!-- Progress Section -->
@@ -120,19 +154,19 @@
             <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Your Progress</h2>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-indigo-600 mb-2">35</div>
+                    <div class="text-3xl font-bold text-indigo-600 mb-2">{{ books_count }}</div>
                     <div class="text-gray-600">Books Mastered</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-green-600 mb-2">80</div>
+                    <div class="text-3xl font-bold text-green-600 mb-2">{{ math_count }}</div>
                     <div class="text-gray-600">Math Problems Solved</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-blue-600 mb-2">20</div>
+                    <div class="text-3xl font-bold text-blue-600 mb-2">{{ science_count }}</div>
                     <div class="text-gray-600">Science Innovations</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-amber-600 mb-2">15</div>
+                    <div class="text-3xl font-bold text-amber-600 mb-2">{{ leadership_count }}</div>
                     <div class="text-gray-600">Leadership Projects</div>
                 </div>
             </div>
@@ -325,4 +359,5 @@
         </div>
     </div>
 </div>
+
 {% endblock %}

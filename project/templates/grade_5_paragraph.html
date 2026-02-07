@@ -32,6 +32,17 @@
                         <option value="If I Were a Superhero">If I Were a Superhero</option>
                         <option value="The Best Day of My Life">The Best Day of My Life</option>
                         <option value="Why Recycling is Important">Why Recycling is Important</option>
+                        <!-- Universal Syllabus Topics -->
+                        <optgroup label="History">
+                            <option value="Life in Ancient Egypt">Life in Ancient Egypt</option>
+                            <option value="The Invention of the Wheel">The Invention of the Wheel</option>
+                            <option value="Independence Day of India">Independence Day of India</option>
+                        </optgroup>
+                        <optgroup label="Science">
+                            <option value="How Plants Grow (Photosynthesis)">How Plants Grow</option>
+                            <option value="The Water Cycle">The Water Cycle</option>
+                            <option value="Solar System and Space Travel">Space Travel</option>
+                        </optgroup>
                         <option value="Custom">Custom Topic</option>
                     </select>
                     <input type="text" id="customTopic" placeholder="Enter your topic here..."
@@ -39,7 +50,13 @@
                 </div>
 
                 <div class="mb-6">
-                    <label class="block text-gray-700 font-bold mb-2" for="paragraph">Write your paragraph here:</label>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-gray-700 font-bold" for="paragraph">Write your paragraph here:</label>
+                        <button id="micBtn"
+                            class="text-indigo-600 hover:text-indigo-800 font-bold text-sm flex items-center gap-2">
+                            <i class="fas fa-microphone"></i> Dictate
+                        </button>
+                    </div>
                     <textarea id="paragraph" rows="8"
                         class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 font-sans text-lg"
                         placeholder="Start writing..."></textarea>
@@ -92,6 +109,38 @@
     const wordCountDisplay = document.getElementById('wordCount');
     const topicSelect = document.getElementById('topicSelect');
     const customTopicInput = document.getElementById('customTopic');
+    const micBtn = document.getElementById('micBtn');
+
+    // Speech to Text Logic
+    if ('webkitSpeechRecognition' in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = function () {
+            micBtn.classList.add('animate-pulse', 'text-red-600');
+            micBtn.innerHTML = '<i class="fas fa-microphone-slash"></i> Listening...';
+        };
+
+        recognition.onend = function () {
+            micBtn.classList.remove('animate-pulse', 'text-red-600');
+            micBtn.innerHTML = '<i class="fas fa-microphone"></i> Dictate';
+        };
+
+        recognition.onresult = function (event) {
+            const transcript = event.results[0][0].transcript;
+            paragraphInput.value += (paragraphInput.value ? ' ' : '') + transcript;
+            paragraphInput.dispatchEvent(new Event('input')); // Trigger word count update
+        };
+
+        micBtn.onclick = function () {
+            recognition.start();
+        };
+    } else {
+        micBtn.style.display = 'none';
+        console.log("Web Speech API not supported");
+    }
 
     paragraphInput.addEventListener('input', () => {
         const words = paragraphInput.value.trim().split(/\s+/).filter(word => word.length > 0);
@@ -116,7 +165,7 @@
             return;
         }
 
-        const btn = document.querySelector('button');
+        const btn = document.querySelector('button[onclick="checkParagraph()"]');
         const originalText = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
         btn.disabled = true;

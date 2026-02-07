@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Time Travel Portals - Grade 5{% endblock %}
+
+{% block body_class %}bg-amber-50{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 min-h-screen text-slate-800">
+    <!-- Navigation -->
+    <a href="{{ url_for('grade_5_dashboard') }}"
+        class="inline-flex items-center text-cyan-700 hover:text-cyan-900 mb-6 transition-colors font-semibold">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+    </a>
+
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <h1
+            class="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-purple-600 mb-4 font-mono uppercase tracking-widest leading-tight pb-2">
+            Time Portals
+        </h1>
+        <p class="text-cyan-800 text-lg font-mono font-bold">Choose your destination, Time Traveler!</p>
+    </div>
+
+    <!-- Era Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+
+        <!-- Ancient Egypt -->
+        <a href="{{ url_for('grade_5_history_learning', era='Ancient Egypt') }}"
+            class="group relative block bg-white rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-yellow-400 transition-all hover:scale-105 hover:shadow-xl">
+            <div class="absolute inset-0 bg-yellow-50 group-hover:bg-yellow-100/50 transition-colors"></div>
+            <div class="p-8 text-center relative z-10">
+                <div
+                    class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md group-hover:scale-110 transition-transform border-2 border-yellow-200">
+                    <i class="fas fa-pyramid text-3xl text-yellow-700"></i>
+                </div>
+                <h3
+                    class="text-2xl font-bold text-slate-800 mb-2 font-mono group-hover:text-yellow-700 transition-colors">
+                    Ancient Egypt</h3>
+                <p class="text-slate-600 text-sm font-medium">Pyramids, Pharaohs, and Mummies.</p>
+            </div>
+        </a>
+
+        <!-- Indus Valley -->
+        <a href="{{ url_for('grade_5_history_learning', era='Indus Valley Civilization') }}"
+            class="group relative block bg-white rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-orange-400 transition-all hover:scale-105 hover:shadow-xl">
+            <div class="absolute inset-0 bg-orange-50 group-hover:bg-orange-100/50 transition-colors"></div>
+            <div class="p-8 text-center relative z-10">
+                <div
+                    class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md group-hover:scale-110 transition-transform border-2 border-orange-200">
+                    <i class="fas fa-city text-3xl text-orange-700"></i>
+                </div>
+                <h3
+                    class="text-2xl font-bold text-slate-800 mb-2 font-mono group-hover:text-orange-700 transition-colors">
+                    Indus Valley</h3>
+                <p class="text-slate-600 text-sm font-medium">Advanced cities and forgotten scripts.</p>
+            </div>
+        </a>
+
+        <!-- Medieval Times -->
+        <a href="{{ url_for('grade_5_history_learning', era='Medieval Castles') }}"
+            class="group relative block bg-white rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-indigo-400 transition-all hover:scale-105 hover:shadow-xl">
+            <div class="absolute inset-0 bg-indigo-50 group-hover:bg-indigo-100/50 transition-colors"></div>
+            <div class="p-8 text-center relative z-10">
+                <div
+                    class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md group-hover:scale-110 transition-transform border-2 border-indigo-200">
+                    <i class="fas fa-chess-rook text-3xl text-indigo-700"></i>
+                </div>
+                <h3
+                    class="text-2xl font-bold text-slate-800 mb-2 font-mono group-hover:text-indigo-700 transition-colors">
+                    Medieval Times</h3>
+                <p class="text-slate-600 text-sm font-medium">Knights, Castles, and Kingdoms.</p>
+            </div>
+        </a>
+
+        <!-- Space Age -->
+        <a href="{{ url_for('grade_5_history_learning', era='The Space Race') }}"
+            class="group relative block bg-white rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-cyan-400 transition-all hover:scale-105 hover:shadow-xl">
+            <div class="absolute inset-0 bg-cyan-50 group-hover:bg-cyan-100/50 transition-colors"></div>
+            <div class="p-8 text-center relative z-10">
+                <div
+                    class="w-20 h-20 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md group-hover:scale-110 transition-transform border-2 border-cyan-200">
+                    <i class="fas fa-rocket text-3xl text-cyan-700"></i>
+                </div>
+                <h3
+                    class="text-2xl font-bold text-slate-800 mb-2 font-mono group-hover:text-cyan-700 transition-colors">
+                    Space Age</h3>
+                <p class="text-slate-600 text-sm font-medium">Rockets, Moon Landings, and Stars.</p>
+            </div>
+        </a>
+
+        <!-- Age of Exploration -->
+        <a href="{{ url_for('grade_5_history_learning', era='The Age of Exploration') }}"
+            class="group relative block bg-white rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-emerald-400 transition-all hover:scale-105 hover:shadow-xl">
+            <div class="absolute inset-0 bg-emerald-50 group-hover:bg-emerald-100/50 transition-colors"></div>
+            <div class="p-8 text-center relative z-10">
+                <div
+                    class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md group-hover:scale-110 transition-transform border-2 border-emerald-200">
+                    <i class="fas fa-ship text-3xl text-emerald-700"></i>
+                </div>
+                <h3
+                    class="text-2xl font-bold text-slate-800 mb-2 font-mono group-hover:text-emerald-700 transition-colors">
+                    Exploration</h3>
+                <p class="text-slate-600 text-sm font-medium">Voyages, Maps, and New Worlds.</p>
+            </div>
+        </a>
+
+        <!-- Internet Age -->
+        <a href="{{ url_for('grade_5_history_learning', era='The Internet Age') }}"
+            class="group relative block bg-white rounded-3xl overflow-hidden border-2 border-slate-200 hover:border-purple-400 transition-all hover:scale-105 hover:shadow-xl">
+            <div class="absolute inset-0 bg-purple-50 group-hover:bg-purple-100/50 transition-colors"></div>
+            <div class="p-8 text-center relative z-10">
+                <div
+                    class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md group-hover:scale-110 transition-transform border-2 border-purple-200">
+                    <i class="fas fa-wifi text-3xl text-purple-700"></i>
+                </div>
+                <h3
+                    class="text-2xl font-bold text-slate-800 mb-2 font-mono group-hover:text-purple-700 transition-colors">
+                    Digital Age</h3>
+                <p class="text-slate-600 text-sm font-medium">Computers, Web, and Connection.</p>
+            </div>
+        </a>
+
+    </div>
+</div>
+{% endblock %}
