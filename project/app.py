@@ -646,6 +646,66 @@ def grade_2_dashboard():
         hindi_file=session.pop("hindi_file", None)
     )
 
+
+@app.route("/grade/2/math")
+@login_required(role="student")
+def grade_2_math():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_math.html", user=user)
+
+
+@app.route("/grade/2/numbers")
+@login_required(role="student")
+def grade_2_numbers():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_numbers.html", user=user)
+
+
+@app.route("/grade/2/sentences")
+@login_required(role="student")
+def grade_2_sentences():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_sentences.html", user=user)
+
+
+@app.route("/grade/2/nature")
+@login_required(role="student")
+def grade_2_nature():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_nature.html", user=user)
+
+
+@app.route("/grade/2/reading")
+@login_required(role="student")
+def grade_2_reading():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_reading.html", user=user)
+
+
+@app.route("/grade/2/science")
+@login_required(role="student")
+def grade_2_science():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_science.html", user=user)
+
 @app.route("/dashboard/grade/3")
 @login_required(role="student")
 def grade_3_dashboard():
@@ -667,6 +727,96 @@ def grade_3_dashboard():
         audio_file=audio_file,
         hindi_file=session.pop("hindi_file", None)
     )
+
+
+@app.route("/grade/3/grammar")
+@login_required(role="student")
+def grade_3_grammar():
+    user = session.get("user")
+    if user.get("grade") != "3":
+        flash("Access denied. This content is for Grade 3 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_3_grammar.html", user=user)
+
+
+@app.route("/grade/3/math")
+@login_required(role="student")
+def grade_3_math():
+    user = session.get("user")
+    if user.get("grade") != "3":
+        flash("Access denied. This content is for Grade 3 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_3_math.html", user=user)
+
+
+@app.route("/grade/3/food")
+@login_required(role="student")
+def grade_3_food():
+    user = session.get("user")
+    if user.get("grade") != "3":
+        flash("Access denied. This content is for Grade 3 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_3_food.html", user=user)
+
+
+@app.route("/grade/3/shelter")
+@login_required(role="student")
+def grade_3_shelter():
+    user = session.get("user")
+    if user.get("grade") != "3":
+        flash("Access denied. This content is for Grade 3 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_3_shelter.html", user=user)
+
+
+@app.route("/grade/3/transport")
+@login_required(role="student")
+def grade_3_transport():
+    user = session.get("user")
+    if user.get("grade") != "3":
+        flash("Access denied. This content is for Grade 3 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_3_transport.html", user=user)
+
+
+@app.route("/grade/3/stories")
+@login_required(role="student")
+def grade_3_stories():
+    user = session.get("user")
+    if user.get("grade") != "3":
+        flash("Access denied. This content is for Grade 3 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_3_stories.html", user=user)
+
+
+@app.route("/grade/3/science")
+@login_required(role="student")
+def grade_3_science():
+    user = session.get("user")
+    if user.get("grade") != "3":
+        flash("Access denied. This content is for Grade 3 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_3_science.html", user=user)
+
+
+@app.route("/grade/3/writing")
+@login_required(role="student")
+def grade_3_writing():
+    user = session.get("user")
+    if user.get("grade") != "3":
+        flash("Access denied. This content is for Grade 3 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_3_writing.html", user=user)
+
+
+@app.route("/grade/3/art")
+@login_required(role="student")
+def grade_3_art():
+    user = session.get("user")
+    if user.get("grade") != "3":
+        flash("Access denied. This content is for Grade 3 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_3_art.html", user=user)
 
 @app.route("/dashboard/grade/4")
 @login_required(role="student")

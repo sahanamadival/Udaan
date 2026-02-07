@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Grade 3 Art & Craft - Udaan{% endblock %}
+
+{% block body_class %}min-h-screen bg-gradient-to-br from-yellow-50 to-amber-100{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-yellow-800 mb-2">🎨 Art & Craft</h1>
+            <p class="text-xl text-yellow-600">Drawing & Creative Projects</p>
+            <div class="mt-4 inline-block bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full font-semibold">
+                Grade 3 Art
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <div class="text-6xl mb-6">🖌️</div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Art Module Coming Soon</h2>
+            <p class="text-gray-600 mb-6">Unleash your creativity with drawing, coloring, and craft projects.</p>
+            <a href="{{ url_for('grade_3_dashboard') }}" class="inline-block bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

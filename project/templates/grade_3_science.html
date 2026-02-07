@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Grade 3 Science & Nature - Udaan{% endblock %}
+
+{% block body_class %}min-h-screen bg-gradient-to-br from-teal-50 to-cyan-100{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-teal-800 mb-2">🌿 Science & Nature</h1>
+            <p class="text-xl text-teal-600">Plants, Animals & Environment</p>
+            <div class="mt-4 inline-block bg-teal-100 text-teal-800 px-4 py-2 rounded-full font-semibold">
+                Grade 3 Science
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <div class="text-6xl mb-6">🔬</div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Science Module Coming Soon</h2>
+            <p class="text-gray-600 mb-6">Explore plants, animals, and environmental awareness.</p>
+            <a href="{{ url_for('grade_3_dashboard') }}" class="inline-block bg-teal-500 hover:bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
