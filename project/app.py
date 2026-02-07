@@ -41,7 +41,25 @@ if not api_key:
 
 client = OpenAI(api_key=api_key)
 
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# Configure Tesseract Path
+tesseract_cmd = os.getenv("TESSERACT_CMD")
+if not tesseract_cmd:
+    # Common default paths for Windows
+    possible_paths = [
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+        r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+        r"/usr/bin/tesseract",  # Linux
+        r"/usr/local/bin/tesseract"  # Mac
+    ]
+    for path in possible_paths:
+        if os.path.exists(path):
+            tesseract_cmd = path
+            break
+
+if tesseract_cmd:
+    pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+else:
+    print("⚠️ Warning: Tesseract not found in standard paths. OCR may fail.")
 
 
 app = Flask(__name__)
@@ -535,7 +553,7 @@ def grade_1_alphabets():
     if user.get("grade") != "1":
         flash("Access denied. This content is for Grade 1 students only.")
         return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_1_alphabets_new.html", user=user)
+    return render_template("grade_1_alphabets.html", user=user)
 
 
 @app.route("/grade/1/math")
@@ -545,7 +563,7 @@ def grade_1_math():
     if user.get("grade") != "1":
         flash("Access denied. This content is for Grade 1 students only.")
         return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_1_math_new.html", user=user)
+    return render_template("grade_1_math.html", user=user)
 
 
 @app.route("/grade/1/flashcards")
