@@ -527,6 +527,67 @@ def grade_1_quiz():
     return render_template("grade_1_quiz.html", user=user)
 
 
+# Grade 2 Routes
+@app.route("/grade/2/math")
+@login_required(role="student")
+def grade_2_math():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect(url_for("grade_2_dashboard"))
+    return render_template("grade_2_math.html", user=user)
+
+
+@app.route("/grade/2/sentences")
+@login_required(role="student")
+def grade_2_sentences():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect(url_for("grade_2_dashboard"))
+    return render_template("grade_2_sentences.html", user=user)
+
+
+@app.route("/grade/2/numbers")
+@login_required(role="student")
+def grade_2_numbers():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect(url_for("grade_2_dashboard"))
+    return render_template("grade_2_numbers.html", user=user)
+
+
+@app.route("/grade/2/nature")
+@login_required(role="student")
+def grade_2_nature():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect(url_for("grade_2_dashboard"))
+    return render_template("grade_2_nature.html", user=user)
+
+
+@app.route("/grade/2/reading")
+@login_required(role="student")
+def grade_2_reading():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect(url_for("grade_2_dashboard"))
+    return render_template("grade_2_reading.html", user=user)
+
+
+@app.route("/grade/2/science")
+@login_required(role="student")
+def grade_2_science():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect(url_for("grade_2_dashboard"))
+    return render_template("grade_2_science.html", user=user)
+
+
 @app.route("/api/alphabet_info", methods=["POST"])
 @login_required(role="student")
 def get_alphabet_info():
@@ -655,7 +716,7 @@ def grade_2_dashboard():
         summary = session.get("latest_summary")
     
     audio_file = session.pop("audio_file", None)
-    return render_template("grade_2_dashboard.html", user=user, hindi_file=session.get("hindi_file"))
+    return render_template("grade_2_dashboard.html", user=user, ai_summary=summary, audio_file=audio_file, hindi_file=session.get("hindi_file"))
 
 @app.route("/dashboard/grade/3")
 @login_required(role="student")
@@ -675,7 +736,7 @@ def grade_3_dashboard():
         summary = session.get("latest_summary")
     
     audio_file = session.pop("audio_file", None)
-    return render_template("grade_3_dashboard.html", user=user, hindi_file=session.get("hindi_file"))
+    return render_template("grade_3_dashboard.html", user=user, ai_summary=summary, audio_file=audio_file, hindi_file=session.get("hindi_file"))
 
 @app.route("/dashboard/grade/4")
 @login_required(role="student")
@@ -695,7 +756,7 @@ def grade_4_dashboard():
         summary = session.get("latest_summary")
     
     audio_file = session.pop("audio_file", None)
-    return render_template("grade_4_dashboard.html", user=user, hindi_file=session.get("hindi_file"))
+    return render_template("grade_4_dashboard.html", user=user, ai_summary=summary, audio_file=audio_file, hindi_file=session.get("hindi_file"))
 
 @app.route("/dashboard/grade/5")
 @login_required(role="student")
@@ -715,7 +776,7 @@ def grade_5_dashboard():
         summary = session.get("latest_summary")
     
     audio_file = session.pop("audio_file", None)
-    return render_template("grade_5_dashboard.html", user=user, hindi_file=session.get("hindi_file"))
+    return render_template("grade_5_dashboard.html", user=user, ai_summary=summary, audio_file=audio_file, hindi_file=session.get("hindi_file"))
 
 @app.route("/upload_textbook", methods=["POST"])
 @login_required(role="student")
