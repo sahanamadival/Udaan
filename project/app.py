@@ -41,7 +41,25 @@ if not api_key:
 
 client = OpenAI(api_key=api_key)
 
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# Configure Tesseract Path
+tesseract_cmd = os.getenv("TESSERACT_CMD")
+if not tesseract_cmd:
+    # Common default paths for Windows
+    possible_paths = [
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+        r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+        r"/usr/bin/tesseract",  # Linux
+        r"/usr/local/bin/tesseract"  # Mac
+    ]
+    for path in possible_paths:
+        if os.path.exists(path):
+            tesseract_cmd = path
+            break
+
+if tesseract_cmd:
+    pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+else:
+    print("⚠️ Warning: Tesseract not found in standard paths. OCR may fail.")
 
 
 app = Flask(__name__)
@@ -348,7 +366,8 @@ def redirect_to_dashboard(user):
     grade = user.get("grade")
     if grade in ["1", "2", "3", "4", "5"]:
         return redirect(url_for(f"grade_{grade}_dashboard"))
-    return redirect(url_for("student_dashboard"))
+    flash("Grade dashboard not found. Redirecting to home.")
+    return redirect(url_for("index"))
 
 @app.route("/")
 def index():
@@ -535,7 +554,7 @@ def grade_1_alphabets():
     if user.get("grade") != "1":
         flash("Access denied. This content is for Grade 1 students only.")
         return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_1_alphabets_new.html", user=user)
+    return render_template("grade_1_alphabets.html", user=user)
 
 
 @app.route("/grade/1/math")
@@ -545,7 +564,7 @@ def grade_1_math():
     if user.get("grade") != "1":
         flash("Access denied. This content is for Grade 1 students only.")
         return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_1_math_new.html", user=user)
+    return render_template("grade_1_math.html", user=user)
 
 
 @app.route("/grade/1/flashcards")
@@ -1187,7 +1206,7 @@ def audio_narration():
     text = extract_text_hybrid(filepath)
 
     if not text.strip():
-        flash("Could not extract text from PDF.")
+        flash("Could not extract text. If this is a scanned PDF, please use a selectable PDF or DOCX.")
         return redirect_to_dashboard(user)
 
     print("=== TEXT EXTRACTED ===")
@@ -1263,7 +1282,7 @@ def generate_summary():
     text = extract_text_hybrid(filepath)
 
     if not text.strip():
-        flash("⚠️ Could not extract text from PDF.")
+        flash("Could not extract text. If this is a scanned PDF, please use a selectable PDF or DOCX.")
         return redirect_to_dashboard(session.get("user"))
 
     print("=== TEXT EXTRACTED SUCCESSFULLY ===")
@@ -1329,7 +1348,7 @@ def translate_text():
         return redirect_to_dashboard(user)
 
     if not text.strip():
-        flash("No readable text found in PDF.")
+        flash("No readable text found. If this is a scanned PDF, please use a selectable PDF or DOCX.")
         return redirect_to_dashboard(user)
 
     print("=== TEXT EXTRACTED ===")
@@ -1515,7 +1534,7 @@ def generate_flashcards():
     text = extract_text_hybrid(filepath)
     
     if not text or not text.strip():
-        flash("⚠️ Unable to extract text from file.")
+        flash("⚠️ Unable to extract text. If this is a scanned PDF, please use a selectable PDF or DOCX.")
         return redirect_to_dashboard(user)
 
     # ------------------------
@@ -1629,7 +1648,7 @@ def generate_quiz():
     text = extract_text_hybrid(filepath)
 
     if not text or not text.strip():
-        flash("⚠️ No readable text found in file.")
+        flash("⚠️ No text found. If this is a scanned PDF, please use a selectable PDF or DOCX.")
         return redirect_to_dashboard(user)
 
     # Generate quiz with OpenAI
