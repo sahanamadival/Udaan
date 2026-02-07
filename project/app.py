@@ -947,13 +947,78 @@ def grade_5_dashboard():
     
     ai_summary = session.pop("summary", None)
     audio_file = session.pop("audio_file", None)
+
+    # Fetch Progress Data
+    student_id = user["id"]
+    conn = get_db()
+    c = conn.cursor()
+
+    # 1. Books Mastered (Uploads)
+    c.execute("SELECT COUNT(*) FROM uploads WHERE student_id = ?", (student_id,))
+    books_count = c.fetchone()[0]
+
+    # Helper to get count from student_progress (local scope)
+    def get_count_local(activity):
+        c.execute("SELECT data_json FROM student_progress WHERE student_id = ? AND activity_type = ?", (student_id, activity))
+        row = c.fetchone()
+        if row and row["data_json"]:
+            import json
+            try:
+                return json.loads(row["data_json"]).get("count", 0)
+            except:
+                return 0
+        return 0
+
+    math_count = get_count_local("grade_5_math")
+    science_count = get_count_local("grade_5_location")
+    leadership_count = get_count_local("grade_5_paragraph")
+    
+    conn.close()
     return render_template(
         "grade_5_dashboard.html",
         user=user,
         ai_summary=ai_summary,
         audio_file=audio_file,
-        hindi_file=session.pop("hindi_file", None)
+        hindi_file=session.pop("hindi_file", None),
+        books_count=books_count,
+        math_count=math_count,
+        science_count=science_count,
+        leadership_count=leadership_count
     )
+
+
+# Helper function for Grade 5 progress
+def update_grade5_progress(student_id, activity_type):
+    try:
+        conn = get_db()
+        c = conn.cursor()
+        
+        # Check if exists
+        c.execute("SELECT data_json FROM student_progress WHERE student_id = ? AND activity_type = ?", (student_id, activity_type))
+        row = c.fetchone()
+        
+        count = 0
+        if row and row["data_json"]:
+            import json
+            try:
+                data = json.loads(row["data_json"])
+                count = data.get("count", 0)
+            except:
+                pass
+        
+        count += 1
+        import json
+        new_data = json.dumps({"count": count})
+        
+        if row:
+            c.execute("UPDATE student_progress SET data_json = ?, last_updated = CURRENT_TIMESTAMP WHERE student_id = ? AND activity_type = ?", (new_data, student_id, activity_type))
+        else:
+            c.execute("INSERT INTO student_progress (student_id, activity_type, data_json) VALUES (?, ?, ?)", (student_id, activity_type, new_data))
+            
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error updating progress: {e}")
 
 
 # Grade 5 Feature Routes
@@ -1061,6 +1126,8 @@ def check_paragraph():
         import re
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if json_match:
+            # Update Progress
+            update_grade5_progress(session["user"]["id"], "grade_5_paragraph")
             return json.loads(json_match.group())
         else:
             return {"error": "Failed to parse AI response"}
@@ -1069,11 +1136,104 @@ def check_paragraph():
         print(f"Error checking paragraph: {e}")
         return {"error": str(e)}, 500
 
+@app.route("/grade/5/history_learning")
+@login_required(role="student")
+def grade_5_history_learning():
+    user = session.get("user")
+    if user.get("grade") != "5":
+        flash("Access denied. This content is for Grade 5 students only.")
+        return redirect(url_for("grade_5_dashboard"))
+    
+    selected_era = request.args.get("era")
+    
+    if not selected_era:
+        # Show selection screen if no era is chosen
+        return render_template("grade_5_history_select.html", user=user)
+    
+    try:
+        prompt = f"""
+        You are a time-travel guide for a 5th-grade student (10-11 years old).
+        Generate engaging, age-appropriate historical content about the era: '{selected_era}'.
+        
+        Guidelines:
+        - Use simple, exciting storytelling language.
+        - Avoid complex political or economic details.
+        - Focus on daily life, famous inventions, or cool facts.
+        - Keep the 'fun_fact' short and surprising.
+        
+        Return JSON:
+        {{
+            "title": "Creative Title for the Era",
+            "icon": "font-awesome-icon-class (e.g., fas fa-crown)",
+            "description": "2-3 sentences description of what life was like, easy to read.",
+            "timeline": [
+                {{"year": "Year", "event": "Simple event description"}},
+                {{"year": "Year", "event": "Another simple event"}}
+            ],
+            "fun_fact": "Did you know? [Interesting fact]"
+        }}
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7
+        )
+        
+        content = response.choices[0].message.content
+        import json
+        import re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            history_data = json.loads(json_match.group())
+        else:
+            # Fallback
+            history_data = {
+                "title": selected_era,
+                "icon": "fas fa-history",
+                "description": "Explore the wonders of history!",
+                "timeline": [{"year": "Long ago", "event": "Something amazing happened."}],
+                "fun_fact": "History is full of surprises!"
+            }
+            
+    except Exception as e:
+        print(f"History Gen Error: {e}")
+        history_data = {
+            "title": "Time Travel Error",
+            "icon": "fas fa-exclamation-triangle",
+            "description": "The time machine hit a bump! Try again.",
+            "timeline": [],
+            "fun_fact": "Sometimes even time machines need a break."
+        }
+
+    return render_template("grade_5_history.html", user=user, data=history_data)
+
+@app.route("/grade/5/multiplication")
+@login_required(role="student")
+def grade_5_multiplication():
+    user = session.get("user")
+    if user.get("grade") != "5":
+        flash("Access denied. This content is for Grade 5 students only.")
+        return redirect(url_for("grade_5_dashboard"))
+    return render_template("grade_5_multiplication.html", user=user)
+
 @app.route("/api/grade5/get_vocab_word", methods=["GET"])
 @login_required(role="student")
 def get_vocab_word():
     try:
-        prompt = "Generate a challenging but age-appropriate vocabulary word for a 5th grader. Return JSON: {'word': '...', 'definition': '...', 'example_sentence': '...', 'synonyms': ['...'], 'antonyms': ['...']}"
+        subject = request.args.get("subject", "General")
+        
+        prompt = f"""
+        Generate a challenging but age-appropriate vocabulary word for a 5th grader related to the subject: '{subject}'.
+        
+        Examples:
+        - History: Civilization, Empire, Artifact
+        - Science: Photosynthesis, Gravity, Ecosystem
+        - Geography: Continent, Equator, Climate
+        - English: Metaphor, Narrative, Synonym
+        
+        Return JSON: {{'word': '...', 'definition': '...', 'example_sentence': '...', 'synonyms': ['...'], 'antonyms': ['...']}}
+        """
         
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -1101,15 +1261,24 @@ def check_math():
         student_answer = data.get("answer", "")
         
         prompt = f"""
-        A 5th-grade student is solving this math problem: "{problem}"
-        Student's answer: "{student_answer}"
+        You are a helpful and encouraging math tutor for a 5th-grade student.
         
-        Verify if the answer is correct and provide an explanation.
+        Math Problem: "{problem}"
+        Student's Answer: "{student_answer}"
+        
+        Instructions:
+        1. Solve the problem yourself first to determine the correct numerical answer.
+        2. Check if the student's answer matches the correct answer.
+        3. ACCEPT answers that show the full equation (e.g., "50 - 45 = 5") as long as the final result is correct.
+        4. IGNORE standard formatting differences (e.g., "$5" vs "5" vs "5.00").
+        5. If the student provides the correct logical steps but makes a minor typo, provide a helpful hint in the explanation but you may mark it incorrect if the final number is wrong.
+        6. If the answer is correct, "is_correct" MUST be true.
+        
         Return JSON:
         {{
             "is_correct": boolean,
             "correct_answer": "string",
-            "explanation": "string",
+            "explanation": "string (brief, helpful explanation)",
             "encouragement": "string"
         }}
         """
@@ -1117,7 +1286,7 @@ def check_math():
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.3
+            temperature=0.1
         )
         
         content = response.choices[0].message.content
@@ -1125,7 +1294,11 @@ def check_math():
         import re
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if json_match:
-            return json.loads(json_match.group())
+            result = json.loads(json_match.group())
+            # Update Progress if correct
+            if result.get("is_correct"):
+                 update_grade5_progress(session["user"]["id"], "grade_5_math")
+            return result
         else:
             return {"error": "Failed to check answer"}
     except Exception as e:
@@ -1161,11 +1334,55 @@ def location_info():
         import re
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if json_match:
+            # Update Progress
+            update_grade5_progress(session["user"]["id"], "grade_5_location")
             return json.loads(json_match.group())
         else:
             return {"error": "Failed to get location info"}
     except Exception as e:
         return {"error": str(e)}, 500
+
+@app.route("/api/grade5/get_math_problem", methods=["GET"])
+@login_required(role="student")
+def get_math_problem():
+    try:
+        prompt = """
+        Generate a strictly age-appropriate math word problem for a standard 5th grader (approx. 10-11 years old).
+        
+        Use one of these specific 5th-grade topics:
+        1. Multi-digit multiplication or division (e.g., 345 x 12 or 120 / 4).
+        2. Adding/Subtracting fractions with unlike denominators (e.g., 1/2 + 1/3).
+        3. Decimals (adding, subtracting, or multiplying simple decimals like money).
+        4. Volume of rectangular prisms.
+        5. Real-world scenarios involving Time or Money.
+        
+        Avoid overly complex logic. Ensure the numbers are clean and the answer is a whole number or simple decimal/fraction.
+        Keep the text clear, encouraging, and concise (1-3 sentences).
+        
+        Return JSON:
+        {
+            "problem": "The text of the word problem."
+        }
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.9
+        )
+        
+        content = response.choices[0].message.content
+        import json
+        import re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group())
+        else:
+            return {"problem": "A baker has 24 cookies and wants to share them equally among 4 friends. How many cookies does each friend get?"} # Fallback
+            
+    except Exception as e:
+        print(f"Error generating problem: {e}")
+        return {"problem": "Tom has 15 apples. He gives 5 to Jerry. How many apples does Tom have left?"} # Fallback
 
 @app.route("/upload_textbook", methods=["POST"])
 @login_required(role="student")
@@ -2725,6 +2942,46 @@ def load_progress(activity_type):
     else:
         return jsonify({"success": True, "data": None})  # No progress yet
 
+
+# --- Grade 5 Vocab Builder API ---
+
+@app.route("/api/grade5/get_vocab_word")
+@login_required(role="student")
+def api_grade5_get_vocab_word():
+    subject = request.args.get("subject", "General")
+    
+    prompt = f"""
+    Generate a challenging but age-appropriate vocabulary word for a Grade 5 student related to the subject: {subject}.
+    Return ONLY a JSON object with:
+    {{
+        "word": "...",
+        "definition": "...",
+        "example_sentence": "...",
+        "synonyms": ["...", "..."],
+        "antonyms": ["...", "..."]
+    }}
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=200
+        )
+        content = response.choices[0].message.content
+        import json
+        import re
+        # Extract JSON
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+             data = json.loads(json_match.group())
+             return data
+        else:
+             return {"error": "Failed to parse AI response"}
+    except Exception as e:
+        print(f"Vocab API Error: {e}")
+        return {"error": str(e)}, 500
 
 # ---------- Run ----------
 if __name__ == "__main__":

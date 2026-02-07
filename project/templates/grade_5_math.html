@@ -29,8 +29,7 @@
                     </div>
                     <h3 class="text-xl font-bold text-sky-900 mb-4">Problem of the Moment:</h3>
                     <p id="problemText" class="text-lg text-gray-800 leading-relaxed font-medium">
-                        A bakery sells cupcakes for $3 each. If Sarah buys 15 cupcakes and pays with a $50 bill, how
-                        much change should she receive?
+                        Loading challenge...
                     </p>
                     <button onclick="newProblem()"
                         class="mt-4 text-sm text-sky-600 hover:text-sky-800 font-semibold underline">Get a different
@@ -75,19 +74,27 @@
 </div>
 
 <script>
-    const problems = [
-        "A bakery sells cupcakes for $3 each. If Sarah buys 15 cupcakes and pays with a $50 bill, how much change should she receive?",
-        "Tom ran 4.5 miles on Monday and 3.2 miles on Tuesday. His goal is to run 15 miles this week. How many more miles does he need to run?",
-        "A rectangular garden is 12 meters long and 8 meters wide. What is the area of the garden?",
-        "If a train travels at 60 miles per hour, how far will it travel in 3.5 hours?",
-        "Jenny has 48 apples. She wants to divide them equally among 6 friends. How many apples does each friend get?"
-    ];
+    async function newProblem() {
+        const problemText = document.getElementById('problemText');
+        const answerInput = document.getElementById('answerInput');
 
-    function newProblem() {
-        const randomProblem = problems[Math.floor(Math.random() * problems.length)];
-        document.getElementById('problemText').textContent = randomProblem;
+        problemText.innerHTML = '<span class="animate-pulse">Generating a new challenge... <i class="fas fa-rocket"></i></span>';
         document.getElementById('resultSection').classList.add('hidden');
-        document.getElementById('answerInput').value = '';
+        answerInput.value = '';
+
+        try {
+            const response = await fetch('/api/grade5/get_math_problem');
+            const data = await response.json();
+
+            if (data.problem) {
+                problemText.textContent = data.problem;
+            } else {
+                problemText.textContent = "Could not generate a problem. Please try again.";
+            }
+        } catch (error) {
+            console.error('Error fetching problem:', error);
+            problemText.textContent = "Connection error. Using backup problem: A train travels 60 miles in 1 hour. How far does it go in 3 hours?";
+        }
     }
 
     async function checkAnswer() {
@@ -129,7 +136,17 @@
             }
 
             resultText.textContent = data.encouragement;
-            explanationText.textContent = data.explanation;
+
+            // Ensure explanation is visible and has fallback
+            if (data.explanation && data.explanation.trim() !== "") {
+                explanationText.innerHTML = data.explanation;
+                explanationText.className = "mt-1 text-gray-800 font-medium"; // Force visible color
+            } else {
+                explanationText.innerHTML = "<em>No detailed explanation provided.</em>";
+                explanationText.className = "mt-1 text-gray-500 italic";
+            }
+
+            console.log("Check Math Response:", data); // Debugging
 
 
         } catch (error) {
@@ -140,5 +157,8 @@
             btn.disabled = false;
         }
     }
+
+    // Load initial problem
+    window.onload = newProblem;
 </script>
 {% endblock %}

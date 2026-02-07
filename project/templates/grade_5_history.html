@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Time Travel History - Grade 5{% endblock %}
+
+{% block body_class %}bg-amber-50{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 min-h-screen text-slate-800">
+    <!-- Navigation -->
+    <a href="{{ url_for('grade_5_dashboard') }}"
+        class="inline-flex items-center text-cyan-700 hover:text-cyan-900 mb-6 transition-colors font-semibold">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+    </a>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto">
+        <!-- Header / Time Machine Control -->
+        <div class="bg-white rounded-3xl p-8 border-4 border-cyan-500 shadow-xl mb-12 relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-5 text-9xl text-cyan-900">
+                <i class="fas fa-clock"></i>
+            </div>
+
+            <div class="relative z-10 text-center">
+                <h1
+                    class="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-purple-600 mb-4 font-mono uppercase tracking-widest">
+                    Time Machine
+                </h1>
+                <p class="text-cyan-800 text-lg mb-8 font-mono font-bold">Current Destination: <span
+                        class="bg-amber-100 px-3 py-1 rounded border border-cyan-500 text-cyan-900">{{ data.title
+                        }}</span></p>
+
+                <a href="{{ url_for('grade_5_history_learning') }}"
+                    class="inline-flex items-center gap-3 bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-10 rounded-full text-xl transition-all hover:scale-105 shadow-lg border-b-4 border-red-700 active:border-b-0 active:translate-y-1">
+                    <i class="fas fa-door-open"></i> Back to Time Portals
+                </a>
+            </div>
+        </div>
+
+        <!-- Era Content -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Info Card -->
+            <div class="md:col-span-1">
+                <div class="bg-indigo-50 rounded-2xl p-6 border border-indigo-200 sticky top-8 shadow-md">
+                    <div class="text-center mb-6">
+                        <div
+                            class="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-md text-indigo-600 border-2 border-indigo-200">
+                            <i class="{{ data.icon }}"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-indigo-900 mb-2">{{ data.title }}</h2>
+                        <button onclick="speakText('era-description')"
+                            class="text-indigo-700 hover:text-indigo-900 text-sm flex items-center justify-center gap-1 mx-auto w-full py-2 hover:bg-indigo-100 rounded-lg transition-colors font-semibold">
+                            <i class="fas fa-volume-up"></i> Listen to Intro
+                        </button>
+                    </div>
+                    <p id="era-description"
+                        class="text-indigo-900 leading-relaxed italic border-l-4 border-indigo-300 pl-4">
+                        "{{ data.description }}"
+                    </p>
+
+                    <div class="mt-8 bg-yellow-50 rounded-xl p-4 border border-yellow-200 shadow-sm">
+                        <h3 class="font-bold text-yellow-800 mb-2"><i class="fas fa-lightbulb mr-2"></i> Fun Fact</h3>
+                        <p id="fun-fact" class="text-sm text-yellow-900">{{ data.fun_fact }}</p>
+                        <button onclick="speakText('fun-fact')"
+                            class="mt-2 text-yellow-700 hover:text-yellow-900 text-xs flex items-center gap-1 font-bold">
+                            <i class="fas fa-volume-up"></i> Listen
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="md:col-span-2">
+                <div class="bg-white rounded-2xl p-8 border border-slate-200 shadow-lg">
+                    <h3
+                        class="text-2xl font-bold text-slate-800 mb-8 border-b border-slate-200 pb-4 flex justify-between items-center">
+                        Timeline of Events
+                        <span class="text-sm font-normal text-slate-500">Chronological Order</span>
+                    </h3>
+
+                    <div class="relative border-l-4 border-cyan-200 ml-3 space-y-12">
+                        {% for item in data.timeline %}
+                        <div class="relative pl-8">
+                            <!-- Dot -->
+                            <div
+                                class="absolute -left-[11px] top-1 w-5 h-5 bg-white border-4 border-cyan-500 rounded-full">
+                            </div>
+
+                            <!-- Content -->
+                            <div
+                                class="bg-slate-50 rounded-xl p-5 hover:bg-blue-50 transition-colors group border border-slate-100 shadow-sm">
+                                <span
+                                    class="inline-block bg-cyan-100 text-cyan-800 text-xs font-bold px-2 py-1 rounded mb-2 border border-cyan-200">
+                                    {{ item.year }}
+                                </span>
+                                <div class="flex justify-between items-start gap-4">
+                                    <p id="event-{{ loop.index }}" class="text-lg text-slate-800 font-medium">{{
+                                        item.event }}</p>
+                                    <button onclick="speakText('event-{{ loop.index }}')"
+                                        class="text-slate-400 hover:text-cyan-600 shrink-0">
+                                        <i class="fas fa-volume-up"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function speakText(elementId) {
+        const text = document.getElementById(elementId).innerText; // Use innerText to ignore hidden chars
+        const msg = new SpeechSynthesisUtterance(text);
+
+        const voices = window.speechSynthesis.getVoices();
+        // Try to find a "Google US English" or similar high-quality voice
+        const preferredVoice = voices.find(v => v.name.includes('Google US English')) || voices.find(v => v.lang.includes('en'));
+
+        if (preferredVoice) msg.voice = preferredVoice;
+        msg.rate = 1;
+        msg.pitch = 1;
+
+        window.speechSynthesis.cancel(); // Stop current speech
+        window.speechSynthesis.speak(msg);
+    }
+</script>
+{% endblock %}
