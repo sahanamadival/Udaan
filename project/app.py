@@ -345,25 +345,10 @@ def login_required(role=None):
     return decorator
 
 def redirect_to_dashboard(user):
-    """
-    Universal redirect that sends student to correct grade dashboard
-    and teacher to teacher dashboard.
-    """
-    if not user:
-        return redirect(url_for("index"))
-
-    role = user.get("role")
-
-    if role == "teacher":
-        return redirect(url_for("teacher_dashboard"))
-
-    if role == "student":
-        grade = str(user.get("grade") or "")
-        if grade in ["1", "2", "3", "4", "5"]:
-            return redirect(url_for(f"grade_{grade}_dashboard"))
-        return redirect_to_dashboard(session.get("user"))
-
-    return redirect(url_for("index"))
+    grade = user.get("grade")
+    if grade in ["1", "2", "3", "4", "5"]:
+        return redirect(url_for(f"grade_{grade}_dashboard"))
+    return redirect(url_for("student_dashboard"))
 
 @app.route("/")
 def index():
@@ -532,13 +517,15 @@ def grade_1_dashboard():
         else:
             return redirect_to_dashboard(session.get("user"))
     
-    # Handle summary display (show once)
-    summary = None
-    if session.pop("show_summary_once", False):
-        summary = session.get("latest_summary")
-    
+    ai_summary = session.pop("summary", None)
     audio_file = session.pop("audio_file", None)
-    return render_template("grade_1_dashboard.html", user=user, hindi_file=session.get("hindi_file"))
+    return render_template(
+        "grade_1_dashboard.html",
+        user=user,
+        ai_summary=ai_summary,
+        audio_file=audio_file,
+        hindi_file=session.pop("hindi_file", None)
+    )
 
 
 @app.route("/grade/1/alphabets")
@@ -589,67 +576,6 @@ def grade_1_quiz():
         flash("Access denied. This content is for Grade 1 students only.")
         return redirect_to_dashboard(session.get("user"))
     return render_template("grade_1_quiz.html", user=user)
-
-
-# Grade 2 Routes
-@app.route("/grade/2/math")
-@login_required(role="student")
-def grade_2_math():
-    user = session.get("user")
-    if user.get("grade") != "2":
-        flash("Access denied. This content is for Grade 2 students only.")
-        return redirect(url_for("grade_2_dashboard"))
-    return render_template("grade_2_math.html", user=user)
-
-
-@app.route("/grade/2/sentences")
-@login_required(role="student")
-def grade_2_sentences():
-    user = session.get("user")
-    if user.get("grade") != "2":
-        flash("Access denied. This content is for Grade 2 students only.")
-        return redirect(url_for("grade_2_dashboard"))
-    return render_template("grade_2_sentences.html", user=user)
-
-
-@app.route("/grade/2/numbers")
-@login_required(role="student")
-def grade_2_numbers():
-    user = session.get("user")
-    if user.get("grade") != "2":
-        flash("Access denied. This content is for Grade 2 students only.")
-        return redirect(url_for("grade_2_dashboard"))
-    return render_template("grade_2_numbers.html", user=user)
-
-
-@app.route("/grade/2/nature")
-@login_required(role="student")
-def grade_2_nature():
-    user = session.get("user")
-    if user.get("grade") != "2":
-        flash("Access denied. This content is for Grade 2 students only.")
-        return redirect(url_for("grade_2_dashboard"))
-    return render_template("grade_2_nature.html", user=user)
-
-
-@app.route("/grade/2/reading")
-@login_required(role="student")
-def grade_2_reading():
-    user = session.get("user")
-    if user.get("grade") != "2":
-        flash("Access denied. This content is for Grade 2 students only.")
-        return redirect(url_for("grade_2_dashboard"))
-    return render_template("grade_2_reading.html", user=user)
-
-
-@app.route("/grade/2/science")
-@login_required(role="student")
-def grade_2_science():
-    user = session.get("user")
-    if user.get("grade") != "2":
-        flash("Access denied. This content is for Grade 2 students only.")
-        return redirect(url_for("grade_2_dashboard"))
-    return render_template("grade_2_science.html", user=user)
 
 
 @app.route("/api/alphabet_info", methods=["POST"])
@@ -772,15 +698,17 @@ def grade_2_dashboard():
         if user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
             return redirect(url_for(f"grade_{user['grade']}_dashboard"))
         else:
-            return redirect(url_for("grade_2_dashboard"))
+            return redirect_to_dashboard(session.get("user"))
     
-    # Handle summary display (show once)
-    summary = None
-    if session.pop("show_summary_once", False):
-        summary = session.get("latest_summary")
-    
+    ai_summary = session.pop("summary", None)
     audio_file = session.pop("audio_file", None)
-    return render_template("grade_2_dashboard.html", user=user, ai_summary=summary, audio_file=audio_file, hindi_file=session.get("hindi_file"))
+    return render_template(
+        "grade_2_dashboard.html",
+        user=user,
+        ai_summary=ai_summary,
+        audio_file=audio_file,
+        hindi_file=session.pop("hindi_file", None)
+    )
 
 @app.route("/dashboard/grade/3")
 @login_required(role="student")
@@ -792,15 +720,17 @@ def grade_3_dashboard():
         if user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
             return redirect(url_for(f"grade_{user['grade']}_dashboard"))
         else:
-            return redirect(url_for("grade_3_dashboard"))
+            return redirect_to_dashboard(session.get("user"))
     
-    # Handle summary display (show once)
-    summary = None
-    if session.pop("show_summary_once", False):
-        summary = session.get("latest_summary")
-    
+    ai_summary = session.pop("summary", None)
     audio_file = session.pop("audio_file", None)
-    return render_template("grade_3_dashboard.html", user=user, ai_summary=summary, audio_file=audio_file, hindi_file=session.get("hindi_file"))
+    return render_template(
+        "grade_3_dashboard.html",
+        user=user,
+        ai_summary=ai_summary,
+        audio_file=audio_file,
+        hindi_file=session.pop("hindi_file", None)
+    )
 
 @app.route("/dashboard/grade/4")
 @login_required(role="student")
@@ -812,15 +742,17 @@ def grade_4_dashboard():
         if user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
             return redirect(url_for(f"grade_{user['grade']}_dashboard"))
         else:
-            return redirect(url_for("grade_4_dashboard"))
+            return redirect_to_dashboard(session.get("user"))
     
-    # Handle summary display (show once)
-    summary = None
-    if session.pop("show_summary_once", False):
-        summary = session.get("latest_summary")
-    
+    ai_summary = session.pop("summary", None)
     audio_file = session.pop("audio_file", None)
-    return render_template("grade_4_dashboard.html", user=user, ai_summary=summary, audio_file=audio_file, hindi_file=session.get("hindi_file"))
+    return render_template(
+        "grade_4_dashboard.html",
+        user=user,
+        ai_summary=ai_summary,
+        audio_file=audio_file,
+        hindi_file=session.pop("hindi_file", None)
+    )
 
 @app.route("/dashboard/grade/5")
 @login_required(role="student")
@@ -832,15 +764,17 @@ def grade_5_dashboard():
         if user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
             return redirect(url_for(f"grade_{user['grade']}_dashboard"))
         else:
-            return redirect(url_for("grade_5_dashboard"))
+            return redirect_to_dashboard(session.get("user"))
     
-    # Handle summary display (show once)
-    summary = None
-    if session.pop("show_summary_once", False):
-        summary = session.get("latest_summary")
-    
+    ai_summary = session.pop("summary", None)
     audio_file = session.pop("audio_file", None)
-    return render_template("grade_5_dashboard.html", user=user, ai_summary=summary, audio_file=audio_file, hindi_file=session.get("hindi_file"))
+    return render_template(
+        "grade_5_dashboard.html",
+        user=user,
+        ai_summary=ai_summary,
+        audio_file=audio_file,
+        hindi_file=session.pop("hindi_file", None)
+    )
 
 
 # Grade 5 Feature Routes
@@ -1088,11 +1022,6 @@ def audio_narration():
 
     user = session.get("user")
     
-    # Clear unrelated session outputs
-    session.pop("show_summary_once", None)
-    session.pop("latest_summary", None)
-    session.pop("hindi_file", None)
-
     filename = session.get("uploaded_file")
     if not filename:
         flash("No textbook uploaded.")
@@ -1113,36 +1042,37 @@ def audio_narration():
 
     print("=== TEXT EXTRACTED ===")
 
-    # Limit text for TTS safety
-    text = text[:3000]
+    # Use OpenAI client
+    from openai import OpenAI
+    client = OpenAI()
+
+    print("=== GENERATING AUDIO WITH OPENAI ===")
 
     try:
-        from openai import OpenAI
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-        student_id = user["id"]
+        student_id = session["user"]["id"]
         timestamp = int(time.time())
         audio_filename = f"{student_id}_{timestamp}.mp3"
+        audio_path = os.path.join("static", "narrations", audio_filename)
 
-        audio_folder = os.path.join("static", "narrations")
-        os.makedirs(audio_folder, exist_ok=True)
+        os.makedirs("static/narrations", exist_ok=True)
 
-        audio_path = os.path.join(audio_folder, audio_filename)
-
-        print("=== GENERATING AUDIO WITH OPENAI ===")
-
-        # Correct streaming TTS
-        with client.audio.speech.with_streaming_response.create(
-            model="tts-1",
+        speech = client.audio.speech.create(
+            model="gpt-4o-mini-tts",
             voice="alloy",
-            input=text
-        ) as response:
-            response.stream_to_file(audio_path)
+            input=text[:4000]
+        )
 
-        print("=== AUDIO FILE SAVED ===", audio_path)
+        with open(audio_path, "wb") as f:
+            f.write(speech.content)
+
+        if not os.path.exists(audio_path):
+            flash("Audio generation failed.")
+            return redirect_to_dashboard(user)
 
         session["audio_file"] = audio_filename
-        flash("Audio narration generated successfully!")
+        session.modified = True
+
+        print("=== AUDIO STORED IN SESSION ===")
 
     except Exception as e:
         print("=== AUDIO ERROR ===")
@@ -1188,46 +1118,39 @@ def generate_summary():
 
     print("=== TEXT EXTRACTED SUCCESSFULLY ===")
 
+    # Use OpenAI client
+    from openai import OpenAI
+    client = OpenAI()
+
+    print("=== GENERATING SUMMARY WITH OPENAI ===")
+
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {
-                    "role": "system",
-                    "content": "You are a helpful tutor who explains textbook content in very simple language for students."
-                },
-                {
-                    "role": "user",
-                    "content": f"Summarize this textbook content clearly:\n\n{text[:6000]}"
-                }
-            ],
-            temperature=0.7,
-            max_tokens=800
+                {"role": "system", "content": "Explain clearly for school students."},
+                {"role": "user", "content": text[:6000]}
+            ]
         )
 
         summary = response.choices[0].message.content.strip()
 
-        print("=== OPENAI RESPONSE RECEIVED ===")
-        print("Summary length:", len(summary))
+        if not summary:
+            flash("Failed to generate summary.")
+            return redirect_to_dashboard(user)
+
+        session["summary"] = summary
+        session.modified = True
+
+        print("=== SUMMARY STORED IN SESSION ===")
 
     except Exception as e:
         print("=== OPENAI ERROR ===")
         print(str(e))
         flash("⚠️ AI summary generation failed.")
-        return redirect_to_dashboard(session.get("user"))
+        return redirect_to_dashboard(user)
 
-    # SAVE TO SESSION (NOT DATABASE)
-    session["latest_summary"] = summary
-    session["show_summary_once"] = True
-
-    print("=== SUMMARY STORED IN SESSION ===")
-
-    # Redirect to correct grade dashboard
-    grade = session["user"].get("grade")
-    if grade in ["1", "2", "3", "4", "5"]:
-        return redirect(url_for(f"grade_{grade}_dashboard"))
-    else:
-        return redirect_to_dashboard(session.get("user"))
+    return redirect_to_dashboard(user)
 
 @app.route("/translate_text", methods=["POST"])
 @login_required(role="student")
@@ -1374,13 +1297,6 @@ def dyslexic_friendly():
     """
     user = session.get("user")
     
-    # Clear unrelated session outputs
-    session.pop("audio_file", None)
-    session.pop("ai_summary", None)
-    session.pop("show_summary_once", None)
-    session.pop("latest_summary", None)
-    session.pop("hindi_file", None)
-
     filename = session.get("uploaded_file")
     if not filename:
         flash("No textbook uploaded yet.")
@@ -1414,13 +1330,6 @@ def generate_flashcards():
     import json, re
     user = session.get("user")
     
-    # Clear unrelated session outputs
-    session.pop("audio_file", None)
-    session.pop("ai_summary", None)
-    session.pop("show_summary_once", None)
-    session.pop("latest_summary", None)
-    session.pop("hindi_file", None)
-
     filename = session.get("uploaded_file")
 
     # Validate filename BEFORE any DB operation
@@ -1559,13 +1468,6 @@ def generate_flashcards():
 def generate_quiz():
     user = session.get("user")
     
-    # Clear unrelated session outputs
-    session.pop("audio_file", None)
-    session.pop("ai_summary", None)
-    session.pop("show_summary_once", None)
-    session.pop("latest_summary", None)
-    session.pop("hindi_file", None)
-
     filename = session.get("uploaded_file")
     if not filename:
         flash("No textbook uploaded yet.")
@@ -1923,13 +1825,6 @@ def api_read_selected_text():
 @login_required(role="student")
 def games_dashboard():
     user = session.get("user")
-    
-    # Clear unrelated session outputs
-    session.pop("audio_file", None)
-    session.pop("ai_summary", None)
-    session.pop("show_summary_once", None)
-    session.pop("latest_summary", None)
-    session.pop("hindi_file", None)
     
     return render_template("games_dashboard.html", name=user.get("name"), user=user)
 
@@ -2433,13 +2328,6 @@ def api_get_chapter_text():
 @login_required(role="student")
 def ai_tutor():
     user = session.get("user")
-    
-    # Clear unrelated session outputs
-    session.pop("audio_file", None)
-    session.pop("ai_summary", None)
-    session.pop("show_summary_once", None)
-    session.pop("latest_summary", None)
-    session.pop("hindi_file", None)
     
     # Get the last uploaded PDF for this student
     conn = get_db()
