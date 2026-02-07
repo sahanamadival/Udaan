@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,15 +8,19 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='grade1-enhancements.css') }}">
-  
+
   {% block extra_css %}{% endblock %}
 </head>
+
 <body class="{% block body_class %}relative min-h-screen bg-[#020410] text-white{% endblock %}">
   <!-- Theme Toggle Button -->
   <button id="theme-toggle" class="theme-toggle">
     <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path id="sun-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-      <path id="moon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" style="display: none;" />
+      <path id="sun-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+      <path id="moon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+        style="display: none;" />
     </svg>
   </button>
 
@@ -27,21 +32,21 @@
     <div class="cloud"></div>
     <div class="cloud"></div>
     <div class="cloud"></div>
-    
+
     <!-- Enhanced Balloons -->
     <div class="balloon"></div>
     <div class="balloon"></div>
     <div class="balloon"></div>
     <div class="balloon"></div>
     <div class="balloon"></div>
-    
+
     <!-- Enhanced Light Stars -->
     <div class="light-star"></div>
     <div class="light-star"></div>
     <div class="light-star"></div>
     <div class="light-star"></div>
     <div class="light-star"></div>
-    
+
     <!-- Floating Particles -->
     <div class="particle"></div>
     <div class="particle"></div>
@@ -49,6 +54,27 @@
     <div class="particle"></div>
     <div class="particle"></div>
     <div class="particle"></div>
+  </div>
+
+  <!-- Flash Messages -->
+  <div class="container mx-auto px-4 mt-4">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4 rounded shadow relative" role="alert">
+      <span class="block sm:inline">{{ message }}</span>
+      <span class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.style.display='none';">
+        <svg class="fill-current h-6 w-6 text-blue-500" role="button" xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20">
+          <title>Close</title>
+          <path
+            d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z" />
+        </svg>
+      </span>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
   </div>
 
   {% block content %}{% endblock %}
@@ -59,7 +85,7 @@
       const themeToggle = document.getElementById('theme-toggle');
       const sunPath = document.getElementById('sun-path');
       const moonPath = document.getElementById('moon-path');
-      
+
       if (!themeToggle || !sunPath || !moonPath) {
         console.warn('Theme toggle elements not found');
         return;
@@ -82,9 +108,9 @@
         console.log('Applied dark theme');
       }
 
-      themeToggle.addEventListener('click', function() {
+      themeToggle.addEventListener('click', function () {
         document.body.classList.toggle('light-theme');
-        
+
         // Toggle icons
         if (document.body.classList.contains('light-theme')) {
           sunPath.style.display = 'none';
@@ -107,7 +133,8 @@
       initializeTheme();
     }
   </script>
-  
+
   {% block extra_js %}{% endblock %}
 </body>
+
 </html>

@@ -1,535 +1,423 @@
 {% extends "base.html" %}
 
-{% block title %}Grade 3 Math Mastery - Udaan{% endblock %}
+{% block title %}Grade 3 Math - Udaan{% endblock %}
 
-{% block body_class %}min-h-screen bg-gradient-to-br from-green-50 to-emerald-100{% endblock %}
+{% block body_class %}min-h-screen bg-orange-50 font-comic{% endblock %}
 
 {% block content %}
+<style>
+    /* Simple Dyslexia-Friendly Styles */
+    .font-comic {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
+        letter-spacing: 0.05em;
+        line-height: 1.6;
+    }
+
+    .dyslexic-box {
+        background-color: #fffbf0;
+        /* Soft Cream */
+        border: 3px solid #fbd38d;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    .dyslexic-btn {
+        background-color: #48bb78;
+        color: white;
+        border: 2px solid #2f855a;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: bold;
+        transition: transform 0.1s;
+    }
+
+    .dyslexic-btn:active {
+        transform: scale(0.95);
+    }
+
+    .nav-btn {
+        background-color: #ed8936;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        font-weight: bold;
+        font-size: 1.2rem;
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    .speak-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.5rem;
+        margin-left: 0.5rem;
+    }
+
+    .speak-btn:hover {
+        transform: scale(1.1);
+    }
+</style>
+
 <div class="container mx-auto px-4 py-8">
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-5xl mx-auto">
         <!-- Header -->
         <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-emerald-800 mb-2">🔢 Math Mastery</h1>
-            <p class="text-xl text-emerald-600">Multiplication, Division, Time & More</p>
-            <div class="mt-4 inline-block bg-emerald-100 text-emerald-800 px-4 py-2 rounded-full font-semibold">
-                Grade 3 Math Adventures
-            </div>
+            <h1 class="text-5xl font-bold text-orange-800 mb-4">🔢 Math Fun!</h1>
+            <p class="text-2xl text-orange-700">Practice Time, Shapes & More</p>
+            <button class="speak-btn" onclick="speak('Math Fun! Practice Time, Shapes, and More')">🔊</button>
         </div>
 
-        <!-- Math Modules -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <!-- Multiplication -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span class="text-2xl font-bold text-blue-600">×</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Multiplication</h3>
-                    <p class="text-gray-600 mb-4">Times tables, groups, and multiplication facts</p>
-                    <button onclick="startMultiplicationLesson()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        Practice Multiplication
-                    </button>
+        <!-- Practice Zone -->
+        <div id="loading-state" class="text-center py-12">
+            <div class="text-6xl mb-4 animate-bounce">🤔</div>
+            <p class="text-2xl text-gray-600">Making new questions for you...</p>
+        </div>
+
+        <div id="game-zone" class="grid grid-cols-1 md:grid-cols-2 gap-8 hidden">
+
+            <!-- Time Challenge -->
+            <div class="dyslexic-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-blue-800">⏰ Clock</h3>
+                    <button class="speak-btn text-blue-600" onclick="speak('Clock Challenge')">🔊</button>
                 </div>
+                <div id="time-container">
+                    <!-- Dynamic Time Question -->
+                </div>
+                <p id="time-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="time-score">0</span></div>
             </div>
 
-            <!-- Division -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span class="text-2xl font-bold text-green-600">÷</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Division</h3>
-                    <p class="text-gray-600 mb-4">Sharing equally, division facts, and remainders</p>
-                    <button onclick="startDivisionLesson()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        Practice Division
-                    </button>
+            <!-- Shape Quiz -->
+            <div class="dyslexic-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-red-800">🔶 Shapes</h3>
+                    <button class="speak-btn text-red-600" onclick="speak('Shape Quiz')">🔊</button>
                 </div>
-            </div>
-
-            <!-- Time & Clock -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-clock text-2xl text-orange-600"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Time & Clock</h3>
-                    <p class="text-gray-600 mb-4">Reading clocks, AM/PM, and calculating time</p>
-                    <button onclick="startTimeLesson()" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        Learn Time
-                    </button>
+                <div id="shape-container">
+                    <!-- Dynamic Shape Question -->
                 </div>
+                <p id="shape-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="shape-score">0</span></div>
             </div>
 
             <!-- Fractions -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span class="text-2xl font-bold text-purple-600">½</span>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Fractions</h3>
-                    <p class="text-gray-600 mb-4">Parts of a whole, halves, quarters, and simple fractions</p>
-                    <button onclick="startFractionLesson()" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        Learn Fractions
-                    </button>
+            <div class="dyslexic-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-purple-800">🍰 Fractions</h3>
+                    <button class="speak-btn text-purple-600" onclick="speak('Fractions')">🔊</button>
                 </div>
+                <div id="fraction-container">
+                    <!-- Dynamic Fraction Question -->
+                </div>
+                <p id="fraction-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="fraction-score">0</span></div>
             </div>
 
             <!-- Word Problems -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-question-circle text-2xl text-yellow-600"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Word Problems</h3>
-                    <p class="text-gray-600 mb-4">Real-life math problems and problem-solving</p>
-                    <button onclick="startWordProblemLesson()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        Solve Problems
-                    </button>
+            <div class="dyslexic-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-green-800">📝 Word Problems</h3>
+                    <button class="speak-btn text-green-600" onclick="speak('Word Problems')">🔊</button>
                 </div>
+                <div id="word-container">
+                    <!-- Dynamic Word Problem -->
+                </div>
+                <p id="word-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="word-score">0</span></div>
             </div>
 
-            <!-- Geometry -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-shapes text-2xl text-red-600"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Geometry</h3>
-                    <p class="text-gray-600 mb-4">Shapes, patterns, and basic geometric concepts</p>
-                    <button onclick="startGeometryLesson()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors">
-                        Explore Geometry
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Math Practice Zone -->
-        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🎯 Math Practice Zone</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-emerald-50 rounded-xl p-6">
-                    <h3 class="text-xl font-bold text-emerald-800 mb-4">Quick Multiplication Quiz</h3>
-                    <div class="bg-white rounded-lg p-4 mb-4">
-                        <p class="text-gray-700 mb-4 text-center text-2xl font-bold">7 × 8 = ?</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button class="bg-blue-100 hover:bg-blue-200 rounded px-4 py-2 transition-colors">49</button>
-                            <button class="bg-blue-100 hover:bg-blue-200 rounded px-4 py-2 transition-colors">56</button>
-                            <button class="bg-blue-100 hover:bg-blue-200 rounded px-4 py-2 transition-colors">63</button>
-                            <button class="bg-blue-100 hover:bg-blue-200 rounded px-4 py-2 transition-colors">72</button>
-                        </div>
-                    </div>
-                    <button class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors w-full">
-                        Check Answer
-                    </button>
-                </div>
-
-                <div class="bg-blue-50 rounded-xl p-6">
-                    <h3 class="text-xl font-bold text-blue-800 mb-4">Time Challenge</h3>
-                    <div class="bg-white rounded-lg p-4 mb-4">
-                        <p class="text-gray-700 mb-4">What time is shown on the clock?</p>
-                        <div class="flex justify-center mb-4">
-                            <div class="relative w-32 h-32 border-4 border-blue-600 rounded-full">
-                                <!-- Simple clock face -->
-                                <div class="absolute top-1/2 left-1/2 w-1 h-8 bg-blue-600 origin-bottom transform -translate-x-1/2 -translate-y-full"></div>
-                                <div class="absolute top-1/2 left-1/2 w-1 h-6 bg-gray-600 origin-bottom transform -translate-x-1/2 -translate-y-full rotate-90"></div>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button class="bg-blue-100 hover:bg-blue-200 rounded px-4 py-2 transition-colors">3:15</button>
-                            <button class="bg-blue-100 hover:bg-blue-200 rounded px-4 py-2 transition-colors">3:45</button>
-                            <button class="bg-blue-100 hover:bg-blue-200 rounded px-4 py-2 transition-colors">4:15</button>
-                            <button class="bg-blue-100 hover:bg-blue-200 rounded px-4 py-2 transition-colors">4:45</button>
-                        </div>
-                    </div>
-                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors w-full">
-                        Check Time
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Progress Tracker -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📊 Your Math Progress</h2>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-blue-600 mb-2">24</div>
-                    <div class="text-gray-600">Multiplication Facts</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-green-600 mb-2">18</div>
-                    <div class="text-gray-600">Division Problems</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-orange-600 mb-2">15</div>
-                    <div class="text-gray-600">Time Questions</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-purple-600 mb-2">32</div>
-                    <div class="text-gray-600">Word Problems Solved</div>
-                </div>
-            </div>
         </div>
 
         <!-- Back Button -->
-        <div class="text-center">
-            <a href="{{ url_for('grade_3_dashboard') }}" class="inline-block bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        <div class="text-center mt-12">
+            <a href="{{ url_for('grade_3_dashboard') }}" class="nav-btn inline-flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Go Back
             </a>
         </div>
     </div>
 </div>
 
+<!-- Server Data -->
+<script id="server-data" type="application/json">
+        {{ initial_data | tojson | safe }}
+    </script>
+
 <script>
-    // Multiplication Lesson Functionality
-    function startMultiplicationLesson() {
-        const lessonContent = `
-            <div class="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto">
-                <h3 class="text-2xl font-bold text-blue-800 mb-4">🔢 Multiplication Lesson</h3>
-                <p class="text-gray-700 mb-4">Multiplication is repeated addition. Let's learn the times tables!</p>
-                
-                <div class="bg-blue-50 p-4 rounded-lg mb-6">
-                    <h4 class="font-bold text-blue-700 mb-2">Understanding Multiplication:</h4>
-                    <p class="text-gray-600">3 × 4 means 3 groups of 4, or 4 + 4 + 4 = 12</p>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="bg-white border-2 border-blue-200 rounded-lg p-3">
-                        <h5 class="font-bold text-blue-600 mb-2">2 Times Table</h5>
-                        <p class="text-sm">2, 4, 6, 8, 10, 12, 14, 16, 18, 20</p>
-                    </div>
-                    <div class="bg-white border-2 border-green-200 rounded-lg p-3">
-                        <h5 class="font-bold text-green-600 mb-2">5 Times Table</h5>
-                        <p class="text-sm">5, 10, 15, 20, 25, 30, 35, 40, 45, 50</p>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                    <h4 class="font-bold text-gray-800 mb-2">Practice Quiz:</h4>
-                    <div class="space-y-3">
-                        <div>
-                            <p class="mb-2">What is 7 × 3?</p>
-                            <div class="flex gap-2">
-                                <button onclick="checkMultiplication(21, 'correct')" class="bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded">21</button>
-                                <button onclick="checkMultiplication(24, 'incorrect')" class="bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded">24</button>
-                                <button onclick="checkMultiplication(28, 'incorrect')" class="bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded">28</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <button onclick="closeLesson()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
-                    Close Lesson
-                </button>
-            </div>
-        `;
-        showLessonModal(lessonContent);
+    // State
+    let mathData = { time: [], shapes: [], fractions: [], word_problems: [] };
+    let scores = { time: 0, shapes: 0, fractions: 0, word: 0 };
+    let indices = { time: 0, shapes: 0, fractions: 0, word: 0 };
+    let isFetching = false;
+
+    // TTS Function
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.9;
+        utterance.pitch = 1.1;
+        window.speechSynthesis.speak(utterance);
     }
-    
-    // Division Lesson Functionality
-    function startDivisionLesson() {
-        const lessonContent = `
-            <div class="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto">
-                <h3 class="text-2xl font-bold text-green-800 mb-4">➗ Division Lesson</h3>
-                <p class="text-gray-700 mb-4">Division means sharing equally or finding how many groups.</p>
-                
-                <div class="bg-green-50 p-4 rounded-lg mb-6">
-                    <h4 class="font-bold text-green-700 mb-2">Understanding Division:</h4>
-                    <p class="text-gray-600">12 ÷ 3 means sharing 12 items among 3 people = 4 each</p>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="bg-white border-2 border-green-200 rounded-lg p-3">
-                        <h5 class="font-bold text-green-600 mb-2">Division Facts</h5>
-                        <p class="text-sm">15 ÷ 3 = 5<br>18 ÷ 6 = 3<br>24 ÷ 4 = 6</p>
-                    </div>
-                    <div class="bg-white border-2 border-orange-200 rounded-lg p-3">
-                        <h5 class="font-bold text-orange-600 mb-2">With Remainders</h5>
-                        <p class="text-sm">17 ÷ 5 = 3 remainder 2<br>23 ÷ 4 = 5 remainder 3</p>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                    <h4 class="font-bold text-gray-800 mb-2">Practice Activity:</h4>
-                    <p class="text-gray-700 mb-2">Share 15 chocolates among 3 friends. How many each?</p>
-                    <div class="flex gap-2">
-                        <button onclick="checkDivision(5, 'correct')" class="bg-green-100 hover:bg-green-200 px-4 py-2 rounded">5 chocolates</button>
-                        <button onclick="checkDivision(3, 'incorrect')" class="bg-green-100 hover:bg-green-200 px-4 py-2 rounded">3 chocolates</button>
-                        <button onclick="checkDivision(15, 'incorrect')" class="bg-green-100 hover:bg-green-200 px-4 py-2 rounded">15 chocolates</button>
-                    </div>
-                </div>
-                
-                <button onclick="closeLesson()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors">
-                    Close Lesson
-                </button>
-            </div>
-        `;
-        showLessonModal(lessonContent);
-    }
-    
-    // Time Lesson Functionality
-    function startTimeLesson() {
-        const lessonContent = `
-            <div class="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto">
-                <h3 class="text-2xl font-bold text-orange-800 mb-4">⏰ Time & Clock Lesson</h3>
-                <p class="text-gray-700 mb-4">Learn to read both analog and digital clocks!</p>
-                
-                <div class="bg-orange-50 p-4 rounded-lg mb-6">
-                    <h4 class="font-bold text-orange-700 mb-2">Key Time Facts:</h4>
-                    <ul class="text-gray-600 list-disc list-inside space-y-1">
-                        <li>60 minutes = 1 hour</li>
-                        <li>24 hours = 1 day</li>
-                        <li>AM = morning (12:00 midnight to 11:59 AM)</li>
-                        <li>PM = afternoon/evening (12:00 noon to 11:59 PM)</li>
-                    </ul>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="text-center bg-white border-2 border-orange-200 rounded-lg p-4">
-                        <div class="relative w-24 h-24 border-4 border-orange-600 rounded-full mx-auto mb-2">
-                            <div class="absolute top-1/2 left-1/2 w-1 h-6 bg-orange-600 origin-bottom transform -translate-x-1/2 -translate-y-full rotate-90"></div>
-                            <div class="absolute top-1/2 left-1/2 w-1 h-4 bg-gray-600 origin-bottom transform -translate-x-1/2 -translate-y-full"></div>
-                        </div>
-                        <p class="font-bold">3:00</p>
-                        <p class="text-sm">Three o'clock</p>
-                    </div>
-                    <div class="text-center bg-white border-2 border-blue-200 rounded-lg p-4">
-                        <div class="text-3xl font-mono mb-2">9:30</div>
-                        <p class="font-bold">9:30</p>
-                        <p class="text-sm">Half past nine</p>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                    <h4 class="font-bold text-gray-800 mb-2">Time Quiz:</h4>
-                    <p class="text-gray-700 mb-2">What time is 2 hours after 3:00 PM?</p>
-                    <div class="flex gap-2">
-                        <button onclick="checkTime('5:00 PM', 'correct')" class="bg-orange-100 hover:bg-orange-200 px-4 py-2 rounded">5:00 PM</button>
-                        <button onclick="checkTime('6:00 PM', 'incorrect')" class="bg-orange-100 hover:bg-orange-200 px-4 py-2 rounded">6:00 PM</button>
-                        <button onclick="checkTime('4:00 PM', 'incorrect')" class="bg-orange-100 hover:bg-orange-200 px-4 py-2 rounded">4:00 PM</button>
-                    </div>
-                </div>
-                
-                <button onclick="closeLesson()" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg transition-colors">
-                    Close Lesson
-                </button>
-            </div>
-        `;
-        showLessonModal(lessonContent);
-    }
-    
-    // Fractions Lesson Functionality
-    function startFractionLesson() {
-        const lessonContent = `
-            <div class="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto">
-                <h3 class="text-2xl font-bold text-purple-800 mb-4">½ Fractions Lesson</h3>
-                <p class="text-gray-700 mb-4">Fractions show parts of a whole thing.</p>
-                
-                <div class="bg-purple-50 p-4 rounded-lg mb-6">
-                    <h4 class="font-bold text-purple-700 mb-2">Fraction Basics:</h4>
-                    <p class="text-gray-600">Numerator (top) = parts we have<br>Denominator (bottom) = total equal parts</p>
-                </div>
-                
-                <div class="grid grid-cols-3 gap-4 mb-6">
-                    <div class="text-center bg-white border-2 border-purple-200 rounded-lg p-3">
-                        <div class="text-3xl mb-1">½</div>
-                        <p class="text-sm font-bold">Half</p>
-                        <p class="text-xs">1 part of 2</p>
-                    </div>
-                    <div class="text-center bg-white border-2 border-green-200 rounded-lg p-3">
-                        <div class="text-3xl mb-1">¼</div>
-                        <p class="text-sm font-bold">Quarter</p>
-                        <p class="text-xs">1 part of 4</p>
-                    </div>
-                    <div class="text-center bg-white border-2 border-blue-200 rounded-lg p-3">
-                        <div class="text-3xl mb-1">¾</div>
-                        <p class="text-sm font-bold">Three Quarter</p>
-                        <p class="text-xs">3 parts of 4</p>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                    <h4 class="font-bold text-gray-800 mb-2">Fraction Activity:</h4>
-                    <p class="text-gray-700 mb-2">If you eat 2 slices of a pizza cut into 8 slices:</p>
-                    <div class="flex gap-2">
-                        <button onclick="checkFraction('2/8', 'correct')" class="bg-purple-100 hover:bg-purple-200 px-4 py-2 rounded">2/8</button>
-                        <button onclick="checkFraction('8/2', 'incorrect')" class="bg-purple-100 hover:bg-purple-200 px-4 py-2 rounded">8/2</button>
-                        <button onclick="checkFraction('2/4', 'incorrect')" class="bg-purple-100 hover:bg-purple-200 px-4 py-2 rounded">2/4</button>
-                    </div>
-                </div>
-                
-                <button onclick="closeLesson()" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg transition-colors">
-                    Close Lesson
-                </button>
-            </div>
-        `;
-        showLessonModal(lessonContent);
-    }
-    
-    // Word Problems Lesson Functionality
-    function startWordProblemLesson() {
-        const lessonContent = `
-            <div class="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto">
-                <h3 class="text-2xl font-bold text-yellow-800 mb-4">📝 Word Problems</h3>
-                <p class="text-gray-700 mb-4">Real-life math problems and how to solve them step by step!</p>
-                
-                <div class="bg-yellow-50 p-4 rounded-lg mb-6">
-                    <h4 class="font-bold text-yellow-700 mb-2">Problem Solving Steps:</h4>
-                    <ol class="text-gray-600 list-decimal list-inside space-y-1">
-                        <li>Read the problem carefully</li>
-                        <li>Identify what you need to find</li>
-                        <li>Find the important numbers</li>
-                        <li>Choose the right operation</li>
-                        <li>Solve and check your answer</li>
-                    </ol>
-                </div>
-                
-                <div class="bg-white border-2 border-yellow-200 rounded-lg p-4 mb-4">
-                    <h4 class="font-bold text-yellow-700 mb-2">Example Problem:</h4>
-                    <p class="text-gray-700 mb-3"><strong>Sarah has 15 apples. She gives 6 to her friend. How many apples does Sarah have left?</strong></p>
-                    <div class="bg-gray-50 p-3 rounded">
-                        <p class="text-gray-600"><span class="font-bold">Step 1:</span> We need to find how many apples Sarah has left</p>
-                        <p class="text-gray-600"><span class="font-bold">Step 2:</span> Important numbers: 15 apples (start), 6 apples (given away)</p>
-                        <p class="text-gray-600"><span class="font-bold">Step 3:</span> Operation: Subtraction (15 - 6)</p>
-                        <p class="text-gray-600"><span class="font-bold">Step 4:</span> Answer: 15 - 6 = 9 apples</p>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                    <h4 class="font-bold text-gray-800 mb-2">Try This:</h4>
-                    <p class="text-gray-700 mb-2">A box contains 24 pencils. The teacher gives 8 pencils to each of 3 students. How many pencils are left?</p>
-                    <div class="flex gap-2">
-                        <button onclick="checkWordProblem(0, 'correct')" class="bg-yellow-100 hover:bg-yellow-200 px-4 py-2 rounded">0 pencils</button>
-                        <button onclick="checkWordProblem(8, 'incorrect')" class="bg-yellow-100 hover:bg-yellow-200 px-4 py-2 rounded">8 pencils</button>
-                        <button onclick="checkWordProblem(16, 'incorrect')" class="bg-yellow-100 hover:bg-yellow-200 px-4 py-2 rounded">16 pencils</button>
-                    </div>
-                </div>
-                
-                <button onclick="closeLesson()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-colors">
-                    Close Lesson
-                </button>
-            </div>
-        `;
-        showLessonModal(lessonContent);
-    }
-    
-    // Geometry Lesson Functionality
-    function startGeometryLesson() {
-        const lessonContent = `
-            <div class="bg-white rounded-2xl shadow-lg p-6 max-w-2xl mx-auto">
-                <h3 class="text-2xl font-bold text-red-800 mb-4">🔷 Geometry Lesson</h3>
-                <p class="text-gray-700 mb-4">Explore shapes, patterns, and geometric concepts!</p>
-                
-                <div class="bg-red-50 p-4 rounded-lg mb-6">
-                    <h4 class="font-bold text-red-700 mb-2">Basic Shapes:</h4>
-                    <p class="text-gray-600">2D Shapes: Circle, Square, Triangle, Rectangle<br>3D Shapes: Cube, Sphere, Cylinder, Pyramid</p>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="text-center bg-white border-2 border-red-200 rounded-lg p-4">
-                        <div class="text-4xl mb-2">🔺</div>
-                        <p class="font-bold">Triangle</p>
-                        <p class="text-sm">3 sides, 3 angles</p>
-                    </div>
-                    <div class="text-center bg-white border-2 border-blue-200 rounded-lg p-4">
-                        <div class="text-4xl mb-2">⬜</div>
-                        <p class="font-bold">Square</p>
-                        <p class="text-sm">4 equal sides</p>
-                    </div>
-                    <div class="text-center bg-white border-2 border-green-200 rounded-lg p-4">
-                        <div class="text-4xl mb-2">⭕</div>
-                        <p class="font-bold">Circle</p>
-                        <p class="text-sm">No corners</p>
-                    </div>
-                    <div class="text-center bg-white border-2 border-purple-200 rounded-lg p-4">
-                        <div class="text-4xl mb-2">🔷</div>
-                        <p class="font-bold">Rectangle</p>
-                        <p class="text-sm">4 sides, opposite equal</p>
-                    </div>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                    <h4 class="font-bold text-gray-800 mb-2">Shape Recognition:</h4>
-                    <p class="text-gray-700 mb-2">Which shape has 4 equal sides and 4 right angles?</p>
-                    <div class="flex gap-2">
-                        <button onclick="checkGeometry('Square', 'correct')" class="bg-red-100 hover:bg-red-200 px-4 py-2 rounded">Square</button>
-                        <button onclick="checkGeometry('Rectangle', 'incorrect')" class="bg-red-100 hover:bg-red-200 px-4 py-2 rounded">Rectangle</button>
-                        <button onclick="checkGeometry('Triangle', 'incorrect')" class="bg-red-100 hover:bg-red-200 px-4 py-2 rounded">Triangle</button>
-                    </div>
-                </div>
-                
-                <button onclick="closeLesson()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors">
-                    Close Lesson
-                </button>
-            </div>
-        `;
-        showLessonModal(lessonContent);
-    }
-    
-    // Utility Functions
-    function showLessonModal(content) {
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
-        modal.innerHTML = content;
-        modal.id = 'lessonModal';
-        document.body.appendChild(modal);
-        
-        // Close modal when clicking outside
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                closeLesson();
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            const dataEl = document.getElementById('server-data');
+            const serverData = dataEl ? JSON.parse(dataEl.textContent) : null;
+
+            if (serverData && !serverData.error) {
+                mathData = serverData;
+                renderAllQuestions();
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('game-zone').style.display = 'grid';
+                document.getElementById('game-zone').classList.remove('hidden');
+            } else {
+                fetchQuestions(false);
             }
-        });
-    }
-    
-    function closeLesson() {
-        const modal = document.getElementById('lessonModal');
-        if (modal) {
-            modal.remove();
+        } catch (e) {
+            console.error("Data parse error", e);
+            fetchQuestions(false);
+        }
+    });
+
+    async function fetchQuestions(isBackground = false) {
+        if (isFetching) return;
+        isFetching = true;
+
+        if (!isBackground && !mathData.time) { // Only show loading if we have NO data
+            document.getElementById('loading-state').style.display = 'block';
+            document.getElementById('game-zone').style.display = 'none';
+        }
+
+        try {
+            const res = await fetch('/api/grade3/generate_math');
+            const data = await res.json();
+
+            if (data.error) throw new Error(data.error);
+
+            // Append data
+            if (!mathData.time) mathData = data; // Init if empty
+            else {
+                // Safely merge arrays
+                if (data.time) mathData.time.push(...data.time);
+                if (data.shapes) mathData.shapes.push(...data.shapes);
+                if (data.fractions) mathData.fractions.push(...data.fractions);
+                if (data.word_problems) mathData.word_problems.push(...data.word_problems);
+            }
+
+            if (!isBackground) {
+                renderAllQuestions();
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('game-zone').style.display = 'grid';
+                document.getElementById('game-zone').classList.remove('hidden');
+            } else {
+                // If we were waiting for data in a specific card, re-render might show it now
+                renderAllQuestions();
+            }
+
+        } catch (err) {
+            console.error(err);
+            if (!isBackground) {
+                document.getElementById('loading-state').innerHTML = `<p class="text-red-600 text-xl">Oops! AI is sleeping. <button onclick="location.reload()" class="underline">Try again</button></p>`;
+            }
+        } finally {
+            isFetching = false;
         }
     }
-    
-    function checkMultiplication(answer, result) {
-        const feedback = result === 'correct' ? 
-            `✅ Correct! ${answer} is the right answer.` : 
-            `❌ Try again. Remember: 7 × 3 = 7 + 7 + 7`;
-        alert(feedback);
+
+    function renderAllQuestions() {
+        renderTime();
+        renderShape();
+        renderFraction();
+        renderWord();
     }
-    
-    function checkDivision(answer, result) {
-        const feedback = result === 'correct' ? 
-            `✅ Correct! Each friend gets ${answer} chocolates.` : 
-            `❌ Try again. 15 ÷ 3 = 5`;
-        alert(feedback);
+
+    // --- Renderers ---
+    // Helper to get current question safely
+    function getQuestion(type, dataKey) {
+        const idx = indices[type];
+        if (!mathData[dataKey] || idx >= mathData[dataKey].length) return null;
+        return mathData[dataKey][idx];
     }
-    
-    function checkTime(answer, result) {
-        const feedback = result === 'correct' ? 
-            `✅ Correct! 3:00 PM + 2 hours = ${answer}` : 
-            `❌ Try again. Add 2 hours to 3:00 PM`;
-        alert(feedback);
+
+    function renderTime() {
+        const q = getQuestion('time', 'time');
+        const container = document.getElementById('time-container');
+
+        if (!q) {
+            container.innerHTML = `<div class="text-center py-4 text-gray-500 animate-pulse">Loading more clocks...</div>`;
+            return;
+        }
+
+        let html = `
+            <div class="text-center mb-4">
+                <div class="text-2xl font-bold bg-white inline-block px-4 py-2 border-2 border-blue-200 rounded mb-2">
+                    "${q.time_str}"
+                </div>
+                <p class="text-xl">Which clock shows this?</p>
+                <button class="speak-btn" onclick="speak('${q.time_str}')">🔊</button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+        `;
+
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('shape', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-theme transition-colors bg-blue-500 border-blue-700">${opt}</button>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
     }
-    
-    function checkFraction(answer, result) {
-        const feedback = result === 'correct' ? 
-            `✅ Correct! You ate ${answer} of the pizza.` : 
-            `❌ Try again. You ate 2 out of 8 slices`;
-        alert(feedback);
+
+    function renderShape() {
+        const q = getQuestion('shapes', 'shapes'); // Note key mismatch fix: indices.shapes vs data.shapes
+        const container = document.getElementById('shape-container');
+        if (!q) {
+            container.innerHTML = `<div class="text-center py-4 text-gray-500 animate-pulse">Finding shapes...</div>`;
+            return;
+        }
+
+        let html = `
+            <div class="text-center mb-4">
+                <p class="text-xl font-bold">"${q.clue}"</p>
+                <button class="speak-btn" onclick="speak('${q.clue}')">🔊</button>
+            </div>
+            <div class="grid grid-cols-1 gap-3">
+        `;
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('shape', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-theme bg-red-500 border-red-700">${opt}</button>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
     }
-    
-    function checkWordProblem(answer, result) {
-        const feedback = result === 'correct' ? 
-            `✅ Correct! 24 - (8 × 3) = ${answer} pencils left` : 
-            `❌ Try again. 3 students × 8 pencils each = 24 pencils total`;
-        alert(feedback);
+
+    function renderFraction() {
+        const q = getQuestion('fractions', 'fractions');
+        const container = document.getElementById('fraction-container');
+        if (!q) {
+            container.innerHTML = `<div class="text-center py-4 text-gray-500 animate-pulse">Cutting cakes...</div>`;
+            return;
+        }
+
+        let html = `
+            <div class="text-center mb-4">
+                <p class="text-xl font-bold">"${q.clue}"</p>
+                <button class="speak-btn" onclick="speak('${q.clue}')">🔊</button>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+        `;
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('fraction', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-theme bg-purple-500 border-purple-700">${opt}</button>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
     }
-    
-    function checkGeometry(answer, result) {
-        const feedback = result === 'correct' ? 
-            `✅ Correct! A ${answer} has 4 equal sides and 4 right angles.` : 
-            `❌ Try again. Think about which shape has all sides equal`;
-        alert(feedback);
+
+    function renderWord() {
+        const q = getQuestion('word', 'word_problems');
+        const container = document.getElementById('word-container');
+        if (!q) {
+            container.innerHTML = `<div class="text-center py-4 text-gray-500 animate-pulse">Writing story...</div>`;
+            return;
+        }
+
+        let html = `
+            <div class="mb-4 bg-white p-3 rounded border-2 border-green-200">
+                <p class="text-lg leading-relaxed">${q.text}</p>
+                <button class="speak-btn float-right" onclick="speak('${q.text.replace(/'/g, "\\'")}')">🔊</button>
+                <div class="clear-both"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+        `;
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('word', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-theme bg-green-500 border-green-700">${opt}</button>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
     }
+
+    // Logic
+    async function saveProgress(quizId, score) {
+        try {
+            await fetch('/api/submit_progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    quiz_id: quizId,
+                    score: score,
+                    total: 1
+                })
+            });
+        } catch (e) {
+            console.error("Save failed", e);
+        }
+    }
+
+    function checkAnswer(type, selected, correct) {
+        // Map type (singular from DOM) to data keys (plural in JSON)
+        // DOM IDs: time-feedback, shape-feedback, fraction-feedback, word-feedback
+        // JSON keys: time, shapes, fractions, word_problems
+
+        const feedbackEl = document.getElementById(`${type}-feedback`);
+        const scoreEl = document.getElementById(`${type}-score`);
+
+        // Map for data access
+        const keyMap = {
+            'time': 'time',
+            'shape': 'shapes',
+            'fraction': 'fractions',
+            'word': 'word_problems'
+        };
+        const dataKey = keyMap[type];
+
+        if (selected === correct) {
+            feedbackEl.textContent = "✅ Correct!";
+            feedbackEl.className = "h-8 mt-2 text-xl font-bold text-center text-green-600";
+            speak("Correct!");
+
+            // Map scores/indices keys (which I defined as plural/singular mixed...)
+            // Let's standardize state keys to match DOM type for simplicity where possible?
+            // Actually, my state keys are: time, shapes, fractions, word
+            // Let's use the type to map to state key.
+            const stateKey = (type === 'shape') ? 'shapes' : (type === 'fraction') ? 'fractions' : type;
+
+            scores[stateKey]++;
+            scoreEl.textContent = scores[stateKey];
+
+            // Save Progress
+            saveProgress(`grade3_math_${stateKey}`, 1);
+
+            const remaining = (mathData[dataKey]?.length || 0) - indices[stateKey];
+
+            if (remaining <= 2 && !isFetching) {
+                console.log("Pre-fetching more questions...");
+                fetchQuestions(true);
+            }
+
+            // Next Question
+            setTimeout(() => {
+                feedbackEl.textContent = "";
+                indices[stateKey]++;
+
+                const currentIdx = indices[stateKey];
+                const maxLen = mathData[dataKey]?.length || 0;
+
+                if (currentIdx >= maxLen) {
+                    fetchQuestions(true);
+                } else {
+                    if (type === 'time') renderTime();
+                    if (type === 'shape') renderShape();
+                    if (type === 'fraction') renderFraction();
+                    if (type === 'word') renderWord();
+                }
+            }, 500);
+
+        } else {
+            feedbackEl.textContent = "❌ Try again!";
+            feedbackEl.className = "h-8 mt-2 text-xl font-bold text-center text-red-500";
+            speak("Try again");
+        }
+    }
+
 </script>
 {% endblock %}

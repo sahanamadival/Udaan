@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+
+{% block title %}Grade 3 Brain Gym - Udaan{% endblock %}
+
+{% block body_class %}min-h-screen bg-indigo-50 font-comic{% endblock %}
+
+{% block content %}
+<style>
+    .font-comic {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
+        letter-spacing: 0.05em;
+    }
+
+    .dyslexic-box {
+        background-color: #ebf8ff;
+        border: 3px solid #63b3ed;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    .dyslexic-btn {
+        background-color: #4299e1;
+        color: white;
+        border: 2px solid #2b6cb0;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: bold;
+        width: 100%;
+        transition: transform 0.1s;
+    }
+
+    .dyslexic-btn:active {
+        transform: scale(0.95);
+    }
+
+    .nav-btn {
+        background-color: #3182ce;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .speak-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.5rem;
+        margin-left: 0.5rem;
+    }
+
+    .speak-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .option-card {
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 3px solid transparent;
+    }
+
+    .option-card:hover {
+        transform: scale(1.05);
+        border-color: #63b3ed;
+    }
+
+    .option-card.selected {
+        border-color: #2b6cb0;
+        background-color: #bee3f8;
+    }
+</style>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-indigo-800 mb-4">🧠 Brain Gym</h1>
+            <p class="text-2xl text-indigo-700">Logic, Patterns & Critical Thinking</p>
+            <button class="speak-btn"
+                onclick="speak('Welcome to Brain Gym! Logic, Patterns, and Critical Thinking')">🔊</button>
+        </div>
+
+        <!-- Scores -->
+        <div class="flex justify-center gap-8 mb-8">
+            <div class="bg-white px-6 py-3 rounded-xl shadow-md border-b-4 border-indigo-200">
+                <span class="text-gray-500 font-bold">Patterns</span>
+                <div class="text-3xl font-bold text-indigo-600" id="score-pattern">0</div>
+            </div>
+            <div class="bg-white px-6 py-3 rounded-xl shadow-md border-b-4 border-pink-200">
+                <span class="text-gray-500 font-bold">Odd One Out</span>
+                <div class="text-3xl font-bold text-pink-600" id="score-odd">0</div>
+            </div>
+            <div class="bg-white px-6 py-3 rounded-xl shadow-md border-b-4 border-purple-200">
+                <span class="text-gray-500 font-bold">Analogies</span>
+                <div class="text-3xl font-bold text-purple-600" id="score-analogy">0</div>
+            </div>
+        </div>
+
+        <div id="loading-state" class="text-center py-12">
+            <div class="text-6xl mb-4 animate-bounce">🤖</div>
+            <p class="text-2xl text-gray-600">Loading brain Teasers...</p>
+        </div>
+
+        <div id="game-zone" class="grid grid-cols-1 md:grid-cols-3 gap-6 hidden">
+
+            <!-- Pattern Power -->
+            <div class="dyslexic-box bg-white">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-indigo-800">🧩 Patterns</h3>
+                    <button class="speak-btn" onclick="speak('Pattern Power. Complete the sequence.')">🔊</button>
+                </div>
+                <div id="pattern-container" class="min-h-[200px] flex flex-col justify-center"></div>
+                <p id="pattern-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+            </div>
+
+            <!-- Odd One Out -->
+            <div class="dyslexic-box bg-pink-50 border-pink-300">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-pink-800">🦄 Odd One Out</h3>
+                    <button class="speak-btn" onclick="speak('Odd One Out. Which one is different?')">🔊</button>
+                </div>
+                <div id="odd-container" class="min-h-[200px] flex flex-col justify-center"></div>
+                <p id="odd-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+            </div>
+
+            <!-- Analogies -->
+            <div class="dyslexic-box bg-purple-50 border-purple-300">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-purple-800">⚖️ Analogies</h3>
+                    <button class="speak-btn" onclick="speak('Analogies. Complete the pair.')">🔊</button>
+                </div>
+                <div id="analogy-container" class="min-h-[200px] flex flex-col justify-center"></div>
+                <p id="analogy-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+            </div>
+
+        </div>
+
+        <div class="text-center mt-12">
+            <a href="{{ url_for('grade_3_dashboard') }}" class="nav-btn inline-flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<!-- Server Data -->
+<script id="server-data" type="application/json">
+    {{ initial_data | tojson | safe }}
+</script>
+
+<script>
+    // State
+    let logicData = { patterns: [], odd_one_out: [], analogies: [] };
+    let scores = { pattern: 0, odd: 0, analogy: 0 };
+    let indices = { pattern: 0, odd: 0, analogy: 0 };
+
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            const dataEl = document.getElementById('server-data');
+            const serverData = dataEl ? JSON.parse(dataEl.textContent) : null;
+
+            if (serverData && !serverData.error) {
+                if (serverData.patterns) logicData.patterns.push(...serverData.patterns);
+                if (serverData.odd_one_out) logicData.odd_one_out.push(...serverData.odd_one_out);
+                if (serverData.analogies) logicData.analogies.push(...serverData.analogies);
+
+                renderAll();
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('game-zone').classList.remove('hidden');
+                document.getElementById('game-zone').style.display = 'grid';
+            } else {
+                fetchLogic();
+            }
+        } catch (e) {
+            console.error("Server data parse failed", e);
+            fetchLogic();
+        }
+    });
+
+    async function fetchLogic() {
+        try {
+            const res = await fetch('/api/grade3/generate_logic');
+            const data = await res.json();
+
+            if (data.patterns) logicData.patterns.push(...data.patterns);
+            if (data.odd_one_out) logicData.odd_one_out.push(...data.odd_one_out);
+            if (data.analogies) logicData.analogies.push(...data.analogies);
+
+            renderAll();
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('game-zone').classList.remove('hidden');
+        } catch (e) {
+            console.error("Logic fetch failed", e);
+            document.getElementById('loading-state').innerHTML = "<p class='text-red-500'>Failed to load brain teasers. Try refreshing!</p>";
+        }
+    }
+
+    function renderAll() {
+        renderPattern();
+        renderOdd();
+        renderAnalogy();
+    }
+
+    // --- Renderers ---
+
+    function renderPattern() {
+        const q = logicData.patterns[indices.pattern];
+        const con = document.getElementById('pattern-container');
+        if (!q) { con.innerHTML = "Loading..."; return; }
+
+        let html = `
+            <div class="flex justify-center gap-2 mb-6 text-3xl">
+                ${q.sequence.map(item => `<div class="bg-white p-2 rounded shadow">${item}</div>`).join('')}
+                <div class="bg-indigo-100 p-2 rounded border-2 border-dashed border-indigo-400">?</div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+        `;
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('pattern', '${opt}', '${q.correct}')" class="dyslexic-btn">${opt}</button>`;
+        });
+        html += `</div>`;
+        con.innerHTML = html;
+        speak(`Complete the pattern: ${q.sequence.join(', ')}`);
+    }
+
+    function renderOdd() {
+        const q = logicData.odd_one_out[indices.odd];
+        const con = document.getElementById('odd-container');
+        if (!q) { con.innerHTML = "Loading..."; return; }
+
+        let html = `<div class="grid grid-cols-2 gap-3 mb-2">`;
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('odd', '${opt}', '${q.correct}')" class="dyslexic-btn bg-pink-400 border-pink-600 hover:bg-pink-500">${opt}</button>`;
+        });
+        html += `</div>`;
+        con.innerHTML = html;
+    }
+
+    function renderAnalogy() {
+        const q = logicData.analogies[indices.analogy];
+        const con = document.getElementById('analogy-container');
+        if (!q) { con.innerHTML = "Loading..."; return; }
+
+        let html = `
+            <div class="text-center mb-4 text-xl font-bold bg-white p-3 rounded-lg shadow-sm">
+                ${q.pair1} <span class="text-purple-400">is to</span> ${q.pair2} <br>
+                <span class="text-gray-400">as</span> <br>
+                ${q.target} <span class="text-purple-400">is to</span> ...
+                <button onclick="speak('${q.pair1} is to ${q.pair2} as ${q.target} is to what?')" class="speak-btn text-sm">🔊</button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+        `;
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('analogy', '${opt}', '${q.correct}')" class="dyslexic-btn bg-purple-400 border-purple-600 hover:bg-purple-500">${opt}</button>`;
+        });
+        html += `</div>`;
+        con.innerHTML = html;
+    }
+
+    // --- Checker ---
+    async function checkAnswer(type, ans, corr) {
+        const fb = document.getElementById(`${type}-feedback`);
+        const sc = document.getElementById(`score-${type}`);
+
+        if (ans === corr) {
+            fb.textContent = "✨ Brilliant!";
+            fb.className = "h-8 mt-2 text-xl font-bold text-center text-green-600";
+            speak("Brilliant!");
+            scores[type]++;
+            sc.textContent = scores[type];
+
+            // Save
+            try { await fetch('/api/submit_progress', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ quiz_id: `g3_logic_${type}`, score: 1, total: 1 }) }); } catch (e) { }
+
+            setTimeout(() => {
+                fb.textContent = "";
+                indices[type]++;
+                if (type === 'pattern') {
+                    if (indices.pattern >= logicData.patterns.length) indices.pattern = 0; // Loop or fetch more
+                    renderPattern();
+                } else if (type === 'odd') {
+                    if (indices.odd >= logicData.odd_one_out.length) indices.odd = 0;
+                    renderOdd();
+                } else {
+                    if (indices.analogy >= logicData.analogies.length) indices.analogy = 0;
+                    renderAnalogy();
+                }
+            }, 1000);
+        } else {
+            fb.textContent = "🤔 Think again!";
+            fb.className = "h-8 mt-2 text-xl font-bold text-center text-orange-500";
+            speak("Think again");
+        }
+    }
+</script>
+{% endblock %}
