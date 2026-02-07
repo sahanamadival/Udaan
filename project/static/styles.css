@@ -1141,6 +1141,8 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* OpenDyslexic Font */
+/* OpenDyslexic Font - CDN links are broken, falling back to Comic Sans MS */
+/*
 @font-face {
   font-family: 'OpenDyslexic';
   src: url('https://cdnjs.cloudflare.com/ajax/libs/open-dyslexic/2.1.0/OpenDyslexic-Regular.woff2') format('woff2'),
@@ -1156,6 +1158,7 @@ input:focus, select:focus, textarea:focus {
   font-weight: bold;
   font-style: normal;
 }
+*/
 
 /* Apply OpenDyslexic font globally with larger size */
 body {

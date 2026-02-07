@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Math Word Problems - Grade 5{% endblock %}
+
+{% block body_class %}bg-gradient-to-br from-blue-50 to-cyan-50{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <a href="{{ url_for('grade_5_dashboard') }}"
+            class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+        </a>
+
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="bg-blue-600 p-6 text-white">
+                <h1 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-calculator"></i> Math Word Problem Solver
+                </h1>
+                <p class="mt-2 text-blue-100">Solve real-world math problems!</p>
+            </div>
+
+            <div class="p-8">
+                <!-- Problem Card -->
+                <div class="bg-sky-50 p-6 rounded-2xl border border-sky-200 mb-8 relative">
+                    <div
+                        class="absolute -top-4 -right-4 bg-yellow-400 text-yellow-900 w-12 h-12 rounded-full flex items-center justify-center font-bold shadow-lg transform rotate-12">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-sky-900 mb-4">Problem of the Moment:</h3>
+                    <p id="problemText" class="text-lg text-gray-800 leading-relaxed font-medium">
+                        A bakery sells cupcakes for $3 each. If Sarah buys 15 cupcakes and pays with a $50 bill, how
+                        much change should she receive?
+                    </p>
+                    <button onclick="newProblem()"
+                        class="mt-4 text-sm text-sky-600 hover:text-sky-800 font-semibold underline">Get a different
+                        problem</button>
+                </div>
+
+                <!-- Inputs -->
+                <div class="bg-white border rounded-xl p-6 mb-6">
+                    <label class="block text-gray-700 font-bold mb-2">Show your work (optional):</label>
+                    <textarea
+                        class="w-full p-3 border border-gray-300 rounded-lg mb-4 bg-gray-50 focus:bg-white transition-colors"
+                        rows="3" placeholder="Step 1... Step 2..."></textarea>
+
+                    <label class="block text-gray-700 font-bold mb-2">Your Answer:</label>
+                    <div class="flex gap-4">
+                        <input type="text" id="answerInput"
+                            class="flex-1 p-3 border border-gray-300 rounded-lg text-lg font-bold"
+                            placeholder="Enter answer...">
+                        <button onclick="checkAnswer()"
+                            class="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-bold shadow-md transition-transform hover:scale-105">
+                            Verify
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Result Section -->
+                <div id="resultSection" class="hidden">
+                    <div id="resultParams" class="p-6 rounded-xl border border-gray-200">
+                        <h3 id="resultTitle" class="text-2xl font-bold mb-2"></h3>
+                        <p id="resultText" class="text-lg mb-4"></p>
+
+                        <div class="bg-white p-4 rounded-lg bg-opacity-50">
+                            <strong>Explanation:</strong>
+                            <p id="explanationText" class="mt-1"></p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const problems = [
+        "A bakery sells cupcakes for $3 each. If Sarah buys 15 cupcakes and pays with a $50 bill, how much change should she receive?",
+        "Tom ran 4.5 miles on Monday and 3.2 miles on Tuesday. His goal is to run 15 miles this week. How many more miles does he need to run?",
+        "A rectangular garden is 12 meters long and 8 meters wide. What is the area of the garden?",
+        "If a train travels at 60 miles per hour, how far will it travel in 3.5 hours?",
+        "Jenny has 48 apples. She wants to divide them equally among 6 friends. How many apples does each friend get?"
+    ];
+
+    function newProblem() {
+        const randomProblem = problems[Math.floor(Math.random() * problems.length)];
+        document.getElementById('problemText').textContent = randomProblem;
+        document.getElementById('resultSection').classList.add('hidden');
+        document.getElementById('answerInput').value = '';
+    }
+
+    async function checkAnswer() {
+        const problem = document.getElementById('problemText').textContent;
+        const answer = document.getElementById('answerInput').value;
+        const btn = document.querySelector('button[onclick="checkAnswer()"]');
+
+        if (!answer) {
+            alert('Please enter an answer');
+            return;
+        }
+
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'Checking...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/grade5/check_math', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ problem, answer })
+            });
+            const data = await response.json();
+
+            const resultSection = document.getElementById('resultSection');
+            const resultParams = document.getElementById('resultParams');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultText = document.getElementById('resultText');
+            const explanationText = document.getElementById('explanationText');
+
+            resultSection.classList.remove('hidden');
+
+            if (data.is_correct) {
+                resultParams.className = 'p-6 rounded-xl border border-green-200 bg-green-50 text-green-800';
+                resultTitle.textContent = 'Correct! 🎉';
+            } else {
+                resultParams.className = 'p-6 rounded-xl border border-red-200 bg-red-50 text-red-800';
+                resultTitle.textContent = 'Not quite right yet...';
+            }
+
+            resultText.textContent = data.encouragement;
+            explanationText.textContent = data.explanation;
+
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error checking answer');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

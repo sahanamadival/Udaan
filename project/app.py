@@ -25,12 +25,21 @@ from pdf2image import convert_from_path
 import pytesseract
 import os
 from dotenv import load_dotenv
+import zipfile
+import xml.etree.ElementTree as ET
 
 # Load .env file
 load_dotenv()
 
 # Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    print("Error: OPENAI_API_KEY not found. Please create a .env file with your API key.")
+    # You might want to handle this gracefully depending on app requirements
+    # For now, we'll let it fail but with a clearer message
+    pass 
+
+client = OpenAI(api_key=api_key)
 
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
@@ -50,28 +59,83 @@ os.makedirs(AUDIO_FOLDER, exist_ok=True)
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# Hybrid PDF Text Extraction
-def extract_text_hybrid(pdf_path):
-    """Try PyPDF2 first, if no text then fallback to OCR."""
+# Hybrid Text Extraction
+def extract_text_hybrid(file_path):
+    """
+    Robust text extraction supporting PDF, DOCX, and TXT.
+    Handles scanned PDFs via OCR (if dependencies exist).
+    """
     text = ""
-    try:
-        pdf_reader = PyPDF2.PdfReader(open(pdf_path, "rb"))
-        for page in pdf_reader.pages:
-            text += page.extract_text() or ""
-    except Exception as e:
-        print("⚠️ Error reading with PyPDF2:", e)
+    ext = os.path.splitext(file_path)[1].lower()
 
-    if text.strip():
-        return text
+    print(f"Extracting text from: {file_path} ({ext})")
 
-    # Fallback: OCR
-    print("⚠️ No text found, using OCR...")
     try:
-        pages = convert_from_path(pdf_path)
-        for page in pages:
-            text += pytesseract.image_to_string(page)
+        # --- TXT File ---
+        if ext == ".txt":
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                return f.read()
+
+        # --- DOCX File (XML Parsing) ---
+        elif ext == ".docx":
+            try:
+                with zipfile.ZipFile(file_path) as z:
+                    xml_content = z.read("word/document.xml")
+                    root = ET.fromstring(xml_content)
+                    namespace = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+                    text_parts = []
+                    for node in root.findall(".//w:t", namespace):
+                        if node.text:
+                            text_parts.append(node.text)
+                    return "\n".join(text_parts)
+            except Exception as e:
+                print(f"DOCX extraction failed: {e}")
+                return ""
+
+        # --- PDF File ---
+        elif ext == ".pdf":
+            # 1. Try PyPDF2 (Text-based PDF)
+            try:
+                pdf_reader = PyPDF2.PdfReader(open(file_path, "rb"))
+                for page in pdf_reader.pages:
+                    text += page.extract_text() or ""
+            except Exception as e:
+                print("⚠️ PyPDF2 error:", e)
+
+            if text.strip():
+                return text
+
+            # 2. Fallback: OCR (Scanned PDF)
+            print("⚠️ No text found in PDF, attempting OCR...")
+            try:
+                # Check for Poppler (required for convert_from_path to work)
+                # Since we know Poppler is missing on this system, we skip or handle gracefully
+                try:
+                    from pdf2image import convert_from_path
+                    pages = convert_from_path(file_path) # This will fail if Poppler is missing
+                    for page in pages:
+                        text += pytesseract.image_to_string(page)
+                except Exception as e:
+                     print(f"⚠️ OCR (pdf2image) failed: {e}")
+                     # Fallback: Try fitz (PyMuPDF) -> Image -> Tesseract which doesn't need Poppler
+                     try:
+                        import fitz
+                        doc = fitz.open(file_path)
+                        for page in doc:
+                            pix = page.get_pixmap()
+                            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                            text += pytesseract.image_to_string(img)
+                     except Exception as e2:
+                        print(f"⚠️ OCR (PyMuPDF) failed: {e2}")
+
+            except Exception as e:
+                print("⚠️ OCR failed completely:", e)
+
+            return text
+
     except Exception as e:
-        print("⚠️ OCR failed:", e)
+        print(f"General extraction error: {e}")
+        return ""
 
     return text
 
@@ -778,6 +842,189 @@ def grade_5_dashboard():
     audio_file = session.pop("audio_file", None)
     return render_template("grade_5_dashboard.html", user=user, ai_summary=summary, audio_file=audio_file, hindi_file=session.get("hindi_file"))
 
+
+# Grade 5 Feature Routes
+
+@app.route("/grade/5/paragraph_writing")
+@login_required(role="student")
+def grade_5_paragraph_writing():
+    user = session.get("user")
+    if user.get("grade") != "5":
+        flash("Access denied. This content is for Grade 5 students only.")
+        return redirect(url_for("grade_5_dashboard"))
+    return render_template("grade_5_paragraph.html", user=user)
+
+@app.route("/grade/5/vocab_builder")
+@login_required(role="student")
+def grade_5_vocab_builder():
+    user = session.get("user")
+    if user.get("grade") != "5":
+        flash("Access denied. This content is for Grade 5 students only.")
+        return redirect(url_for("grade_5_dashboard"))
+    return render_template("grade_5_vocab.html", user=user)
+
+@app.route("/grade/5/math_problems")
+@login_required(role="student")
+def grade_5_math_problems():
+    user = session.get("user")
+    if user.get("grade") != "5":
+        flash("Access denied. This content is for Grade 5 students only.")
+        return redirect(url_for("grade_5_dashboard"))
+    return render_template("grade_5_math.html", user=user)
+
+@app.route("/grade/5/location_learning")
+@login_required(role="student")
+def grade_5_location_learning():
+    user = session.get("user")
+    if user.get("grade") != "5":
+        flash("Access denied. This content is for Grade 5 students only.")
+        return redirect(url_for("grade_5_dashboard"))
+    return render_template("grade_5_location.html", user=user)
+
+# API Endpoints for Grade 5 Features
+
+@app.route("/api/grade5/check_paragraph", methods=["POST"])
+@login_required(role="student")
+def check_paragraph():
+    try:
+        data = request.get_json()
+        paragraph = data.get("paragraph", "")
+        topic = data.get("topic", "General")
+        
+        if not paragraph:
+            return {"error": "No paragraph provided"}, 400
+
+        prompt = f"""
+        Analyze the following paragraph written by a 5th-grade student about '{topic}'.
+        Paragraph: "{paragraph}"
+        
+        Provide feedback in JSON format:
+        {{
+            "score": number (1-10),
+            "grammar_feedback": "string",
+            "creativity_feedback": "string",
+            "improvement_tips": ["tip1", "tip2"]
+        }}
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7
+        )
+        
+        content = response.choices[0].message.content
+        # Extract JSON
+        import json
+        import re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group())
+        else:
+            return {"error": "Failed to parse AI response"}
+            
+    except Exception as e:
+        print(f"Error checking paragraph: {e}")
+        return {"error": str(e)}, 500
+
+@app.route("/api/grade5/get_vocab_word", methods=["GET"])
+@login_required(role="student")
+def get_vocab_word():
+    try:
+        prompt = "Generate a challenging but age-appropriate vocabulary word for a 5th grader. Return JSON: {'word': '...', 'definition': '...', 'example_sentence': '...', 'synonyms': ['...'], 'antonyms': ['...']}"
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.9
+        )
+        
+        content = response.choices[0].message.content
+        import json
+        import re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group())
+        else:
+            return {"error": "Failed to generate word"}
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+@app.route("/api/grade5/check_math", methods=["POST"])
+@login_required(role="student")
+def check_math():
+    try:
+        data = request.get_json()
+        problem = data.get("problem", "")
+        student_answer = data.get("answer", "")
+        
+        prompt = f"""
+        A 5th-grade student is solving this math problem: "{problem}"
+        Student's answer: "{student_answer}"
+        
+        Verify if the answer is correct and provide an explanation.
+        Return JSON:
+        {{
+            "is_correct": boolean,
+            "correct_answer": "string",
+            "explanation": "string",
+            "encouragement": "string"
+        }}
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3
+        )
+        
+        content = response.choices[0].message.content
+        import json
+        import re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group())
+        else:
+            return {"error": "Failed to check answer"}
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+@app.route("/api/grade5/location_info", methods=["POST"])
+@login_required(role="student")
+def location_info():
+    try:
+        data = request.get_json()
+        location_name = data.get("location", "")
+        
+        prompt = f"""
+        Provide 3 fun, educational facts about {location_name} suitable for a 5th-grade student with dyslexia. 
+        Use simple language, short sentences, and bullet points.
+        Return JSON:
+        {{
+            "location": "{location_name}",
+            "facts": ["fact1", "fact2", "fact3"],
+            "climate": "short description",
+            "famous_for": "short description"
+        }}
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7
+        )
+        
+        content = response.choices[0].message.content
+        import json
+        import re
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group())
+        else:
+            return {"error": "Failed to get location info"}
+    except Exception as e:
+        return {"error": str(e)}, 500
+
 @app.route("/upload_textbook", methods=["POST"])
 @login_required(role="student")
 def upload_textbook():
@@ -1204,28 +1451,13 @@ def generate_flashcards():
     conn.close()
 
     # ------------------------
-    # Extract text from PDF
+    # Extract text from File
     # ------------------------
-    text = ""
-    try:
-        pdf_reader = PdfReader(open(filepath, "rb"))
-        for page in pdf_reader.pages:
-            text += page.extract_text() or ""
-    except:
-        text = ""
-
-    if not text.strip():
-        try:
-            doc = fitz.open(filepath)
-            ocr_text = []
-            for page_num in range(len(doc)):
-                pix = doc[page_num].get_pixmap()
-                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                ocr_text.append(pytesseract.image_to_string(img))
-            text = "\n".join(ocr_text)
-        except:
-            flash("⚠️ Unable to extract text from PDF.")
-            return redirect_to_dashboard(user)
+    text = extract_text_hybrid(filepath)
+    
+    if not text or not text.strip():
+        flash("⚠️ Unable to extract text from file.")
+        return redirect_to_dashboard(user)
 
     # ------------------------
     # Generate flashcards (10) using OpenAI
@@ -1342,32 +1574,10 @@ def generate_quiz():
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
     # Extract text
-    text = ""
-    try:
-        pdf_reader = PdfReader(open(filepath, "rb"))
-        for page in pdf_reader.pages:
-            text += page.extract_text() or ""
-    except Exception as e:
-        flash(f"Error reading PDF: {str(e)}")
-        return redirect_to_dashboard(user)
+    text = extract_text_hybrid(filepath)
 
-    # Fallback to OCR 
-    if not text.strip():
-        flash("⚠️ No text found, using OCR...")
-        try:
-            doc = fitz.open(filepath)
-            ocr_text = []
-            for page_num in range(len(doc)):
-                pix = doc[page_num].get_pixmap()
-                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                ocr_text.append(pytesseract.image_to_string(img))
-            text = "\n".join(ocr_text)
-        except Exception as e:
-            flash(f"⚠️ OCR failed: {str(e)}")
-            return redirect_to_dashboard(user)
-
-    if not text.strip():
-        flash("⚠️ Still no readable text found after OCR.")
+    if not text or not text.strip():
+        flash("⚠️ No readable text found in file.")
         return redirect_to_dashboard(user)
 
     # Generate quiz with OpenAI
@@ -2243,16 +2453,13 @@ def ai_tutor():
         filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         if os.path.exists(filepath):
             try:
-                # Try to extract text from PDF
-                pdf_reader = PyPDF2.PdfReader(open(filepath, "rb"))
-                for page in pdf_reader.pages:
-                    pdf_text += page.extract_text() or ""
+                # Use robust extraction
+                pdf_text = extract_text_hybrid(filepath)
                 
-                # If no text found, try OCR
                 if not pdf_text.strip():
-                    pdf_text = extract_text_hybrid(filepath)
+                    pdf_text = "Could not extract text from file."
             except Exception as e:
-                print(f"Error reading PDF: {e}")
+                print(f"Error reading file: {e}")
                 pdf_text = "Error loading textbook content."
     
     # Create or restore tutor session

@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Vocabulary Builder - Grade 5{% endblock %}
+
+{% block body_class %}bg-gradient-to-br from-green-50 to-teal-50{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <a href="{{ url_for('grade_5_dashboard') }}"
+            class="inline-flex items-center text-green-700 hover:text-green-900 mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+        </a>
+
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
+            <div class="bg-teal-600 p-6 text-white flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold flex items-center gap-3">
+                        <i class="fas fa-book-open"></i> Vocabulary Builder
+                    </h1>
+                    <p class="mt-2 text-teal-100">Expand your word power!</p>
+                </div>
+                <button onclick="loadNewWord()"
+                    class="bg-white text-teal-600 hover:bg-teal-50 px-6 py-2 rounded-full font-bold transition-colors shadow-sm">
+                    <i class="fas fa-sync-alt mr-2"></i> New Word
+                </button>
+            </div>
+
+            <div class="p-8 text-center" id="loadingState">
+                <i class="fas fa-spinner fa-spin text-4xl text-teal-500"></i>
+                <p class="mt-4 text-gray-500">Fetching a new word...</p>
+            </div>
+
+            <div class="p-8 hidden" id="wordCard">
+                <div class="text-center mb-8">
+                    <h2 class="text-5xl font-extrabold text-gray-800 mb-4 tracking-tight" id="wordDisplay">Example</h2>
+                    <div
+                        class="inline-block bg-teal-100 text-teal-800 px-4 py-1 rounded-full text-sm font-semibold uppercase tracking-wide">
+                        noun/verb/adj</div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Definition Side -->
+                    <div class="bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                        <h3 class="text-xl font-bold text-gray-700 mb-3 flex items-center gap-2">
+                            <i class="fas fa-info-circle text-blue-500"></i> Definition
+                        </h3>
+                        <p class="text-lg text-gray-800 leading-relaxed" id="definitionDisplay">
+                            The definition will appear here.
+                        </p>
+                    </div>
+
+                    <!-- Example Side -->
+                    <div class="bg-yellow-50 p-6 rounded-2xl border border-yellow-100">
+                        <h3 class="text-xl font-bold text-gray-700 mb-3 flex items-center gap-2">
+                            <i class="fas fa-quote-left text-yellow-500"></i> Example
+                        </h3>
+                        <p class="text-lg text-gray-800 italic" id="exampleDisplay">
+                            "A sample sentence using the word."
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-bold text-gray-600 mb-2">Synonyms (Similar Words)</h4>
+                        <div class="flex flex-wrap gap-2" id="synonymsList">
+                            <!-- Tags -->
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-600 mb-2">Antonyms (Opposite Words)</h4>
+                        <div class="flex flex-wrap gap-2" id="antonymsList">
+                            <!-- Tags -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Practice Area -->
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Practice: Use this word in a sentence</h3>
+            <textarea class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 mb-4"
+                rows="3" placeholder="Write a sentence using the word above..."></textarea>
+            <button class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+                Save to My Notebook
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', loadNewWord);
+
+    async function loadNewWord() {
+        const loading = document.getElementById('loadingState');
+        const card = document.getElementById('wordCard');
+
+        loading.classList.remove('hidden');
+        card.classList.add('hidden');
+
+        try {
+            const response = await fetch('/api/grade5/get_vocab_word');
+            const data = await response.json();
+
+            if (data.error) {
+                alert('Error loading word');
+                return;
+            }
+
+            document.getElementById('wordDisplay').textContent = data.word;
+            document.getElementById('definitionDisplay').textContent = data.definition;
+            document.getElementById('exampleDisplay').textContent = `"${data.example_sentence}"`;
+
+            // Populate Synonyms
+            const synList = document.getElementById('synonymsList');
+            synList.innerHTML = '';
+            data.synonyms.forEach(syn => {
+                const s = document.createElement('span');
+                s.className = 'bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm';
+                s.textContent = syn;
+                synList.appendChild(s);
+            });
+
+            // Populate Antonyms
+            const antList = document.getElementById('antonymsList');
+            antList.innerHTML = '';
+            data.antonyms.forEach(ant => {
+                const a = document.createElement('span');
+                a.className = 'bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm';
+                a.textContent = ant;
+                antList.appendChild(a);
+            });
+
+            loading.classList.add('hidden');
+            card.classList.remove('hidden');
+
+        } catch (error) {
+            console.error('Error:', error);
+            // Fallback content in case of error
+            document.getElementById('wordDisplay').textContent = 'Error';
+            loading.classList.add('hidden');
+            card.classList.remove('hidden');
+        }
+    }
+</script>
+{% endblock %}
