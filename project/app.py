@@ -261,7 +261,150 @@ def extract_labels_for_dragdrop(text):
         print(f"Error in extract_labels_for_dragdrop: {e}")
         return {"error": str(e)}
 
+def get_grade4_progress(student_id):
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
+
+    # First, run migration to ensure columns exist
+    migrate_student_progress_table()
+
+    try:
+        cur.execute("""
+            SELECT books_analyzed, math_solved, science_done, creative_done
+            FROM student_progress
+            WHERE student_id=? AND grade=4
+        """, (student_id,))
+
+        row = cur.fetchone()
+
+        if not row:
+            cur.execute("""
+                INSERT INTO student_progress (student_id, grade)
+                VALUES (?, 4)
+            """, (student_id,))
+            conn.commit()
+            return (0, 0, 0, 0)
+
+        conn.close()
+        return row
+    except sqlite3.OperationalError as e:
+        # Handle case where columns still don't exist after migration
+        if "no such column" in str(e):
+            # Ensure columns exist by running migration again
+            conn.close()
+            migrate_student_progress_table()
+            # Retry the operation
+            conn = sqlite3.connect("database.db")
+            cur = conn.cursor()
+            
+            cur.execute("""
+                SELECT books_analyzed, math_solved, science_done, creative_done
+                FROM student_progress
+                WHERE student_id=? AND grade=4
+            """, (student_id,))
+
+            row = cur.fetchone()
+
+            if not row:
+                cur.execute("""
+                    INSERT INTO student_progress (student_id, grade)
+                    VALUES (?, 4)
+                """, (student_id,))
+                conn.commit()
+                return (0, 0, 0, 0)
+
+            conn.close()
+            return row
+        else:
+            raise e
+
+def update_progress(student_id, field):
+    # First, run migration to ensure columns exist
+    migrate_student_progress_table()
+    
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
+
+    try:
+        cur.execute(f"""
+            UPDATE student_progress
+            SET {field} = {field} + 1,
+                last_updated = CURRENT_TIMESTAMP
+            WHERE student_id=? AND grade=4
+        """, (student_id,))
+        conn.commit()
+        conn.close()
+    except sqlite3.OperationalError as e:
+        # Handle case where columns still don't exist after migration
+        if "no such column" in str(e):
+            # Ensure columns exist by running migration again
+            conn.close()
+            migrate_student_progress_table()
+            # Retry the operation
+            conn = sqlite3.connect("database.db")
+            cur = conn.cursor()
+            
+            cur.execute(f"""
+                UPDATE student_progress
+                SET {field} = {field} + 1,
+                    last_updated = CURRENT_TIMESTAMP
+                WHERE student_id=? AND grade=4
+            """, (student_id,))
+            conn.commit()
+            conn.close()
+        else:
+            raise e
+
+def migrate_student_progress_table():
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
+
+    # Get existing columns
+    cur.execute("PRAGMA table_info(student_progress)")
+    columns = [row[1] for row in cur.fetchall()]
+    column_names = [col.lower() for col in columns]  # Convert to lowercase for comparison
+
+    # Check if the table has the old schema (with activity_type and data_json)
+    if "activity_type" in column_names and "data_json" in column_names:
+        # This is the old table schema, we need to recreate it properly
+        # First, backup any important data if needed
+        # Then drop the old table and create the new one
+        cur.execute("DROP TABLE student_progress")
+        
+        # Create the new table with the correct schema for grade-specific progress
+        cur.execute("""CREATE TABLE IF NOT EXISTS student_progress (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER,
+            grade INTEGER,
+            books_analyzed INTEGER DEFAULT 0,
+            math_solved INTEGER DEFAULT 0,
+            science_done INTEGER DEFAULT 0,
+            creative_done INTEGER DEFAULT 0,
+            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )""")
+    else:
+        # Add missing columns to the new schema if they don't exist
+        if "books_analyzed" not in column_names:
+            cur.execute("ALTER TABLE student_progress ADD COLUMN books_analyzed INTEGER DEFAULT 0")
+
+        if "math_solved" not in column_names:
+            cur.execute("ALTER TABLE student_progress ADD COLUMN math_solved INTEGER DEFAULT 0")
+
+        if "science_done" not in column_names:
+            cur.execute("ALTER TABLE student_progress ADD COLUMN science_done INTEGER DEFAULT 0")
+
+        if "creative_done" not in column_names:
+            cur.execute("ALTER TABLE student_progress ADD COLUMN creative_done INTEGER DEFAULT 0")
+            
+        if "grade" not in column_names:
+            cur.execute("ALTER TABLE student_progress ADD COLUMN grade INTEGER DEFAULT 4")
+
+    conn.commit()
+    conn.close()
+
 def init_db():
+
+
     conn = get_db()
     c = conn.cursor()
 
@@ -348,10 +491,13 @@ def init_db():
         
     # Create writing progress table
     c.execute("CREATE TABLE IF NOT EXISTS writing_progress (\n        id INTEGER PRIMARY KEY,\n        student_id TEXT,\n        text TEXT,\n        word_count INTEGER,\n        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n    )")
-        
+    
     # Create writing streak table
     c.execute("CREATE TABLE IF NOT EXISTS writing_streak (\n        student_id TEXT PRIMARY KEY,\n        last_date DATE,\n        streak_count INTEGER DEFAULT 0\n    )")
-        
+    
+    # Create student progress table
+    c.execute("""CREATE TABLE IF NOT EXISTS student_progress (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        student_id INTEGER,\n        grade INTEGER,\n        books_analyzed INTEGER DEFAULT 0,\n        math_solved INTEGER DEFAULT 0,\n        science_done INTEGER DEFAULT 0,\n        creative_done INTEGER DEFAULT 0,\n        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n    )""")
+    
     conn.commit()
     conn.close()
 
@@ -706,6 +852,12 @@ def grade_4_math():
     if user.get("grade") != "4":
         flash("Access denied. This content is for Grade 4 students only.")
         return redirect_to_dashboard(session.get("user"))
+    
+    # Increment math progress
+    student_id = user["id"] if user else None
+    if student_id:
+        update_progress(student_id, "math_solved")
+    
     return render_template("grade_4_math.html", user=user)
 
 @app.route("/grade/4/science")
@@ -715,6 +867,12 @@ def grade_4_science():
     if user.get("grade") != "4":
         flash("Access denied. This content is for Grade 4 students only.")
         return redirect_to_dashboard(session.get("user"))
+    
+    # Increment science progress
+    student_id = user["id"] if user else None
+    if student_id:
+        update_progress(student_id, "science_done")
+    
     return render_template("grade_4_science.html", user=user)
 
 @app.route("/grade/4/writing")
@@ -724,6 +882,12 @@ def grade_4_writing():
     if user.get("grade") != "4":
         flash("Access denied. This content is for Grade 4 students only.")
         return redirect_to_dashboard(session.get("user"))
+    
+    # Increment creative writing progress
+    student_id = user["id"] if user else None
+    if student_id:
+        update_progress(student_id, "creative_done")
+    
     return render_template("grade_4_writing.html", user=user)
 
 @app.route('/ai-correct', methods=['POST'])
@@ -914,6 +1078,12 @@ def grade_4_reading():
     if user.get("grade") != "4":
         flash("Access denied. This content is for Grade 4 students only.")
         return redirect_to_dashboard(session.get("user"))
+    
+    # Increment reading progress
+    student_id = user["id"] if user else None
+    if student_id:
+        update_progress(student_id, "books_analyzed")
+    
     return render_template("grade_4_reading.html", user=user)
 
 
@@ -1050,64 +1220,6 @@ def grade_2_dashboard():
     )
 
 
-@app.route("/grade/2/math")
-@login_required(role="student")
-def grade_2_math():
-    user = session.get("user")
-    if user.get("grade") != "2":
-        flash("Access denied. This content is for Grade 2 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_2_math.html", user=user)
-
-
-@app.route("/grade/2/numbers")
-@login_required(role="student")
-def grade_2_numbers():
-    user = session.get("user")
-    if user.get("grade") != "2":
-        flash("Access denied. This content is for Grade 2 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_2_numbers.html", user=user)
-
-
-@app.route("/grade/2/sentences")
-@login_required(role="student")
-def grade_2_sentences():
-    user = session.get("user")
-    if user.get("grade") != "2":
-        flash("Access denied. This content is for Grade 2 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_2_sentences.html", user=user)
-
-
-@app.route("/grade/2/nature")
-@login_required(role="student")
-def grade_2_nature():
-    user = session.get("user")
-    if user.get("grade") != "2":
-        flash("Access denied. This content is for Grade 2 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_2_nature.html", user=user)
-
-
-@app.route("/grade/2/reading")
-@login_required(role="student")
-def grade_2_reading():
-    user = session.get("user")
-    if user.get("grade") != "2":
-        flash("Access denied. This content is for Grade 2 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_2_reading.html", user=user)
-
-
-@app.route("/grade/2/science")
-@login_required(role="student")
-def grade_2_science():
-    user = session.get("user")
-    if user.get("grade") != "2":
-        flash("Access denied. This content is for Grade 2 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_2_science.html", user=user)
 
 @app.route("/dashboard/grade/3")
 @login_required(role="student")
@@ -1496,11 +1608,23 @@ def grade_4_dashboard():
         else:
             return redirect_to_dashboard(session.get("user"))
     
+    # Get real progress data for the student
+    student_id = user["id"] if user else None
+    if student_id:
+        books, math, science, creative = get_grade4_progress(student_id)
+    else:
+        # Default values if no user
+        books, math, science, creative = 0, 0, 0, 0
+    
     ai_summary = session.get("summary")
     audio_file = session.get("audio_file")
     return render_template(
         "grade_4_dashboard.html",
         user=user,
+        books=books,
+        math=math,
+        science=science,
+        creative=creative,
         ai_summary=ai_summary,
         audio_file=audio_file,
         hindi_file=session.get("hindi_file")
@@ -3671,5 +3795,7 @@ def submit_progress():
 
 if __name__ == "__main__":
     init_db()
+    # Run migration to handle existing databases that may not have all columns
+    migrate_student_progress_table()
     port = int(os.environ.get("PORT", 5000))  
     app.run(host='0.0.0.0', port=port, debug=True)

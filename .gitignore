@@ -23,3 +23,4 @@ Thumbs.db
 find_dupes.py
 project/temp/
 *.db 
+static/audio/temp_*.mp3

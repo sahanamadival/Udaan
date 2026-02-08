@@ -23,3 +23,5 @@ static/narrations/*.mp3
 
 # Uploads folder
 uploads/
+
+*.db
