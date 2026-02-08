@@ -10,7 +10,7 @@
 
 ## 🌟 About Udaan
 **Udaan** is a **Flask-based web app** designed to empower students with diverse learning needs.  
-It leverages **AI** to provide summaries, translations, dyslexia-friendly reading, audio narration, flashcards, quizzes, and dashboards for both students and teachers.
+It leverages **AI** to provide grade-wise learning, interactive science modules, AI-powered writing labs, summaries, translations, dyslexia-friendly reading, audio narration, flashcards, quizzes, and dashboards for both students and teachers.
 
 ---
 
@@ -24,25 +24,45 @@ It leverages **AI** to provide summaries, translations, dyslexia-friendly readin
 - 📝 Dyslexia-friendly reader: adjustable spacing, overlays, in-page TTS
 - 🃏 Flashcards & MCQ quizzes powered by GPT
 - 📖 Library of uploaded books
+- 🎓 **Grade-wise learning**: Separate dashboards for Grade 2 and Grade 4
+- 📊 **Dynamic progress tracking**: Real SQLite-based stats instead of dummy data
+- 📈 **Subject modules**: Reading, Writing, Math, Science, Creative per grade
 
 ### 👨‍🏫 Teacher Dashboard
 - 📚 Upload & view books
 - 📊 Dynamic class stats
 - 🏆 Recent students (activity-ranked)
 - 📈 Student progress view: uploads, flashcards, quizzes, average scores
+- 👀 **Real activity visibility**: Teacher can see actual student engagement
+
+### 🧪 Grade 4 Science Interactive Module
+- 🫀 **Clickable human body**: Interactive anatomy with organ positioning
+- 🔊 **Audio explanations**: Speech synthesis when organs are clicked
+- 🧠 **Smart quiz system**: Retry logic with immediate feedback
+- 🎯 **Browser-based TTS**: Native speech synthesis for all explanations
+
+### ✍️ Grade 4 Writing Lab (AI-Powered)
+- 🎤 **Speech-to-text writing**: Browser SpeechRecognition for voice input
+- 🤖 **Real AI grammar correction**: OpenAI GPT-4o-mini with student-friendly feedback
+- 💡 **AI writing feedback**: Context-aware suggestions based on length and clarity
+- 🔊 **AI story reading**: Text-to-speech narration of student compositions
+- 📝 **Progress tracking**: SQLite storage of all writing attempts
+- 🔥 **Daily streak system**: Automatic streak counting with visual indicators
 
 ### 💾 Storage
-- SQLite database for users, uploads, flashcards, and quiz attempts
+- SQLite database for users, uploads, flashcards, quiz attempts, and grade-specific progress
+- Automatic schema migration for safe upgrades
 
 ---
 
 ## 🛠️ Tech Stack
 - **Backend:** Python, Flask, SQLite  
-- **AI:** OpenAI API (GPT)  
+- **AI:** OpenAI API (GPT, TTS)  
 - **PDF/Image Handling:** PyPDF2, pdf2image, PyMuPDF (fitz), Pillow  
 - **OCR:** Tesseract (pytesseract)  
 - **PDF Generation:** reportlab  
 - **Frontend:** Jinja templates, vanilla JS, modern responsive CSS
+- **Speech:** Web Speech API for browser-based TTS/STT
 
 ---
 
@@ -57,7 +77,7 @@ project/
     books/              # Teacher-uploaded books
     translations/       # Generated translated PDFs
     narrations/         # Generated audio files
-    audio/              # Sample audio
+    audio/              # Temporary AI-generated audio (git-ignored)
     styles.css          # Shared CSS
     bot.jpg             # Friendly robot image 🤖
   templates/            # Jinja2 templates (auth, dashboards, readers, etc.)
@@ -102,15 +122,18 @@ python app.py
 ## 🎯 Usage Overview
 
 ### 🧑 Student
-- Sign up/login → Dashboard
+- Sign up/login → Grade-specific Dashboard
 - Upload textbooks → OCR fallback for scans/images
 - Use features: Audio, Summary, Translation, Dyslexic Reader, Flashcards, Quizzes
 - Access teacher-uploaded PDFs via library
+- **Grade 4**: Interactive science body exploration + AI writing lab
+- **Progress tracking**: View real stats and daily streaks
 
 ### 👩‍🏫 Teacher
 - Sign up/login → Dashboard
 - Upload/view books
 - Monitor student progress: uploads, flashcards, quizzes, average scores
+- **Real activity data**: See actual student engagement per grade
 
 ---
 
@@ -119,6 +142,7 @@ python app.py
   - Ensure `NotoSansDevanagari-Regular.ttf` exists
 - 📂 **Translations:** `project/static/translations/`
 - 🔊 **Narrations:** `project/static/narrations/`
+- 🎵 **Temp Audio:** `project/static/audio/` (auto-created, git-ignored)
 
 ---
 
@@ -126,6 +150,9 @@ python app.py
 - Set a strong `app.secret_key` in production
 - Never commit `.env` with real keys
 - Validate & sanitize uploads; limit file size and content type
+- **DB auto-creation**: SQLite database safely created on first run
+- **Safe file handling**: Temporary audio files automatically cleaned
+- **Production ready**: Schema migrations handle version upgrades safely
 
 ---
 
@@ -134,6 +161,7 @@ python app.py
 - **pdf2image errors on Windows:** Install Poppler & add `bin` to PATH
 - **OpenAI errors:** Verify `OPENAI_API_KEY` & network/proxy
 - **Missing fonts:** Ensure `NotoSansDevanagari-Regular.ttf` exists
+- **Schema conflicts:** Automatic migration handles database upgrades
 
 ---
 
@@ -142,6 +170,8 @@ python app.py
 - Add per-student pages & deeper analytics
 - Persist dyslexic reader preferences via localStorage
 - Add server-side MP3 generation (currently pyttsx3 is client-side)
+- **Grade expansion**: Easy to add Grade 1, 3, 5 with similar patterns
+- **Feature modules**: Plug-and-play architecture for new subjects
 
 ---
 
@@ -149,6 +179,9 @@ python app.py
 - Default `app.secret_key` is for development only; set a secure key in production
 - File uploads: Consider limiting size and validating content type to avoid misuse
 - Fonts & translations: Ensure Noto Sans Devanagari is present to avoid broken Hindi PDFs
+- **Database**: Auto-migration system handles schema changes safely
+- **Audio files**: Generated in `static/audio/` and automatically git-ignored
+- **UI consistency**: Clean navigation without emojis, responsive design across grades
 
 ---
 
