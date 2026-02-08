@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block title %}Grade 3 Math - Udaan{% endblock %}
+
+{% block body_class %}min-h-screen bg-orange-50 font-comic{% endblock %}
+
+{% block content %}
+<style>
+    /* Simple Dyslexia-Friendly Styles */
+    .font-comic {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
+        letter-spacing: 0.05em;
+        line-height: 1.6;
+    }
+
+    .dyslexic-box {
+        background-color: #fffbf0;
+        /* Soft Cream */
+        border: 3px solid #fbd38d;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    .dyslexic-btn {
+        background-color: #48bb78;
+        color: white;
+        border: 2px solid #2f855a;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: bold;
+        transition: transform 0.1s;
+    }
+
+    .dyslexic-btn:active {
+        transform: scale(0.95);
+    }
+
+    .nav-btn {
+        background-color: #ed8936;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        font-weight: bold;
+        font-size: 1.2rem;
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    .speak-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.5rem;
+        margin-left: 0.5rem;
+    }
+
+    .speak-btn:hover {
+        transform: scale(1.1);
+    }
+</style>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-orange-800 mb-4">🔢 Math Fun!</h1>
+            <p class="text-2xl text-orange-700">Practice Time, Shapes & More</p>
+            <button class="speak-btn" onclick="speak('Math Fun! Practice Time, Shapes, and More')">🔊</button>
+        </div>
+
+        <!-- Practice Zone -->
+        <div id="loading-state" class="text-center py-12">
+            <div class="text-6xl mb-4 animate-bounce">🤔</div>
+            <p class="text-2xl text-gray-600">Making new questions for you...</p>
+        </div>
+
+        <div id="game-zone" class="grid grid-cols-1 md:grid-cols-2 gap-8 hidden">
+
+            <!-- Time Challenge -->
+            <div class="dyslexic-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-blue-800">⏰ Clock</h3>
+                    <button class="speak-btn text-blue-600" onclick="speak('Clock Challenge')">🔊</button>
+                </div>
+                <div id="time-container">
+                    <!-- Dynamic Time Question -->
+                </div>
+                <p id="time-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="time-score">0</span></div>
+            </div>
+
+            <!-- Shape Quiz -->
+            <div class="dyslexic-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-red-800">🔶 Shapes</h3>
+                    <button class="speak-btn text-red-600" onclick="speak('Shape Quiz')">🔊</button>
+                </div>
+                <div id="shape-container">
+                    <!-- Dynamic Shape Question -->
+                </div>
+                <p id="shape-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="shape-score">0</span></div>
+            </div>
+
+            <!-- Fractions -->
+            <div class="dyslexic-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-purple-800">🍰 Fractions</h3>
+                    <button class="speak-btn text-purple-600" onclick="speak('Fractions')">🔊</button>
+                </div>
+                <div id="fraction-container">
+                    <!-- Dynamic Fraction Question -->
+                </div>
+                <p id="fraction-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="fraction-score">0</span></div>
+            </div>
+
+            <!-- Word Problems -->
+            <div class="dyslexic-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-green-800">📝 Word Problems</h3>
+                    <button class="speak-btn text-green-600" onclick="speak('Word Problems')">🔊</button>
+                </div>
+                <div id="word-container">
+                    <!-- Dynamic Word Problem -->
+                </div>
+                <p id="word-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="word-score">0</span></div>
+            </div>
+
+        </div>
+
+        <!-- Back Button -->
+        <div class="text-center mt-12">
+            <a href="{{ url_for('grade_3_dashboard') }}" class="nav-btn inline-flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Go Back
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Server Data -->
+<script id="server-data" type="application/json">
+        {{ initial_data | tojson | safe }}
+    </script>
+
+<script>
+    // State
+    let mathData = { time: [], shapes: [], fractions: [], word_problems: [] };
+    let scores = { time: 0, shapes: 0, fractions: 0, word: 0 };
+    let indices = { time: 0, shapes: 0, fractions: 0, word: 0 };
+    let isFetching = false;
+
+    // TTS Function
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.9;
+        utterance.pitch = 1.1;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            const dataEl = document.getElementById('server-data');
+            const serverData = dataEl ? JSON.parse(dataEl.textContent) : null;
+
+            if (serverData && !serverData.error) {
+                mathData = serverData;
+                renderAllQuestions();
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('game-zone').style.display = 'grid';
+                document.getElementById('game-zone').classList.remove('hidden');
+            } else {
+                fetchQuestions(false);
+            }
+        } catch (e) {
+            console.error("Data parse error", e);
+            fetchQuestions(false);
+        }
+    });
+
+    async function fetchQuestions(isBackground = false) {
+        if (isFetching) return;
+        isFetching = true;
+
+        if (!isBackground && !mathData.time) { // Only show loading if we have NO data
+            document.getElementById('loading-state').style.display = 'block';
+            document.getElementById('game-zone').style.display = 'none';
+        }
+
+        try {
+            const res = await fetch('/api/grade3/generate_math');
+            const data = await res.json();
+
+            if (data.error) throw new Error(data.error);
+
+            // Append data
+            if (!mathData.time) mathData = data; // Init if empty
+            else {
+                // Safely merge arrays
+                if (data.time) mathData.time.push(...data.time);
+                if (data.shapes) mathData.shapes.push(...data.shapes);
+                if (data.fractions) mathData.fractions.push(...data.fractions);
+                if (data.word_problems) mathData.word_problems.push(...data.word_problems);
+            }
+
+            if (!isBackground) {
+                renderAllQuestions();
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('game-zone').style.display = 'grid';
+                document.getElementById('game-zone').classList.remove('hidden');
+            } else {
+                // If we were waiting for data in a specific card, re-render might show it now
+                renderAllQuestions();
+            }
+
+        } catch (err) {
+            console.error(err);
+            if (!isBackground) {
+                document.getElementById('loading-state').innerHTML = `<p class="text-red-600 text-xl">Oops! AI is sleeping. <button onclick="location.reload()" class="underline">Try again</button></p>`;
+            }
+        } finally {
+            isFetching = false;
+        }
+    }
+
+    function renderAllQuestions() {
+        renderTime();
+        renderShape();
+        renderFraction();
+        renderWord();
+    }
+
+    // --- Renderers ---
+    // Helper to get current question safely
+    function getQuestion(type, dataKey) {
+        const idx = indices[type];
+        if (!mathData[dataKey] || idx >= mathData[dataKey].length) return null;
+        return mathData[dataKey][idx];
+    }
+
+    function renderTime() {
+        const q = getQuestion('time', 'time');
+        const container = document.getElementById('time-container');
+
+        if (!q) {
+            container.innerHTML = `<div class="text-center py-4 text-gray-500 animate-pulse">Loading more clocks...</div>`;
+            return;
+        }
+
+        let html = `
+            <div class="text-center mb-4">
+                <div class="text-2xl font-bold bg-white inline-block px-4 py-2 border-2 border-blue-200 rounded mb-2">
+                    "${q.time_str}"
+                </div>
+                <p class="text-xl">Which clock shows this?</p>
+                <button class="speak-btn" onclick="speak('${q.time_str}')">🔊</button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+        `;
+
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('shape', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-theme transition-colors bg-blue-500 border-blue-700">${opt}</button>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+    function renderShape() {
+        const q = getQuestion('shapes', 'shapes'); // Note key mismatch fix: indices.shapes vs data.shapes
+        const container = document.getElementById('shape-container');
+        if (!q) {
+            container.innerHTML = `<div class="text-center py-4 text-gray-500 animate-pulse">Finding shapes...</div>`;
+            return;
+        }
+
+        let html = `
+            <div class="text-center mb-4">
+                <p class="text-xl font-bold">"${q.clue}"</p>
+                <button class="speak-btn" onclick="speak('${q.clue}')">🔊</button>
+            </div>
+            <div class="grid grid-cols-1 gap-3">
+        `;
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('shape', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-theme bg-red-500 border-red-700">${opt}</button>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+    function renderFraction() {
+        const q = getQuestion('fractions', 'fractions');
+        const container = document.getElementById('fraction-container');
+        if (!q) {
+            container.innerHTML = `<div class="text-center py-4 text-gray-500 animate-pulse">Cutting cakes...</div>`;
+            return;
+        }
+
+        let html = `
+            <div class="text-center mb-4">
+                <p class="text-xl font-bold">"${q.clue}"</p>
+                <button class="speak-btn" onclick="speak('${q.clue}')">🔊</button>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+        `;
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('fraction', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-theme bg-purple-500 border-purple-700">${opt}</button>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+    function renderWord() {
+        const q = getQuestion('word', 'word_problems');
+        const container = document.getElementById('word-container');
+        if (!q) {
+            container.innerHTML = `<div class="text-center py-4 text-gray-500 animate-pulse">Writing story...</div>`;
+            return;
+        }
+
+        let html = `
+            <div class="mb-4 bg-white p-3 rounded border-2 border-green-200">
+                <p class="text-lg leading-relaxed">${q.text}</p>
+                <button class="speak-btn float-right" onclick="speak('${q.text.replace(/'/g, "\\'")}')">🔊</button>
+                <div class="clear-both"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+        `;
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('word', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-theme bg-green-500 border-green-700">${opt}</button>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+    // Logic
+    async function saveProgress(quizId, score) {
+        try {
+            await fetch('/api/submit_progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    quiz_id: quizId,
+                    score: score,
+                    total: 1
+                })
+            });
+        } catch (e) {
+            console.error("Save failed", e);
+        }
+    }
+
+    function checkAnswer(type, selected, correct) {
+        // Map type (singular from DOM) to data keys (plural in JSON)
+        // DOM IDs: time-feedback, shape-feedback, fraction-feedback, word-feedback
+        // JSON keys: time, shapes, fractions, word_problems
+
+        const feedbackEl = document.getElementById(`${type}-feedback`);
+        const scoreEl = document.getElementById(`${type}-score`);
+
+        // Map for data access
+        const keyMap = {
+            'time': 'time',
+            'shape': 'shapes',
+            'fraction': 'fractions',
+            'word': 'word_problems'
+        };
+        const dataKey = keyMap[type];
+
+        if (selected === correct) {
+            feedbackEl.textContent = "✅ Correct!";
+            feedbackEl.className = "h-8 mt-2 text-xl font-bold text-center text-green-600";
+            speak("Correct!");
+
+            // Map scores/indices keys (which I defined as plural/singular mixed...)
+            // Let's standardize state keys to match DOM type for simplicity where possible?
+            // Actually, my state keys are: time, shapes, fractions, word
+            // Let's use the type to map to state key.
+            const stateKey = (type === 'shape') ? 'shapes' : (type === 'fraction') ? 'fractions' : type;
+
+            scores[stateKey]++;
+            scoreEl.textContent = scores[stateKey];
+
+            // Save Progress
+            saveProgress(`grade3_math_${stateKey}`, 1);
+
+            const remaining = (mathData[dataKey]?.length || 0) - indices[stateKey];
+
+            if (remaining <= 2 && !isFetching) {
+                console.log("Pre-fetching more questions...");
+                fetchQuestions(true);
+            }
+
+            // Next Question
+            setTimeout(() => {
+                feedbackEl.textContent = "";
+                indices[stateKey]++;
+
+                const currentIdx = indices[stateKey];
+                const maxLen = mathData[dataKey]?.length || 0;
+
+                if (currentIdx >= maxLen) {
+                    fetchQuestions(true);
+                } else {
+                    if (type === 'time') renderTime();
+                    if (type === 'shape') renderShape();
+                    if (type === 'fraction') renderFraction();
+                    if (type === 'word') renderWord();
+                }
+            }, 500);
+
+        } else {
+            feedbackEl.textContent = "❌ Try again!";
+            feedbackEl.className = "h-8 mt-2 text-xl font-bold text-center text-red-500";
+            speak("Try again");
+        }
+    }
+
+</script>
+{% endblock %}

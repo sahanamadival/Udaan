@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}Grade 3 Art Studio - Udaan{% endblock %}
+
+{% block body_class %}min-h-screen bg-yellow-50 font-comic{% endblock %}
+
+{% block content %}
+<style>
+    .font-comic {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
+    }
+
+    canvas {
+        touch-action: none;
+        background: white;
+        cursor: crosshair;
+    }
+
+    .tool-btn {
+        transition: transform 0.1s;
+    }
+
+    .tool-btn:active {
+        transform: scale(0.95);
+    }
+
+    .color-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .color-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .color-btn.active {
+        border-color: #333;
+        transform: scale(1.1);
+    }
+</style>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto">
+
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-5xl font-bold text-yellow-800 mb-2">🎨 Art Studio</h1>
+            <p class="text-xl text-yellow-700">Draw, Color & Create!</p>
+        </div>
+
+        <!-- Controls & Canvas -->
+        <div class="flex flex-col md:flex-row gap-6">
+
+            <!-- Toolbar -->
+            <div class="bg-white p-4 rounded-2xl shadow-lg md:w-64 flex flex-col gap-6">
+
+                <!-- Inspiration -->
+                <div class="text-center">
+                    <button onclick="getIdea()"
+                        class="w-full bg-gradient-to-r from-purple-400 to-pink-500 text-white font-bold py-3 rounded-xl shadow hover:opacity-90 transition-opacity">
+                        ✨ Inspire Me!
+                    </button>
+                    <p id="idea-text" class="mt-2 text-sm text-gray-600 italic min-h-[40px]">Click above for an idea...
+                    </p>
+                </div>
+
+                <hr class="border-gray-200">
+
+                <!-- Tools -->
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2">Brush Size</label>
+                    <input type="range" id="brush-size" min="2" max="50" value="5"
+                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                </div>
+
+                <!-- Colors -->
+                <div>
+                    <label class="block text-gray-700 font-bold mb-2">Colors</label>
+                    <div class="flex flex-wrap gap-2 justify-center" id="palette">
+                        <!-- Colors inserted by JS -->
+                    </div>
+                    <input type="color" id="color-picker" class="w-full mt-2 h-10 cursor-pointer rounded-lg">
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-col gap-2 mt-auto">
+                    <button onclick="setEraser()"
+                        class="tool-btn bg-gray-200 text-gray-700 font-bold py-2 rounded-lg hover:bg-gray-300">🧽
+                        Eraser</button>
+                    <button onclick="clearCanvas()"
+                        class="tool-btn bg-red-100 text-red-600 font-bold py-2 rounded-lg hover:bg-red-200">❌ Clear
+                        All</button>
+                    <button onclick="downloadArt()"
+                        class="tool-btn bg-green-500 text-white font-bold py-2 rounded-lg hover:bg-green-600">💾 Save
+                        Art</button>
+                </div>
+
+                <a href="{{ url_for('grade_3_dashboard') }}"
+                    class="text-center text-gray-500 hover:text-gray-700 font-bold mt-2">← Back</a>
+            </div>
+
+            <!-- Canvas Area -->
+            <div class="flex-grow bg-white p-2 rounded-2xl shadow-lg relative border-4 border-yellow-200">
+                <canvas id="art-canvas" class="w-full h-[500px] rounded-xl"></canvas>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('art-canvas');
+    const ctx = canvas.getContext('2d');
+    const palette = document.getElementById('palette');
+
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let color = '#000000';
+    let size = 5;
+    let isEraser = false;
+
+    // Standard Colors
+    const colors = ['#000000', '#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#9400D3', '#FF00FF', '#00FFFF', '#8B4513', '#FFFFFF'];
+
+    // Init
+    function init() {
+        // Setup palette
+        colors.forEach(c => {
+            const btn = document.createElement('div');
+            btn.className = 'color-btn';
+            btn.style.backgroundColor = c;
+            if (c === '#FFFFFF') btn.style.border = '1px solid #ddd';
+            btn.onclick = () => setColor(c, btn);
+            palette.appendChild(btn);
+        });
+
+        // Resize canvas correctly
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Drawing Events
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch Support
+        canvas.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent("mousedown", {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }, false);
+        canvas.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent("mousemove", {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+            e.preventDefault();
+        }, false);
+        canvas.addEventListener('touchend', (e) => {
+            const mouseEvent = new MouseEvent("mouseup", {});
+            canvas.dispatchEvent(mouseEvent);
+        }, false);
+
+        // Inputs
+        document.getElementById('brush-size').addEventListener('input', (e) => size = e.target.value);
+        document.getElementById('color-picker').addEventListener('input', (e) => {
+            setColor(e.target.value);
+            isEraser = false;
+        });
+    }
+
+    function resizeCanvas() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width - 16; // minus padding
+        canvas.height = 500;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height); // White bg
+    }
+
+    function startDrawing(e) {
+        isDrawing = true;
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
+
+    function draw(e) {
+        if (!isDrawing) return;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.strokeStyle = isEraser ? 'white' : color;
+        ctx.lineWidth = size;
+        ctx.stroke();
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
+
+    function stopDrawing() { isDrawing = false; }
+
+    function setColor(c, btn) {
+        color = c;
+        isEraser = false;
+        document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+    }
+
+    function setEraser() { isEraser = true; }
+
+    function clearCanvas() {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function downloadArt() {
+        const link = document.createElement('a');
+        link.download = 'my-masterpiece.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    }
+
+    async function getIdea() {
+        const text = document.getElementById('idea-text');
+        text.innerHTML = "Thinking...";
+        try {
+            const res = await fetch('/api/grade3/generate_art_idea');
+            const data = await res.json();
+            text.innerHTML = `💡 <b>${data.idea}</b>`;
+        } catch (e) {
+            text.innerHTML = "💡 Draw a friendly dragon!";
+        }
+    }
+
+    init();
+</script>
+{% endblock %}

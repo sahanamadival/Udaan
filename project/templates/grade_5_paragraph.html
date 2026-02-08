@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Paragraph Writing - Grade 5{% endblock %}
+
+{% block body_class %}bg-gradient-to-br from-indigo-50 to-purple-50{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <a href="{{ url_for('grade_5_dashboard') }}"
+            class="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-6 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+        </a>
+
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div class="bg-indigo-600 p-6 text-white">
+                <h1 class="text-3xl font-bold flex items-center gap-3">
+                    <i class="fas fa-pen-nib"></i> Paragraph Writing Master
+                </h1>
+                <p class="mt-2 text-indigo-100">Practice your writing skills and get instant AI feedback!</p>
+            </div>
+
+            <div class="p-8">
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-bold mb-2" for="topic">Choose a Topic (or write your
+                        own):</label>
+                    <select id="topicSelect"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 mb-2"
+                        onchange="updateTopic()">
+                        <option value="">-- Select a Topic --</option>
+                        <option value="My Dream Vacation">My Dream Vacation</option>
+                        <option value="If I Were a Superhero">If I Were a Superhero</option>
+                        <option value="The Best Day of My Life">The Best Day of My Life</option>
+                        <option value="Why Recycling is Important">Why Recycling is Important</option>
+                        <!-- Universal Syllabus Topics -->
+                        <optgroup label="History">
+                            <option value="Life in Ancient Egypt">Life in Ancient Egypt</option>
+                            <option value="The Invention of the Wheel">The Invention of the Wheel</option>
+                            <option value="Independence Day of India">Independence Day of India</option>
+                        </optgroup>
+                        <optgroup label="Science">
+                            <option value="How Plants Grow (Photosynthesis)">How Plants Grow</option>
+                            <option value="The Water Cycle">The Water Cycle</option>
+                            <option value="Solar System and Space Travel">Space Travel</option>
+                        </optgroup>
+                        <option value="Custom">Custom Topic</option>
+                    </select>
+                    <input type="text" id="customTopic" placeholder="Enter your topic here..."
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 hidden">
+                </div>
+
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-gray-700 font-bold" for="paragraph">Write your paragraph here:</label>
+                        <button id="micBtn"
+                            class="text-indigo-600 hover:text-indigo-800 font-bold text-sm flex items-center gap-2">
+                            <i class="fas fa-microphone"></i> Dictate
+                        </button>
+                    </div>
+                    <textarea id="paragraph" rows="8"
+                        class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 font-sans text-lg"
+                        placeholder="Start writing..."></textarea>
+                    <p class="text-right text-gray-500 text-sm mt-1" id="wordCount">0 words</p>
+                </div>
+
+                <button onclick="checkParagraph()"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-all hover:scale-[1.02] shadow-md flex items-center justify-center gap-2">
+                    <span>✨</span> Get AI Feedback
+                </button>
+
+                <!-- Feedback Section -->
+                <div id="feedbackSection" class="hidden mt-8 border-t pt-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Feedback Report</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                            <h3 class="font-bold text-blue-800 mb-2">Score</h3>
+                            <div class="text-4xl font-bold text-blue-600" id="scoreDisplay">-/10</div>
+                        </div>
+                        <div class="bg-purple-50 p-6 rounded-xl border border-purple-100">
+                            <h3 class="font-bold text-purple-800 mb-2">Creativity</h3>
+                            <p class="text-purple-700" id="creativityFeedback">...</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-6">
+                        <h3 class="font-bold text-gray-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-check-circle text-green-500"></i> Grammar & Flow
+                        </h3>
+                        <p class="text-gray-700" id="grammarFeedback">...</p>
+                    </div>
+
+                    <div class="bg-yellow-50 p-6 rounded-xl border border-yellow-100">
+                        <h3 class="font-bold text-yellow-800 mb-2 flex items-center gap-2">
+                            <i class="fas fa-lightbulb text-yellow-500"></i> Tips for Improvement
+                        </h3>
+                        <ul class="list-disc list-inside text-yellow-800 space-y-1" id="tipsList">
+                            <!-- Tips will be inserted here -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const paragraphInput = document.getElementById('paragraph');
+    const wordCountDisplay = document.getElementById('wordCount');
+    const topicSelect = document.getElementById('topicSelect');
+    const customTopicInput = document.getElementById('customTopic');
+    const micBtn = document.getElementById('micBtn');
+
+    // Speech to Text Logic
+    if ('webkitSpeechRecognition' in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = function () {
+            micBtn.classList.add('animate-pulse', 'text-red-600');
+            micBtn.innerHTML = '<i class="fas fa-microphone-slash"></i> Listening...';
+        };
+
+        recognition.onend = function () {
+            micBtn.classList.remove('animate-pulse', 'text-red-600');
+            micBtn.innerHTML = '<i class="fas fa-microphone"></i> Dictate';
+        };
+
+        recognition.onresult = function (event) {
+            const transcript = event.results[0][0].transcript;
+            paragraphInput.value += (paragraphInput.value ? ' ' : '') + transcript;
+            paragraphInput.dispatchEvent(new Event('input')); // Trigger word count update
+        };
+
+        micBtn.onclick = function () {
+            recognition.start();
+        };
+    } else {
+        micBtn.style.display = 'none';
+        console.log("Web Speech API not supported");
+    }
+
+    paragraphInput.addEventListener('input', () => {
+        const words = paragraphInput.value.trim().split(/\s+/).filter(word => word.length > 0);
+        wordCountDisplay.textContent = `${words.length} words`;
+    });
+
+    function updateTopic() {
+        if (topicSelect.value === 'Custom') {
+            customTopicInput.classList.remove('hidden');
+        } else {
+            customTopicInput.classList.add('hidden');
+        }
+    }
+
+    async function checkParagraph() {
+        const paragraph = paragraphInput.value.trim();
+        let topic = topicSelect.value;
+        if (topic === 'Custom') topic = customTopicInput.value;
+
+        if (!paragraph) {
+            alert('Please write something first!');
+            return;
+        }
+
+        const btn = document.querySelector('button[onclick="checkParagraph()"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/api/grade5/check_paragraph', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paragraph, topic })
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                alert('Error: ' + data.error);
+                return;
+            }
+
+            // Display Feedback
+            document.getElementById('feedbackSection').classList.remove('hidden');
+            document.getElementById('scoreDisplay').textContent = `${data.score}/10`;
+            document.getElementById('creativityFeedback').textContent = data.creativity_feedback;
+            document.getElementById('grammarFeedback').textContent = data.grammar_feedback;
+
+            const tipsList = document.getElementById('tipsList');
+            tipsList.innerHTML = '';
+            data.improvement_tips.forEach(tip => {
+                const li = document.createElement('li');
+                li.textContent = tip;
+                tipsList.appendChild(li);
+            });
+
+            // Scroll to feedback
+            document.getElementById('feedbackSection').scrollIntoView({ behavior: 'smooth' });
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Something went wrong. Please try again.');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}Grade 3 Food - Udaan{% endblock %}
+
+{% block body_class %}min-h-screen bg-green-50 font-comic{% endblock %}
+
+{% block content %}
+<style>
+    /* Simple Dyslexia-Friendly Styles */
+    .font-comic {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
+        letter-spacing: 0.05em;
+        line-height: 1.6;
+    }
+
+    .dyslexic-box {
+        background-color: #f0fff4;
+        /* Soft Mint */
+        border: 3px solid #68d391;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    .dyslexic-btn {
+        background-color: #ed8936;
+        color: white;
+        border: 2px solid #c05621;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: bold;
+        transition: transform 0.1s;
+    }
+
+    .dyslexic-btn:active {
+        transform: scale(0.95);
+    }
+
+    .nav-btn {
+        background-color: #48bb78;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 1rem;
+        font-weight: bold;
+        font-size: 1.2rem;
+        box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    .speak-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.5rem;
+        margin-left: 0.5rem;
+    }
+
+    .speak-btn:hover {
+        transform: scale(1.1);
+    }
+</style>
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-green-800 mb-4">🍎 Food Fun!</h1>
+            <p class="text-2xl text-green-700">Eat Healthy, Grow Strong</p>
+            <button class="speak-btn" onclick="speak('Food Fun! Eat Healthy, Grow Strong')">🔊</button>
+        </div>
+
+        <!-- Practice Zone -->
+        <div id="loading-state" class="text-center py-12">
+            <div class="text-6xl mb-4 animate-bounce">🥗</div>
+            <p class="text-2xl text-gray-600">Cooking up questions...</p>
+        </div>
+
+        <div id="game-zone" class="grid grid-cols-1 md:grid-cols-2 gap-8 hidden">
+
+            <!-- Food Sorter -->
+            <div class="dyslexic-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-orange-800">🧺 Sort Food</h3>
+                    <button class="speak-btn text-orange-600" onclick="speak('Sort the Food')">🔊</button>
+                </div>
+                <div id="sort-container">
+                    <!-- Dynamic Sorting Question -->
+                </div>
+                <p id="sorting-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="sorting-score">0</span></div>
+            </div>
+
+            <!-- Healthy Choice -->
+            <div class="dyslexic-box">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-2xl font-bold text-green-800">✅ Healthy Choice</h3>
+                    <button class="speak-btn text-green-600" onclick="speak('Make a Healthy Choice')">🔊</button>
+                </div>
+                <div id="healthy-container">
+                    <!-- Dynamic Healthy Question -->
+                </div>
+                <p id="healthy-feedback" class="h-8 mt-2 text-xl font-bold text-center"></p>
+                <div class="text-right text-gray-500 font-bold mt-2">Score: <span id="healthy-score">0</span></div>
+            </div>
+
+        </div>
+
+        <!-- Back Button -->
+        <div class="text-center mt-12">
+            <a href="{{ url_for('grade_3_dashboard') }}" class="nav-btn inline-flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Go Back
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Server Data -->
+<script id="server-data" type="application/json">
+        {{ initial_data | tojson | safe }}
+    </script>
+
+<script>
+    // State
+    let foodData = { sorting: [], healthy: [] };
+    let scores = { sorting: 0, healthy: 0 };
+    let indices = { sorting: 0, healthy: 0 };
+    let isFetching = false;
+
+    // TTS Function
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.9;
+        utterance.pitch = 1.1;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            const dataEl = document.getElementById('server-data');
+            const serverData = dataEl ? JSON.parse(dataEl.textContent) : null;
+
+            if (serverData && !serverData.error) {
+                foodData = serverData;
+                renderAllQuestions();
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('game-zone').style.display = 'grid';
+                document.getElementById('game-zone').classList.remove('hidden');
+            } else {
+                fetchQuestions(false);
+            }
+        } catch (e) {
+            console.error("Data parse error", e);
+            fetchQuestions(false);
+        }
+    });
+
+    async function fetchQuestions(isBackground = false) {
+        if (isFetching) return;
+        isFetching = true;
+
+        if (!isBackground && (!foodData.sorting || foodData.sorting.length === 0)) {
+            document.getElementById('loading-state').style.display = 'block';
+            document.getElementById('game-zone').style.display = 'none';
+        }
+
+        try {
+            const res = await fetch('/api/grade3/generate_food');
+            const data = await res.json();
+
+            if (data.error) throw new Error(data.error);
+
+            // Init if empty
+            if (!foodData.sorting) foodData = { sorting: [], healthy: [] };
+
+            // Append data safely
+            if (data.sorting) foodData.sorting.push(...data.sorting);
+            if (data.healthy) foodData.healthy.push(...data.healthy);
+
+            if (!isBackground) {
+                renderAllQuestions();
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('game-zone').style.display = 'grid';
+                document.getElementById('game-zone').classList.remove('hidden');
+            } else {
+                // Background update: Re-render to ensure any waiting states are cleared
+                renderAllQuestions();
+            }
+
+        } catch (err) {
+            console.error(err);
+            if (!isBackground) {
+                document.getElementById('loading-state').innerHTML = `<p class="text-red-600 text-xl">Oops! AI is hungry. <button onclick="location.reload()" class="underline">Try again</button></p>`;
+            }
+        } finally {
+            isFetching = false;
+        }
+    }
+
+    function renderAllQuestions() {
+        renderSort();
+        renderHealthy();
+    }
+
+    // --- Renderers ---
+    function getQuestion(type) {
+        const idx = indices[type];
+        if (!foodData[type] || idx >= foodData[type].length) return null;
+        return foodData[type][idx];
+    }
+
+    function renderSort() {
+        const q = getQuestion('sorting');
+        const container = document.getElementById('sort-container');
+
+        if (!q) {
+            container.innerHTML = `<div class="text-center py-4 text-gray-500 animate-pulse">Checking pantry...</div>`;
+            return;
+        }
+
+        let html = `
+            <div class="text-center mb-4">
+                <div class="text-4xl font-bold text-orange-600 mb-2">
+                    ${q.item}
+                </div>
+                <p class="text-xl">What group is this?</p>
+                <button class="speak-btn" onclick="speak('${q.item}. What group is this?')">🔊</button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+        `;
+
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('sorting', '${opt}', '${q.category}')" class="dyslexic-btn hover:bg-orange-600 bg-orange-500 border-orange-700">${opt}</button>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+    function renderHealthy() {
+        const q = getQuestion('healthy');
+        const container = document.getElementById('healthy-container');
+
+        if (!q) {
+            container.innerHTML = `<div class="text-center py-4 text-gray-500 animate-pulse">Checking snacks...</div>`;
+            return;
+        }
+
+        let html = `
+            <div class="text-center mb-4">
+                <p class="text-xl font-bold">"${q.text}"</p>
+                <button class="speak-btn" onclick="speak('${q.text}')">🔊</button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+        `;
+        q.options.forEach(opt => {
+            html += `<button onclick="checkAnswer('healthy', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-green-600 bg-green-500 border-green-700">${opt}</button>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+
+    // Logic
+    async function saveProgress(quizId, score) {
+        try {
+            await fetch('/api/submit_progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    quiz_id: quizId,
+                    score: score,
+                    total: 1 // Increment by 1 for each correct answer
+                })
+            });
+            console.log("Progress saved!");
+        } catch (e) {
+            console.error("Save failed", e);
+        }
+    }
+
+    function checkAnswer(type, selected, correct) {
+        const feedbackEl = document.getElementById(`${type}-feedback`);
+        const scoreEl = document.getElementById(`${type}-score`);
+
+        if (selected === correct) {
+            feedbackEl.textContent = "✅ Correct!";
+            feedbackEl.className = "h-8 mt-2 text-xl font-bold text-center text-green-600";
+            speak("Correct!");
+            scores[type]++;
+            scoreEl.textContent = scores[type];
+
+            // Save progress
+            saveProgress(`grade3_food_${type}`, 1);
+
+            // Pre-fetch check
+            const remaining = (foodData[type]?.length || 0) - indices[type];
+            if (remaining <= 2 && !isFetching) {
+                console.log("Pre-fetching food...");
+                fetchQuestions(true);
+            }
+
+            setTimeout(() => {
+                feedbackEl.textContent = "";
+                indices[type]++;
+
+                if (type === 'sorting') renderSort();
+                if (type === 'healthy') renderHealthy();
+
+            }, 500);
+
+        } else {
+            feedbackEl.textContent = "❌ Try again!";
+            feedbackEl.className = "h-8 mt-2 text-xl font-bold text-center text-red-500";
+            speak("Try again");
+        }
+    }
+
+</script>
+{% endblock %}
