@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Reading Journey - Grade 4 - Udaan{% endblock %}
+
+{% block body_class %}min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 light-theme{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+      <h1 class="text-3xl font-bold text-center text-purple-700 mb-6 flex items-center justify-center">
+        <span class="mr-3">📖</span> Reading Journey: Adventure Stories
+      </h1>
+      
+      <div class="bg-purple-50 p-6 rounded-xl mb-8">
+        <div id="reading-card" class="bg-white p-8 rounded-xl shadow-inner border-2 border-purple-200">
+          <h2 class="text-2xl font-bold text-center text-purple-800 mb-6">The Magical Forest Adventure</h2>
+          
+          <p id="storyText" class="text-gray-700 leading-relaxed text-lg text-center">
+            Maya loved exploring the woods behind her house. One sunny morning, she discovered a shimmering path she had never seen before. Curious, she followed it deeper into the forest. Suddenly, she heard a tiny voice calling her name. "Maya, help us!" It was a family of fairies trapped under a fallen log. With determination, Maya lifted the heavy log and freed the grateful fairies. As a thank you gift, they gave her a magical seed. When Maya planted it in her garden, a beautiful rainbow tree grew overnight. Now, Maya visits the forest every day to help her fairy friends and explore new magical places.
+          </p>
+        </div>
+        
+        <div class="flex justify-center mt-6 space-x-4">
+          <button onclick="playReadingAudio()" class="play-btn bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl flex items-center">
+            ▶️ Play Audio
+          </button>
+          <button onclick="pauseReadingAudio()" class="pause-btn bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl flex items-center">
+            ⏸ Pause
+          </button>
+          <button onclick="resumeReadingAudio()" class="resume-btn bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center">
+            ▶ Resume
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+      <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6 flex items-center justify-center">
+        <span class="mr-3">🎯</span> Comprehension Quest
+      </h2>
+      
+      <div id="comprehension-quest" class="space-y-6">
+        <div id="quest-1" class="bg-gray-50 p-6 rounded-xl">
+          <p class="font-medium text-gray-800 mb-3">Quest 1: What did Maya discover in the forest?</p>
+          <div class="space-y-2">
+            <label class="flex items-center space-x-3">
+              <input type="radio" name="cq1" value="A" class="w-4 h-4 text-purple-600">
+              <span class="text-gray-700">A. A hidden treasure chest</span>
+            </label>
+            <label class="flex items-center space-x-3">
+              <input type="radio" name="cq1" value="B" class="w-4 h-4 text-purple-600">
+              <span class="text-gray-700">B. A shimmering path</span>
+            </label>
+            <label class="flex items-center space-x-3">
+              <input type="radio" name="cq1" value="C" class="w-4 h-4 text-purple-600">
+              <span class="text-gray-700">C. A family of bears</span>
+            </label>
+          </div>
+          <button onclick="checkComprehension(1, 'B')" class="mt-3 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg">Submit Answer</button>
+          <div id="quest-feedback1" class="mt-2 text-gray-700 font-medium hidden"></div>
+        </div>
+        
+        <div id="quest-2" class="bg-gray-50 p-6 rounded-xl hidden">
+          <p class="font-medium text-gray-800 mb-3">Quest 2: Who was trapped under the log?</p>
+          <div class="space-y-2">
+            <label class="flex items-center space-x-3">
+              <input type="radio" name="cq2" value="A" class="w-4 h-4 text-purple-600">
+              <span class="text-gray-700">A. A family of fairies</span>
+            </label>
+            <label class="flex items-center space-x-3">
+              <input type="radio" name="cq2" value="B" class="w-4 h-4 text-purple-600">
+              <span class="text-gray-700">B. A group of squirrels</span>
+            </label>
+            <label class="flex items-center space-x-3">
+              <input type="radio" name="cq2" value="C" class="w-4 h-4 text-purple-600">
+              <span class="text-gray-700">C. A family of rabbits</span>
+            </label>
+          </div>
+          <button onclick="checkComprehension(2, 'A')" class="mt-3 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg">Submit Answer</button>
+          <div id="quest-feedback2" class="mt-2 text-gray-700 font-medium hidden"></div>
+        </div>
+        
+        <div id="quest-3" class="bg-gray-50 p-6 rounded-xl hidden">
+          <p class="font-medium text-gray-800 mb-3">Quest 3: What grew from the magical seed?</p>
+          <div class="space-y-2">
+            <label class="flex items-center space-x-3">
+              <input type="radio" name="cq3" value="A" class="w-4 h-4 text-purple-600">
+              <span class="text-gray-700">A. A giant mushroom</span>
+            </label>
+            <label class="flex items-center space-x-3">
+              <input type="radio" name="cq3" value="B" class="w-4 h-4 text-purple-600">
+              <span class="text-gray-700">B. A flower garden</span>
+            </label>
+            <label class="flex items-center space-x-3">
+              <input type="radio" name="cq3" value="C" class="w-4 h-4 text-purple-600">
+              <span class="text-gray-700">C. A rainbow tree</span>
+            </label>
+          </div>
+          <button onclick="checkComprehension(3, 'C')" class="mt-3 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg">Submit Answer</button>
+          <div id="quest-feedback3" class="mt-2 text-gray-700 font-medium hidden"></div>
+        </div>
+      </div>
+      
+      <div id="quest-completion" class="text-center hidden mt-6">
+        <h3 class="text-2xl font-bold text-green-600 mb-2">🏆 Reading Champion!</h3>
+        <p class="text-gray-700">You've completed the comprehension quest!</p>
+        <div class="flex justify-center mt-4">
+          <span class="text-4xl mx-1">⭐</span>
+          <span class="text-4xl mx-1">⭐</span>
+          <span class="text-4xl mx-1">⭐</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+      <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6 flex items-center justify-center">
+        <span class="mr-3">📚</span> Reading Tips
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-purple-50 p-6 rounded-xl text-center">
+          <div class="text-4xl mb-3">🔍</div>
+          <h3 class="font-bold text-purple-700 mb-2">Visualize</h3>
+          <p class="text-gray-700">Picture the story in your mind as you read</p>
+        </div>
+        
+        <div class="bg-indigo-50 p-6 rounded-xl text-center">
+          <div class="text-4xl mb-3">👂</div>
+          <h3 class="font-bold text-indigo-700 mb-2">Listen</h3>
+          <p class="text-gray-700">Hear the words in your head as you read</p>
+        </div>
+        
+        <div class="bg-violet-50 p-6 rounded-xl text-center">
+          <div class="text-4xl mb-3">💭</div>
+          <h3 class="font-bold text-violet-700 mb-2">Think</h3>
+          <p class="text-gray-700">Ask questions about the story as you go</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="text-center">
+      <a href="{{ url_for('grade_4_dashboard') }}" class="inline-block bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-xl transition-all">
+        Back to Dashboard
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+let audioPlayer = null;
+let wordSpans = [];
+let highlightInterval = null;
+
+async function playReadingAudio() {
+  const text = document.getElementById("storyText").innerText;
+
+  try {
+    const res = await fetch("/api/read-selected-text", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text })
+    });
+
+    const data = await res.json();
+
+    if (!data.audio_url) {
+      alert("Audio generation failed");
+      return;
+    }
+
+    // Stop any previous audio safely
+    if (audioPlayer) {
+      audioPlayer.pause();
+      audioPlayer.currentTime = 0;
+      clearInterval(highlightInterval);
+    }
+
+    audioPlayer = new Audio(data.audio_url);
+
+    prepareWordHighlight();
+
+    // Sync highlight with audio time
+    highlightInterval = setInterval(syncHighlight, 120);
+
+    audioPlayer.onended = () => {
+      clearInterval(highlightInterval);
+      clearHighlight();
+    };
+
+    await audioPlayer.play();
+
+  } catch (err) {
+    console.error(err);
+    alert("Audio error. Check backend.");
+  }
+}
+
+function prepareWordHighlight() {
+  const story = document.getElementById("storyText");
+  const words = story.innerText.split(/\s+/);
+
+  story.innerHTML = "";
+  wordSpans = [];
+
+  words.forEach(w => {
+    const span = document.createElement("span");
+    span.textContent = w + " ";
+    span.className = "transition-all duration-200";
+    story.appendChild(span);
+    wordSpans.push(span);
+  });
+}
+
+function syncHighlight() {
+  if (!audioPlayer || !audioPlayer.duration) return;
+
+  const progress = audioPlayer.currentTime / audioPlayer.duration;
+  const index = Math.floor(progress * wordSpans.length);
+
+  wordSpans.forEach((s, i) => {
+    s.classList.remove("bg-purple-200", "rounded", "px-1");
+    if (i === index) {
+      s.classList.add("bg-purple-200", "rounded", "px-1");
+    }
+  });
+}
+
+function clearHighlight() {
+  wordSpans.forEach(s => s.classList.remove("bg-purple-200", "rounded", "px-1"));
+}
+
+function pauseReadingAudio() {
+  if (audioPlayer && !audioPlayer.paused) {
+    audioPlayer.pause();
+  }
+}
+
+function resumeReadingAudio() {
+  if (audioPlayer && audioPlayer.paused) {
+    audioPlayer.play();
+  }
+}
+
+let comprehensionScore = 0;
+const totalComprehensionQuestions = 3;
+
+function checkComprehension(questionNum, correctAnswer) {
+  const selected = document.querySelector(`input[name="cq${questionNum}"]:checked`);
+  const feedback = document.getElementById(`quest-feedback${questionNum}`);
+  
+  if (!selected) {
+    feedback.textContent = 'Please select an answer';
+    feedback.className = 'mt-2 text-red-600 font-medium';
+  } else if (selected.value === correctAnswer) {
+    feedback.textContent = '🌟 Correct! Excellent reading skills!';
+    feedback.className = 'mt-2 text-green-600 font-medium';
+    comprehensionScore++;
+  } else {
+    feedback.textContent = 'Try again! Keep reading carefully!';
+    feedback.className = 'mt-2 text-orange-600 font-medium';
+  }
+  
+  feedback.classList.remove('hidden');
+  
+  // Move to next question after delay
+  if (selected && selected.value === correctAnswer) {
+    if (questionNum < totalComprehensionQuestions) {
+      setTimeout(() => {
+        document.getElementById(`quest-${questionNum+1}`).classList.remove('hidden');
+      }, 1500);
+    } else {
+      setTimeout(() => {
+        document.getElementById('comprehension-quest').classList.add('hidden');
+        document.getElementById('quest-completion').classList.remove('hidden');
+      }, 1500);
+    }
+  }
+}
+</script>
+{% endblock %}

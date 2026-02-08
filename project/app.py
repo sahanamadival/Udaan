@@ -252,15 +252,14 @@ def init_db():
     )""")
     
     # Create AI summaries table
-    c.execute("""CREATE TABLE IF NOT EXISTS ai_summaries (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_id INTEGER,
-        filename TEXT,
-        summary TEXT,
-        created_at TEXT,
-        FOREIGN KEY(student_id) REFERENCES students(id)
-    )""")
-    
+    c.execute("CREATE TABLE IF NOT EXISTS ai_summaries (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        student_id INTEGER,\n        filename TEXT,\n        summary TEXT,\n        created_at TEXT,\n        FOREIGN KEY(student_id) REFERENCES students(id)\n    )")
+        
+    # Create writing progress table
+    c.execute("CREATE TABLE IF NOT EXISTS writing_progress (\n        id INTEGER PRIMARY KEY,\n        student_id TEXT,\n        text TEXT,\n        word_count INTEGER,\n        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n    )")
+        
+    # Create writing streak table
+    c.execute("CREATE TABLE IF NOT EXISTS writing_streak (\n        student_id TEXT PRIMARY KEY,\n        last_date DATE,\n        streak_count INTEGER DEFAULT 0\n    )")
+        
     conn.commit()
     conn.close()
 
@@ -512,6 +511,288 @@ def grade_1_quiz():
         flash("Access denied. This content is for Grade 1 students only.")
         return redirect_to_dashboard(session.get("user"))
     return render_template("grade_1_quiz.html", user=user)
+
+# Grade-2 Subject Routes
+@app.route("/grade/2/math")
+@login_required(role="student")
+def grade_2_math():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_math.html", user=user)
+
+@app.route("/grade/2/sentences")
+@login_required(role="student")
+def grade_2_sentences():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_sentences.html", user=user)
+
+@app.route("/grade/2/numbers")
+@login_required(role="student")
+def grade_2_numbers():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_numbers.html", user=user)
+
+@app.route("/grade/2/plants")
+@login_required(role="student")
+def grade_2_plants():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_plants.html", user=user)
+
+@app.route("/grade/2/reading")
+@login_required(role="student")
+def grade_2_reading():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_reading.html", user=user)
+
+@app.route("/grade/2/science")
+@login_required(role="student")
+def grade_2_science():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_science.html", user=user)
+
+# Grade-4 Subject Routes
+@app.route("/grade/4/literature")
+@login_required(role="student")
+def grade_4_literature():
+    user = session.get("user")
+    if user.get("grade") != "4":
+        flash("Access denied. This content is for Grade 4 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_4_literature.html", user=user)
+
+@app.route("/grade/4/math")
+@login_required(role="student")
+def grade_4_math():
+    user = session.get("user")
+    if user.get("grade") != "4":
+        flash("Access denied. This content is for Grade 4 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_4_math.html", user=user)
+
+@app.route("/grade/4/science")
+@login_required(role="student")
+def grade_4_science():
+    user = session.get("user")
+    if user.get("grade") != "4":
+        flash("Access denied. This content is for Grade 4 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_4_science.html", user=user)
+
+@app.route("/grade/4/writing")
+@login_required(role="student")
+def grade_4_writing():
+    user = session.get("user")
+    if user.get("grade") != "4":
+        flash("Access denied. This content is for Grade 4 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_4_writing.html", user=user)
+
+@app.route('/ai-correct', methods=['POST'])
+@login_required(role='student')
+def ai_correct():
+    data = request.get_json()
+    text = data.get('text', '')
+    
+    if not text.strip():
+        return {'error': 'No text provided'}, 400
+    
+    try:
+        # Call OpenAI API for grammar correction
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{
+                "role": "user",
+                "content": f"Correct grammar, improve clarity for a Grade-4 student. Return: 1. Corrected sentence 2. One short encouraging feedback line.\n\nOriginal text: {text}"
+            }],
+            temperature=0.3,
+            max_tokens=200
+        )
+        
+        result = response.choices[0].message.content
+        # Parse the AI response to extract corrected text and feedback
+        lines = result.split('\n')
+        corrected = lines[0] if lines else text
+        feedback = lines[1] if len(lines) > 1 else "Great job writing!"
+        
+        # Clean up the corrected text
+        if corrected.startswith('1.'):
+            corrected = corrected[2:].strip()
+        
+        if feedback.startswith('2.'):
+            feedback = feedback[2:].strip()
+        elif feedback.startswith('Feedback:'):
+            feedback = feedback[9:].strip()
+        
+        return {'corrected': corrected, 'feedback': feedback}
+    except Exception as e:
+        return {'error': str(e)}, 500
+
+@app.route('/ai-tts', methods=['POST'])
+@login_required(role='student')
+def ai_tts():
+    data = request.get_json()
+    text = data.get('text', '')
+    
+    if not text.strip():
+        return {'error': 'No text provided'}, 400
+    
+    try:
+        # Call OpenAI TTS API
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice="alloy",  # Use a friendly voice for kids
+            input=text
+        )
+        
+        # Save audio to temporary file and return path
+        import tempfile
+        import uuid
+        temp_filename = f"temp_audio_{uuid.uuid4().hex}.mp3"
+        temp_path = os.path.join('static', 'audio', temp_filename)
+        
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+        
+        response.stream_to_file(temp_path)
+        
+        return {'audio_url': f'/static/audio/{temp_filename}'}
+    except Exception as e:
+        return {'error': str(e)}, 500
+
+@app.route('/progress-summary')
+@login_required(role='student')
+def progress_summary():
+    user = session.get('user')
+    student_id = user['id'] if user else None
+    
+    if not student_id:
+        return {'error': 'User not authenticated'}, 401
+    
+    try:
+        conn = get_db()
+        c = conn.cursor()
+        
+        # Get total entries
+        c.execute("SELECT COUNT(*) FROM writing_progress WHERE student_id = ?", (str(student_id),))
+        total_entries = c.fetchone()[0]
+        
+        # Get average word count
+        c.execute("SELECT AVG(word_count) FROM writing_progress WHERE student_id = ?", (str(student_id),))
+        avg_word_count = c.fetchone()[0] or 0
+        
+        # Get longest entry
+        c.execute("SELECT MAX(word_count) FROM writing_progress WHERE student_id = ?", (str(student_id),))
+        longest_entry_words = c.fetchone()[0] or 0
+        
+        # Get current streak
+        c.execute("SELECT streak_count FROM writing_streak WHERE student_id = ?", (str(student_id),))
+        streak_row = c.fetchone()
+        streak_count = streak_row[0] if streak_row else 0
+        
+        conn.close()
+        
+        return {
+            'total_entries': total_entries,
+            'average_word_count': round(avg_word_count),
+            'longest_entry_words': longest_entry_words,
+            'streak_count': streak_count
+        }
+    except Exception as e:
+        return {'error': str(e)}, 500
+
+@app.route('/save-writing-progress', methods=['POST'])
+@login_required(role='student')
+def save_writing_progress():
+    user = session.get('user')
+    student_id = user['id'] if user else None
+    
+    if not student_id:
+        return {'error': 'User not authenticated'}, 401
+    
+    data = request.get_json()
+    text = data.get('text', '')
+    word_count = len(text.split()) if text.strip() else 0
+    
+    if not text.strip():
+        return {'error': 'No text provided'}, 400
+    
+    try:
+        conn = get_db()
+        c = conn.cursor()
+        
+        # Insert writing progress
+        c.execute("INSERT INTO writing_progress (student_id, text, word_count) VALUES (?, ?, ?)",
+                 (str(student_id), text, word_count))
+        
+        # Update streak
+        from datetime import date
+        today = date.today().isoformat()
+        
+        # Check if user has streak record
+        c.execute("SELECT last_date, streak_count FROM writing_streak WHERE student_id = ?", (str(student_id),))
+        streak_row = c.fetchone()
+        
+        if streak_row:
+            last_date_str, current_streak = streak_row
+            last_date = date.fromisoformat(last_date_str) if last_date_str else None
+            today_date = date.today()
+            
+            if last_date:
+                # Calculate difference in days
+                day_diff = (today_date - last_date).days
+                
+                if day_diff == 1:
+                    # Consecutive day, increment streak
+                    new_streak = current_streak + 1
+                elif day_diff == 0:
+                    # Same day, keep same streak
+                    new_streak = current_streak
+                else:
+                    # More than one day gap, reset to 1
+                    new_streak = 1
+            else:
+                new_streak = 1
+            
+            # Update streak
+            c.execute("UPDATE writing_streak SET last_date = ?, streak_count = ? WHERE student_id = ?",
+                     (today, new_streak, str(student_id)))
+        else:
+            # Create new streak record
+            c.execute("INSERT INTO writing_streak (student_id, last_date, streak_count) VALUES (?, ?, ?)",
+                     (str(student_id), today, 1))
+        
+        conn.commit()
+        conn.close()
+        
+        return {'success': True, 'streak_count': new_streak if 'new_streak' in locals() else 1}
+    except Exception as e:
+        return {'error': str(e)}, 500
+
+@app.route("/grade/4/reading")
+@login_required(role="student")
+def grade_4_reading():
+    user = session.get("user")
+    if user.get("grade") != "4":
+        flash("Access denied. This content is for Grade 4 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_4_reading.html", user=user)
 
 
 @app.route("/api/alphabet_info", methods=["POST"])

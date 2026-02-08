@@ -1,0 +1,485 @@
+{% extends "base.html" %}
+
+{% block title %}Science Explorer - Grade 4 - Udaan{% endblock %}
+
+{% block body_class %}min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 light-theme{% endblock %}
+
+{% block content %}
+<style>
+@keyframes scale-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.animate-scale-pulse {
+  animation: scale-pulse 0.6s ease-in-out;
+}
+
+.opacity-0 {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.duration-200 {
+  transition-duration: 200ms;
+}
+
+.duration-300 {
+  transition-duration: 300ms;
+}
+
+.transform {
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.hover\:scale-105:hover {
+  --tw-scale-x: 1.05;
+  --tw-scale-y: 1.05;
+}
+
+.hover\:scale-110:hover {
+  --tw-scale-x: 1.1;
+  --tw-scale-y: 1.1;
+}
+
+.scale-110 {
+  --tw-scale-x: 1.1;
+  --tw-scale-y: 1.1;
+}
+
+.ring-4 {
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+}
+
+.ring-yellow-400 {
+  --tw-ring-opacity: 1;
+  --tw-ring-color: rgb(250 204 21 / var(--tw-ring-opacity));
+}
+
+.opacity-50 {
+  opacity: 0.5;
+}
+
+.hover\:-translate-y-1:hover {
+  --tw-translate-y: -0.25rem;
+}
+
+/* Human Body Container Fixes */
+.container-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 620px;
+  max-height: 80vh;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.human-body-img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+  margin: auto;
+}
+
+.organ-btn {
+  position: absolute;
+  border-radius: 50%;
+  cursor: pointer;
+  background: transparent;
+  transition: transform 0.2s ease;
+}
+
+.organ-btn:hover {
+  transform: scale(1.02);
+}
+
+.heart {
+  top: 38%;
+  left: 48%;
+  width: 6%;
+  height: 6%;
+}
+
+.lungs-left {
+  top: 32%;
+  left: 42%;
+  width: 14%;
+  height: 10%;
+}
+
+.lungs-right {
+  top: 32%;
+  left: 58%;
+  width: 14%;
+  height: 10%;
+}
+
+.stomach {
+  top: 48%;
+  left: 50%;
+  width: 10%;
+  height: 10%;
+}
+
+.intestine {
+  top: 62%;
+  left: 50%;
+  width: 18%;
+  height: 16%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container-body {
+    height: 480px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container-body {
+    height: 360px;
+  }
+  
+  .heart {
+    top: 38%;
+    left: 48%;
+    width: 8%;
+    height: 8%;
+  }
+  
+  .lungs-left {
+    top: 32%;
+    left: 42%;
+    width: 16%;
+    height: 12%;
+  }
+  
+  .lungs-right {
+    top: 32%;
+    left: 58%;
+    width: 16%;
+    height: 12%;
+  }
+  
+  .stomach {
+    top: 48%;
+    left: 50%;
+    width: 12%;
+    height: 12%;
+  }
+  
+  .intestine {
+    top: 62%;
+    left: 50%;
+    width: 20%;
+    height: 18%;
+  }
+}
+</style>
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+      <h1 class="text-3xl font-bold text-center text-emerald-700 mb-8">
+        Science Explorer: Human Body Mission
+      </h1>
+      
+      <div class="flex justify-center mb-8">
+        <div class="relative p-10 bg-white rounded-2xl shadow-lg">
+          <!-- REAL HUMAN BODY IMAGE START -->
+          <div class="container-body">
+            <img src="/static/images/human_body.png" alt="Human Body" class="human-body-img" loading="lazy">
+            
+            <!-- Clickable overlay areas -->
+            <div class="organ-btn heart" onclick="showOrgan('heart')" id="heart-organ"></div>
+            <div class="organ-btn lungs-left" onclick="showOrgan('lungs')" id="lungs-left-organ"></div>
+            <div class="organ-btn lungs-right" onclick="showOrgan('lungs')" id="lungs-right-organ"></div>
+            <div class="organ-btn stomach" onclick="showOrgan('stomach')" id="stomach-organ"></div>
+            <div class="organ-btn intestine" onclick="showOrgan('intestine')" id="intestine-organ"></div>
+          </div>
+          <!-- REAL HUMAN BODY IMAGE END -->
+        </div>
+      </div>
+      
+      <div id="organInfo"
+           class="bg-white rounded-2xl shadow-lg p-6 text-center transition-all duration-300 transform">
+        <p class="text-gray-700 text-lg font-medium">Click an organ to learn about it!</p>
+      </div>
+      
+      <div id="organAudioFeedback" class="mt-4 text-center transition-all duration-300 transform hidden">
+        <div class="inline-flex items-center bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full">
+          <div class="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></div>
+          <span>🔊 Speaking...</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+      <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">
+        Mission: Help the Body Stay Healthy!
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-gray-50 p-6 rounded-xl">
+          <h3 class="font-bold text-lg text-emerald-700 mb-4">Human Body Parts</h3>
+          <div class="space-y-3">
+            <div class="flex items-center">
+              <button onclick="showInfo('heart')" class="w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-700 py-3 px-4 rounded-lg text-left transition-all duration-200 transform hover:scale-105">
+                Heart
+              </button>
+            </div>
+            <div class="flex items-center">
+              <button onclick="showInfo('intestine')" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 py-3 px-4 rounded-lg text-left transition-all duration-200 transform hover:scale-105">
+                Intestine
+              </button>
+            </div>
+            <div class="flex items-center">
+              <button onclick="showInfo('lungs')" class="w-full bg-pink-100 hover:bg-pink-200 text-pink-700 py-3 px-4 rounded-lg text-left transition-all duration-200 transform hover:scale-105">
+                Lungs
+              </button>
+            </div>
+            <div class="flex items-center">
+              <button onclick="showInfo('stomach')" class="w-full bg-yellow-100 hover:bg-yellow-200 text-yellow-700 py-3 px-4 rounded-lg text-left transition-all duration-200 transform hover:scale-105">
+                Stomach
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-gray-50 p-6 rounded-xl">
+          <h3 class="font-bold text-lg text-emerald-700 mb-4">Body Systems</h3>
+          <div class="space-y-4">
+            <div class="bg-white p-4 rounded-lg border-l-4 border-emerald-500 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <p class="font-medium text-gray-800">Circulatory System</p>
+              <p class="text-sm text-gray-600 mt-1">Transports blood and oxygen</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg border-l-4 border-emerald-500 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <p class="font-medium text-gray-800">Respiratory System</p>
+              <p class="text-sm text-gray-600 mt-1">Breathing and gas exchange</p>
+            </div>
+            <div class="bg-white p-4 rounded-lg border-l-4 border-emerald-500 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <p class="font-medium text-gray-800">Digestive System</p>
+              <p class="text-sm text-gray-600 mt-1">Processes food and nutrients</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+      <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">
+        Quick Quiz
+      </h2>
+      
+      <div class="text-center">
+        <p class="font-semibold text-lg mb-6 text-gray-700">Which organ pumps blood?</p>
+
+        <div class="flex justify-center space-x-4 mb-6">
+          <button onclick="checkAns('brain')" id="brain-btn" class="quiz-btn bg-blue-100 hover:bg-blue-200 text-blue-700 px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-105">Brain</button>
+          <button onclick="checkAns('heart')" id="heart-btn" class="quiz-btn bg-red-100 hover:bg-red-200 text-red-700 px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-105">Heart</button>
+          <button onclick="checkAns('lungs')" id="lungs-btn" class="quiz-btn bg-pink-100 hover:bg-pink-200 text-pink-700 px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-105">Lungs</button>
+        </div>
+        
+        <div id="quiz-feedback" class="text-center font-medium transition-all duration-300 transform hidden mt-4"></div>
+        <div id="mission-complete" class="mt-4 text-center hidden">
+          <div class="inline-flex items-center bg-green-100 text-green-700 px-4 py-2 rounded-full">
+            <span>🏆 Mission Complete!</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="text-center">
+      <a href="{{ url_for('grade_4_dashboard') }}" class="inline-block bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white font-bold py-3 px-8 rounded-xl transition-all duration-300 transform hover:-translate-y-1 shadow-lg">
+        Back to Dashboard
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentUtterance = null;
+let activeOrgan = null;
+
+const organData = {
+  heart: {
+    text: "The heart pumps blood throughout the body. It beats fast when we exercise.",
+  },
+  lungs: {
+    text: "The lungs help us breathe air. They bring oxygen to our body.",
+  },
+  stomach: {
+    text: "The stomach digests food we eat. It breaks food into nutrients.",
+  },
+  intestine: {
+    text: "The intestine absorbs nutrients from food. It helps our body grow.",
+  }
+};
+
+function highlightOrgan(name) {
+  // Remove previous highlight
+  if (activeOrgan) {
+    const prevOrgans = document.querySelectorAll(`#${activeOrgan}-organ`);
+    prevOrgans.forEach(organ => {
+      organ.classList.remove("ring-4", "ring-yellow-400", "scale-110");
+    });
+  }
+  
+  // Add highlight to new organ
+  const organs = document.querySelectorAll(`#${name}-organ`);
+  organs.forEach(organ => {
+    organ.classList.add("ring-4", "ring-yellow-400", "scale-110");
+  });
+  
+  activeOrgan = name;
+}
+
+function showOrgan(name) {
+  const info = organData[name];
+  const infoPanel = document.getElementById("organInfo");
+  const audioFeedback = document.getElementById("organAudioFeedback");
+  
+  // Highlight the organ
+  highlightOrgan(name);
+  
+  // Fade out current text
+  infoPanel.classList.add("opacity-0");
+  
+  setTimeout(() => {
+    // Update text
+    infoPanel.innerHTML = `<p class="text-gray-700 text-lg font-medium">${info.text}</p>`;
+    
+    // Fade in new text
+    infoPanel.classList.remove("opacity-0");
+    
+    // Scroll into view on mobile
+    infoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }, 150);
+  
+  // Cancel any previous speech
+  if (currentUtterance) {
+    speechSynthesis.cancel();
+    currentUtterance = null;
+  }
+  
+  // Create new utterance
+  const utterance = new SpeechSynthesisUtterance(info.text);
+  
+  // Configure speech settings
+  utterance.rate = 0.9;
+  utterance.pitch = 1.0;
+  utterance.volume = 1.0;
+  
+  // Find a female-like voice if available
+  const voices = speechSynthesis.getVoices();
+  const femaleVoice = voices.find(voice => 
+    voice.name.includes('Female') || 
+    voice.name.includes('female') || 
+    voice.name.includes('Google US English') ||
+    voice.name.includes('Microsoft')
+  );
+  
+  if (femaleVoice) {
+    utterance.voice = femaleVoice;
+  }
+  
+  // Event when speech starts
+  utterance.onstart = function() {
+    currentUtterance = utterance;
+    audioFeedback.classList.remove("hidden");
+  };
+  
+  // Event when speech ends
+  utterance.onend = function() {
+    currentUtterance = null;
+    audioFeedback.classList.add("hidden");
+    
+    // Remove highlight
+    if (activeOrgan === name) {
+      const organs = document.querySelectorAll(`#${name}-organ`);
+      organs.forEach(organ => {
+        organ.classList.remove("ring-4", "ring-yellow-400", "scale-110");
+      });
+      activeOrgan = null;
+    }
+  };
+  
+  // Event when speech error occurs
+  utterance.onerror = function() {
+    currentUtterance = null;
+    audioFeedback.classList.add("hidden");
+  };
+  
+  // Speak the text
+  speechSynthesis.speak(utterance);
+}
+
+function showInfo(part) {
+  // Map brain to intestine since brain was removed
+  if (part === 'brain') {
+    part = 'intestine';
+  }
+  showOrgan(part);
+}
+
+function checkAns(ans) {
+  const feedback = document.getElementById("quiz-feedback");
+  const missionComplete = document.getElementById("mission-complete");
+  const brainBtn = document.getElementById("brain-btn");
+  const heartBtn = document.getElementById("heart-btn");
+  const lungsBtn = document.getElementById("lungs-btn");
+  
+  if (ans === "heart") {
+    // Correct answer
+    feedback.innerHTML = '<div class="inline-flex items-center bg-green-100 text-green-700 px-4 py-2 rounded-full animate-scale-pulse"><span>🎉 Correct! The heart pumps blood.</span></div>';
+    feedback.classList.remove("hidden");
+    
+    // Show mission complete
+    missionComplete.classList.remove("hidden");
+    
+    // Disable buttons
+    brainBtn.disabled = true;
+    heartBtn.disabled = true;
+    lungsBtn.disabled = true;
+    
+    brainBtn.classList.add("opacity-50");
+    heartBtn.classList.add("opacity-50");
+    lungsBtn.classList.add("opacity-50");
+  } else {
+    // Wrong answer
+    feedback.innerHTML = '<div class="inline-flex items-center bg-red-100 text-red-700 px-4 py-2 rounded-full"><span>Try again 😊</span></div>';
+    feedback.classList.remove("hidden");
+    
+    // Auto fade after 2 seconds
+    setTimeout(() => {
+      feedback.classList.add("opacity-0");
+      setTimeout(() => {
+        feedback.classList.add("hidden");
+        feedback.classList.remove("opacity-0");
+      }, 300);
+    }, 2000);
+  }
+}
+
+// Load voices when speech synthesis is ready
+window.addEventListener('load', () => {
+  // Wait for voices to be loaded
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = function() {
+      // Voices are loaded
+    };
+  }
+});
+</script>
+{% endblock %}

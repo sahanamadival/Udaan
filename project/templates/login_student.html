@@ -77,9 +77,16 @@
       {% if messages %}
         <div class="mb-6">
           {% for message in messages %}
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center">
-              {{ message }}
-            </div>
+            {% if 'password' in message.lower()
+               or 'not found' in message.lower()
+               or 'log in' in message.lower() %}
+               
+                <!-- show styled login error message -->
+                <div class="login-error bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center">
+                  {{ message }}
+                </div>
+
+            {% endif %}
           {% endfor %}
         </div>
       {% endif %}
