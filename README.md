@@ -35,20 +35,6 @@ It leverages **AI** to provide grade-wise learning, interactive science modules,
 - 📈 Student progress view: uploads, flashcards, quizzes, average scores
 - 👀 **Real activity visibility**: Teacher can see actual student engagement
 
-### 🧪 Grade 4 Science Interactive Module
-- 🫀 **Clickable human body**: Interactive anatomy with organ positioning
-- 🔊 **Audio explanations**: Speech synthesis when organs are clicked
-- 🧠 **Smart quiz system**: Retry logic with immediate feedback
-- 🎯 **Browser-based TTS**: Native speech synthesis for all explanations
-
-### ✍️ Grade 4 Writing Lab (AI-Powered)
-- 🎤 **Speech-to-text writing**: Browser SpeechRecognition for voice input
-- 🤖 **Real AI grammar correction**: OpenAI GPT-4o-mini with student-friendly feedback
-- 💡 **AI writing feedback**: Context-aware suggestions based on length and clarity
-- 🔊 **AI story reading**: Text-to-speech narration of student compositions
-- 📝 **Progress tracking**: SQLite storage of all writing attempts
-- 🔥 **Daily streak system**: Automatic streak counting with visual indicators
-
 ### 💾 Storage
 - SQLite database for users, uploads, flashcards, quiz attempts, and grade-specific progress
 - Automatic schema migration for safe upgrades
