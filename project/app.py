@@ -1654,21 +1654,28 @@ def grade_5_dashboard():
     c.execute("SELECT COUNT(*) FROM uploads WHERE student_id = ?", (student_id,))
     books_count = c.fetchone()[0]
 
-    # Helper to get count from student_progress (local scope)
-    def get_count_local(activity):
-        c.execute("SELECT data_json FROM student_progress WHERE student_id = ? AND activity_type = ?", (student_id, activity))
-        row = c.fetchone()
-        if row and row["data_json"]:
-            import json
-            try:
-                return json.loads(row["data_json"]).get("count", 0)
-            except:
+    # Helper to get count from student_progress (using new schema)
+    def get_count_local(subject_field):
+        # First ensure the migration has run
+        migrate_student_progress_table()
+        
+        try:
+            c.execute(f"SELECT {subject_field} FROM student_progress WHERE student_id = ? AND grade = 5", (student_id,))
+            row = c.fetchone()
+            if row and row[0] is not None:
+                return row[0]
+            return 0
+        except sqlite3.OperationalError as e:
+            if "no such column" in str(e):
+                # Column doesn't exist, return 0
                 return 0
-        return 0
+            else:
+                raise e
 
-    math_count = get_count_local("grade_5_math")
-    science_count = get_count_local("grade_5_location")
-    leadership_count = get_count_local("grade_5_paragraph")
+    # Map old activity types to new column names
+    math_count = get_count_local("math_solved")
+    science_count = get_count_local("science_done")
+    leadership_count = get_count_local("creative_done")
     
     conn.close()
     return render_template(
@@ -1686,34 +1693,47 @@ def grade_5_dashboard():
 
 # Helper function for Grade 5 progress
 def update_grade5_progress(student_id, activity_type):
+    # First ensure the migration has run
+    migrate_student_progress_table()
+    
     try:
         conn = get_db()
         c = conn.cursor()
         
+        # Map old activity types to new column names
+        field_mapping = {
+            "grade_5_math": "math_solved",
+            "grade_5_location": "science_done", 
+            "grade_5_paragraph": "creative_done"
+        }
+        
+        subject_field = field_mapping.get(activity_type, "creative_done")  # default to creative_done
+        
         # Check if exists
-        c.execute("SELECT data_json FROM student_progress WHERE student_id = ? AND activity_type = ?", (student_id, activity_type))
+        c.execute(f"SELECT {subject_field} FROM student_progress WHERE student_id = ? AND grade = 5", (student_id,))
         row = c.fetchone()
         
         count = 0
-        if row and row["data_json"]:
-            import json
-            try:
-                data = json.loads(row["data_json"])
-                count = data.get("count", 0)
-            except:
-                pass
+        if row and row[0] is not None:
+            count = row[0]
         
         count += 1
-        import json
-        new_data = json.dumps({"count": count})
         
         if row:
-            c.execute("UPDATE student_progress SET data_json = ?, last_updated = CURRENT_TIMESTAMP WHERE student_id = ? AND activity_type = ?", (new_data, student_id, activity_type))
+            # Update existing record
+            c.execute(f"UPDATE student_progress SET {subject_field} = ?, last_updated = CURRENT_TIMESTAMP WHERE student_id = ? AND grade = 5", (count, student_id))
         else:
-            c.execute("INSERT INTO student_progress (student_id, activity_type, data_json) VALUES (?, ?, ?)", (student_id, activity_type, new_data))
+            # Insert new record
+            c.execute(f"INSERT INTO student_progress (student_id, grade, {subject_field}) VALUES (?, 5, ?)", (student_id, count))
             
         conn.commit()
         conn.close()
+    except sqlite3.OperationalError as e:
+        if "no such column" in str(e):
+            # Column doesn't exist, migration should handle this
+            print(f"Column error for {activity_type}, migration needed")
+        else:
+            print(f"Error updating progress: {e}")
     except Exception as e:
         print(f"Error updating progress: {e}")
 
@@ -2441,21 +2461,22 @@ def dyslexic_friendly():
     """
     user = session.get("user")
     
+    # Check if there's a PDF uploaded
     filename = session.get("uploaded_file")
     if not filename:
-        flash("No textbook uploaded yet.")
+        flash("No textbook uploaded yet. Please upload a textbook first.")
         return redirect_to_dashboard(user)
 
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     if not os.path.exists(filepath):
-        flash("File not found on server.")
+        flash("File not found on server. Please upload the file again.")
         return redirect_to_dashboard(user)
 
     # Use the existing hybrid extractor (PyPDF2 + OCR fallback)
     raw_text = extract_text_hybrid(filepath)
 
     if not raw_text or not raw_text.strip():
-        flash("⚠️ Still no readable text found, even after OCR.")
+        flash("⚠️ Still no readable text found, even after OCR. Please try uploading a different file.")
         return redirect_to_dashboard(user)
 
     # Keep the text as plain text with newlines.
