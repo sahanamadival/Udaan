@@ -103,6 +103,11 @@ python app.py
 ```
 🌐 App runs at http://127.0.0.1:5000/
 
+### Database Initialization
+The SQLite database is automatically created on first run using `schema.sql`.
+No database file is stored in the repository.
+The schema supports Grade 1 to Grade 5 dynamically.
+
 ---
 
 ## 🎯 Usage Overview

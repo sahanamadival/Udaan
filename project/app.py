@@ -372,7 +372,7 @@ def migrate_student_progress_table():
         cur.execute("DROP TABLE student_progress")
         
         # Create the new table with the correct schema for grade-specific progress
-        cur.execute("""CREATE TABLE IF NOT EXISTS student_progress (
+        cur.execute('''CREATE TABLE IF NOT EXISTS student_progress (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             student_id INTEGER,
             grade INTEGER,
@@ -381,7 +381,7 @@ def migrate_student_progress_table():
             science_done INTEGER DEFAULT 0,
             creative_done INTEGER DEFAULT 0,
             last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )""")
+        )''')
     else:
         # Add missing columns to the new schema if they don't exist
         if "books_analyzed" not in column_names:
@@ -402,9 +402,109 @@ def migrate_student_progress_table():
     conn.commit()
     conn.close()
 
+def migrate_database():
+    """Safely migrate database to match production schema without losing data."""
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
+    
+    try:
+        # Check student_progress table for missing columns
+        cur.execute("PRAGMA table_info(student_progress)")
+        columns = [row[1] for row in cur.fetchall()]
+        
+        # Add missing columns to student_progress table
+        if "reading_done" not in columns:
+            cur.execute("ALTER TABLE student_progress ADD COLUMN reading_done INTEGER DEFAULT 0")
+            print("Added reading_done column to student_progress table")
+        
+        if "writing_done" not in columns:
+            cur.execute("ALTER TABLE student_progress ADD COLUMN writing_done INTEGER DEFAULT 0")
+            print("Added writing_done column to student_progress table")
+        
+        if "last_activity_date" not in columns:
+            cur.execute("ALTER TABLE student_progress ADD COLUMN last_activity_date DATE")
+            print("Added last_activity_date column to student_progress table")
+        
+        if "streak_count" not in columns:
+            cur.execute("ALTER TABLE student_progress ADD COLUMN streak_count INTEGER DEFAULT 0")
+            print("Added streak_count column to student_progress table")
+        
+        # Create grade_activities table if it doesn't exist
+        cur.execute("""CREATE TABLE IF NOT EXISTS grade_activities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER,
+            grade INTEGER,
+            activity_type TEXT,
+            activity_count INTEGER DEFAULT 0,
+            last_completed DATE,
+            FOREIGN KEY(student_id) REFERENCES students(id)
+        )""")
+        print("Ensured grade_activities table exists")
+        
+        conn.commit()
+        print("Database migration completed successfully")
+        
+    except Exception as e:
+        print(f"Error during database migration: {e}")
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
 def init_db():
+    """Initialize database from schema.sql if database.db doesn't exist."""
+    db_path = "database.db"
+    schema_path = "schema.sql"
+    
+    # Check if database exists
+    if not os.path.exists(db_path):
+        print("Database not found. Creating from schema...")
+        try:
+            # Read and execute schema
+            with open(schema_path, 'r') as f:
+                schema_sql = f.read()
+            
+            # Create database and execute schema
+            conn = sqlite3.connect(db_path)
+            conn.executescript(schema_sql)
+            conn.commit()
+            conn.close()
+            print("Database initialized from schema.sql")
+        except FileNotFoundError:
+            print(f"Error: {schema_path} not found. Creating database with basic tables...")
+            # Fallback to basic table creation
+            conn = sqlite3.connect(db_path)
+            c = conn.cursor()
+            create_basic_tables(c)
+            conn.commit()
+            conn.close()
+            print("Database initialized with basic tables")
+        except Exception as e:
+            print(f"Error initializing database: {e}")
+            raise
+    else:
+        print("Database already exists. Skipping initialization.")
 
 
+def create_basic_tables(c):
+    """Create basic tables if schema.sql is not available."""
+    # This is a fallback - the full schema should be in schema.sql
+    c.execute("""CREATE TABLE IF NOT EXISTS students (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        age INTEGER,
+        grade TEXT,
+        accessibility TEXT,
+        email TEXT,
+        phone TEXT,
+        password_hash TEXT,
+        created_at TEXT
+    )""")
+    # Add other essential tables as needed
+
+
+def init_db_old():
+    # Original init_db function preserved for reference
     conn = get_db()
     c = conn.cursor()
 
@@ -3818,5 +3918,7 @@ if __name__ == "__main__":
     init_db()
     # Run migration to handle existing databases that may not have all columns
     migrate_student_progress_table()
+    # Run additional database migration to ensure schema matches production
+    migrate_database()
     port = int(os.environ.get("PORT", 5000))  
     app.run(host='0.0.0.0', port=port, debug=True)
