@@ -372,7 +372,7 @@ def migrate_student_progress_table():
         cur.execute("DROP TABLE student_progress")
         
         # Create the new table with the correct schema for grade-specific progress
-        cur.execute("""CREATE TABLE IF NOT EXISTS student_progress (
+        cur.execute('''CREATE TABLE IF NOT EXISTS student_progress (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             student_id INTEGER,
             grade INTEGER,
@@ -381,7 +381,7 @@ def migrate_student_progress_table():
             science_done INTEGER DEFAULT 0,
             creative_done INTEGER DEFAULT 0,
             last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )""")
+        )''')
     else:
         # Add missing columns to the new schema if they don't exist
         if "books_analyzed" not in column_names:
@@ -402,9 +402,109 @@ def migrate_student_progress_table():
     conn.commit()
     conn.close()
 
+def migrate_database():
+    """Safely migrate database to match production schema without losing data."""
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
+    
+    try:
+        # Check student_progress table for missing columns
+        cur.execute("PRAGMA table_info(student_progress)")
+        columns = [row[1] for row in cur.fetchall()]
+        
+        # Add missing columns to student_progress table
+        if "reading_done" not in columns:
+            cur.execute("ALTER TABLE student_progress ADD COLUMN reading_done INTEGER DEFAULT 0")
+            print("Added reading_done column to student_progress table")
+        
+        if "writing_done" not in columns:
+            cur.execute("ALTER TABLE student_progress ADD COLUMN writing_done INTEGER DEFAULT 0")
+            print("Added writing_done column to student_progress table")
+        
+        if "last_activity_date" not in columns:
+            cur.execute("ALTER TABLE student_progress ADD COLUMN last_activity_date DATE")
+            print("Added last_activity_date column to student_progress table")
+        
+        if "streak_count" not in columns:
+            cur.execute("ALTER TABLE student_progress ADD COLUMN streak_count INTEGER DEFAULT 0")
+            print("Added streak_count column to student_progress table")
+        
+        # Create grade_activities table if it doesn't exist
+        cur.execute("""CREATE TABLE IF NOT EXISTS grade_activities (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER,
+            grade INTEGER,
+            activity_type TEXT,
+            activity_count INTEGER DEFAULT 0,
+            last_completed DATE,
+            FOREIGN KEY(student_id) REFERENCES students(id)
+        )""")
+        print("Ensured grade_activities table exists")
+        
+        conn.commit()
+        print("Database migration completed successfully")
+        
+    except Exception as e:
+        print(f"Error during database migration: {e}")
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
 def init_db():
+    """Initialize database from schema.sql if database.db doesn't exist."""
+    db_path = "database.db"
+    schema_path = "schema.sql"
+    
+    # Check if database exists
+    if not os.path.exists(db_path):
+        print("Database not found. Creating from schema...")
+        try:
+            # Read and execute schema
+            with open(schema_path, 'r') as f:
+                schema_sql = f.read()
+            
+            # Create database and execute schema
+            conn = sqlite3.connect(db_path)
+            conn.executescript(schema_sql)
+            conn.commit()
+            conn.close()
+            print("Database initialized from schema.sql")
+        except FileNotFoundError:
+            print(f"Error: {schema_path} not found. Creating database with basic tables...")
+            # Fallback to basic table creation
+            conn = sqlite3.connect(db_path)
+            c = conn.cursor()
+            create_basic_tables(c)
+            conn.commit()
+            conn.close()
+            print("Database initialized with basic tables")
+        except Exception as e:
+            print(f"Error initializing database: {e}")
+            raise
+    else:
+        print("Database already exists. Skipping initialization.")
 
 
+def create_basic_tables(c):
+    """Create basic tables if schema.sql is not available."""
+    # This is a fallback - the full schema should be in schema.sql
+    c.execute("""CREATE TABLE IF NOT EXISTS students (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        age INTEGER,
+        grade TEXT,
+        accessibility TEXT,
+        email TEXT,
+        phone TEXT,
+        password_hash TEXT,
+        created_at TEXT
+    )""")
+    # Add other essential tables as needed
+
+
+def init_db_old():
+    # Original init_db function preserved for reference
     conn = get_db()
     c = conn.cursor()
 
@@ -1710,21 +1810,28 @@ def grade_5_dashboard():
     c.execute("SELECT COUNT(*) FROM uploads WHERE student_id = ?", (student_id,))
     books_count = c.fetchone()[0]
 
-    # Helper to get count from student_progress (local scope)
-    def get_count_local(activity):
-        c.execute("SELECT data_json FROM student_progress WHERE student_id = ? AND activity_type = ?", (student_id, activity))
-        row = c.fetchone()
-        if row and row["data_json"]:
-            import json
-            try:
-                return json.loads(row["data_json"]).get("count", 0)
-            except:
+    # Helper to get count from student_progress (using new schema)
+    def get_count_local(subject_field):
+        # First ensure the migration has run
+        migrate_student_progress_table()
+        
+        try:
+            c.execute(f"SELECT {subject_field} FROM student_progress WHERE student_id = ? AND grade = 5", (student_id,))
+            row = c.fetchone()
+            if row and row[0] is not None:
+                return row[0]
+            return 0
+        except sqlite3.OperationalError as e:
+            if "no such column" in str(e):
+                # Column doesn't exist, return 0
                 return 0
-        return 0
+            else:
+                raise e
 
-    math_count = get_count_local("grade_5_math")
-    science_count = get_count_local("grade_5_location")
-    leadership_count = get_count_local("grade_5_paragraph")
+    # Map old activity types to new column names
+    math_count = get_count_local("math_solved")
+    science_count = get_count_local("science_done")
+    leadership_count = get_count_local("creative_done")
     
     conn.close()
     return render_template(
@@ -1742,34 +1849,47 @@ def grade_5_dashboard():
 
 # Helper function for Grade 5 progress
 def update_grade5_progress(student_id, activity_type):
+    # First ensure the migration has run
+    migrate_student_progress_table()
+    
     try:
         conn = get_db()
         c = conn.cursor()
         
+        # Map old activity types to new column names
+        field_mapping = {
+            "grade_5_math": "math_solved",
+            "grade_5_location": "science_done", 
+            "grade_5_paragraph": "creative_done"
+        }
+        
+        subject_field = field_mapping.get(activity_type, "creative_done")  # default to creative_done
+        
         # Check if exists
-        c.execute("SELECT data_json FROM student_progress WHERE student_id = ? AND activity_type = ?", (student_id, activity_type))
+        c.execute(f"SELECT {subject_field} FROM student_progress WHERE student_id = ? AND grade = 5", (student_id,))
         row = c.fetchone()
         
         count = 0
-        if row and row["data_json"]:
-            import json
-            try:
-                data = json.loads(row["data_json"])
-                count = data.get("count", 0)
-            except:
-                pass
+        if row and row[0] is not None:
+            count = row[0]
         
         count += 1
-        import json
-        new_data = json.dumps({"count": count})
         
         if row:
-            c.execute("UPDATE student_progress SET data_json = ?, last_updated = CURRENT_TIMESTAMP WHERE student_id = ? AND activity_type = ?", (new_data, student_id, activity_type))
+            # Update existing record
+            c.execute(f"UPDATE student_progress SET {subject_field} = ?, last_updated = CURRENT_TIMESTAMP WHERE student_id = ? AND grade = 5", (count, student_id))
         else:
-            c.execute("INSERT INTO student_progress (student_id, activity_type, data_json) VALUES (?, ?, ?)", (student_id, activity_type, new_data))
+            # Insert new record
+            c.execute(f"INSERT INTO student_progress (student_id, grade, {subject_field}) VALUES (?, 5, ?)", (student_id, count))
             
         conn.commit()
         conn.close()
+    except sqlite3.OperationalError as e:
+        if "no such column" in str(e):
+            # Column doesn't exist, migration should handle this
+            print(f"Column error for {activity_type}, migration needed")
+        else:
+            print(f"Error updating progress: {e}")
     except Exception as e:
         print(f"Error updating progress: {e}")
 
@@ -2497,21 +2617,22 @@ def dyslexic_friendly():
     """
     user = session.get("user")
     
+    # Check if there's a PDF uploaded
     filename = session.get("uploaded_file")
     if not filename:
-        flash("No textbook uploaded yet.")
+        flash("No textbook uploaded yet. Please upload a textbook first.")
         return redirect_to_dashboard(user)
 
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     if not os.path.exists(filepath):
-        flash("File not found on server.")
+        flash("File not found on server. Please upload the file again.")
         return redirect_to_dashboard(user)
 
     # Use the existing hybrid extractor (PyPDF2 + OCR fallback)
     raw_text = extract_text_hybrid(filepath)
 
     if not raw_text or not raw_text.strip():
-        flash("⚠️ Still no readable text found, even after OCR.")
+        flash("⚠️ Still no readable text found, even after OCR. Please try uploading a different file.")
         return redirect_to_dashboard(user)
 
     # Keep the text as plain text with newlines.
@@ -3853,5 +3974,7 @@ if __name__ == "__main__":
     init_db()
     # Run migration to handle existing databases that may not have all columns
     migrate_student_progress_table()
+    # Run additional database migration to ensure schema matches production
+    migrate_database()
     port = int(os.environ.get("PORT", 5000))  
     app.run(host='0.0.0.0', port=port, debug=True)
