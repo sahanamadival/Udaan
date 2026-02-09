@@ -1,0 +1,9 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#a8e6cf"/>
+  <circle cx="100" cy="90" r="45" fill="#4caf50"/>
+  <path d="M80 120 Q100 150 120 120" stroke="white" stroke-width="3" fill="none"/>
+  <circle cx="85" cy="80" r="5" fill="white"/>
+  <circle cx="115" cy="80" r="5" fill="white"/>
+  <text x="100" y="95" font-family="Arial" font-size="24" fill="white" text-anchor="middle">C</text>
+  <text x="100" y="130" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Cat</text>
+</svg>

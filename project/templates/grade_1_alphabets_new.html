@@ -57,6 +57,14 @@
                             class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                             <i class="fas fa-music mr-2"></i>Phonetic Sound
                         </button>
+                        <button onclick="testSpeechRecognition()"
+                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            <i class="fas fa-microphone-alt mr-2"></i>Test Mic
+                        </button>
+                        <button onclick="showDiagnostics()"
+                            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            <i class="fas fa-info-circle mr-2"></i>Diagnostics
+                        </button>
                     </div>
 
                     <!-- Pronunciation Practice -->
@@ -80,31 +88,27 @@
                 </div>
             </div>
 
-            <!-- Alphabet Games Section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <!-- Matching Game -->
-                <div class="bg-white rounded-2xl shadow-lg p-6">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">🎯 Letter Matching Game</h3>
-                    <div class="text-center">
-                        <div class="text-4xl font-bold text-indigo-600 mb-4" id="game-letter">A</div>
-                        <div class="grid grid-cols-2 gap-2 mb-4">
-                            <button onclick="checkAnswer('correct')"
-                                class="bg-green-100 hover:bg-green-200 text-green-700 p-3 rounded-lg font-medium">Correct</button>
-                            <button onclick="checkAnswer('wrong')"
-                                class="bg-red-100 hover:bg-red-200 text-red-700 p-3 rounded-lg font-medium">Wrong</button>
-                        </div>
-                        <div id="game-result" class="text-lg font-medium hidden"></div>
-                    </div>
-                </div>
-
+            <!-- Alphabet Activities Section -->
+            <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
                 <!-- Writing Practice -->
                 <div class="bg-white rounded-2xl shadow-lg p-6">
                     <h3 class="text-xl font-bold text-gray-800 mb-4">✍️ Writing Practice</h3>
                     <div class="text-center">
-                        <div
-                            class="text-6xl font-bold text-indigo-600 mb-4 border-2 border-dashed border-indigo-300 rounded-xl p-4 h-32 flex items-center justify-center">
-                            Write the letter here
+                        <div id="writing-area"
+                            class="text-6xl font-bold text-indigo-600 mb-4 border-2 border-dashed border-indigo-300 rounded-xl p-4 h-32 flex items-center justify-center cursor-pointer"
+                            onclick="startWritingPractice()">
+                            Click to practice writing letter <span id="writing-letter">A</span>
                         </div>
+                        <div id="writing-instructions" class="text-gray-600 mb-4 hidden">
+                            <p class="mb-2">Trace the letter with your finger or mouse:</p>
+                            <div id="trace-area" class="relative w-32 h-32 mx-auto border border-gray-300 rounded-lg bg-gray-50">
+                                <canvas id="trace-canvas" width="128" height="128" class="absolute inset-0"></canvas>
+                            </div>
+                        </div>
+                        <button onclick="clearWriting()" id="clear-writing-btn"
+                            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium hidden">
+                            <i class="fas fa-eraser mr-2"></i>Clear
+                        </button>
                         <button onclick="showWritingTips()"
                             class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium">
                             <i class="fas fa-lightbulb mr-2"></i>Writing Tips
@@ -241,10 +245,17 @@
             document.getElementById('letter-description').textContent = data.description;
             document.getElementById('letter-fun-fact').textContent = data.fun_fact;
 
-            // Update image
-            const imageUrl = `https://source.unsplash.com/200x200/?${data.word_example.toLowerCase()}`;
+            // Update image - use local alphabet images
+            const imageFilename = data.word_example.toLowerCase().replace(/\s+/g, '_');
+            const imageUrl = `/static/alphabet_images/${imageFilename}.png`;
             document.getElementById('letter-image').src = imageUrl;
             document.getElementById('letter-image').alt = data.word_example;
+            
+            // Fallback to a default image if specific image doesn't exist
+            document.getElementById('letter-image').onerror = function() {
+                this.src = '/static/alphabet_images/default.png';
+                this.onerror = null; // Prevent infinite loop
+            };
 
         } catch (error) {
             console.error('Error loading letter info:', error);
@@ -253,8 +264,17 @@
             document.getElementById('letter-word').textContent = fallbackWord;
             document.getElementById('letter-description').textContent = `The letter ${letter} makes a '${letter.toLowerCase()}uh' sound`;
             document.getElementById('letter-fun-fact').textContent = `The letter ${letter} is number ${letter.charCodeAt(0) - 64} in the alphabet!`;
-            document.getElementById('letter-image').src = `https://source.unsplash.com/200x200/?${fallbackWord.toLowerCase()}`;
+            
+            // Use local images for fallback
+            const imageFilename = fallbackWord.toLowerCase().replace(/\s+/g, '_');
+            document.getElementById('letter-image').src = `/static/alphabet_images/${imageFilename}.png`;
             document.getElementById('letter-image').alt = fallbackWord;
+            
+            // Fallback to default image
+            document.getElementById('letter-image').onerror = function() {
+                this.src = '/static/alphabet_images/default.png';
+                this.onerror = null;
+            };
         }
     }
 
@@ -297,97 +317,534 @@
         window.speechSynthesis.speak(msg);
     }
 
-    // Recording functions
+    // Comprehensive recording function with multiple fallbacks
     function startRecording() {
         document.getElementById('record-btn').classList.add('hidden');
         document.getElementById('stop-btn').classList.remove('hidden');
         document.getElementById('pronunciation-result').classList.add('hidden');
-
-        // Simulate recording start
-        alert('Recording started! Say the letter aloud.');
+            
+        console.log('Starting recording process...');
+            
+        // Method 1: Try Web Speech API
+        if (hasSpeechRecognition()) {
+            console.log('Using Web Speech API');
+            useWebSpeechAPI();
+        } 
+        // Method 2: Try MediaRecorder API
+        else if (hasMediaRecorder()) {
+            console.log('Using MediaRecorder API');
+            useMediaRecorder();
+        }
+        // Method 3: Manual input fallback
+        else {
+            console.log('Using manual input fallback');
+            useManualInput();
+        }
     }
-
-    async function stopRecording() {
+        
+    function hasSpeechRecognition() {
+        return 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+    }
+        
+    function hasMediaRecorder() {
+        return navigator.mediaDevices && window.MediaRecorder;
+    }
+        
+    function useWebSpeechAPI() {
+        try {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+                
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            recognition.maxAlternatives = 1;
+                
+            recognition.onstart = function() {
+                console.log('Speech recognition started');
+                showRecordingStatus('🎙️ Listening... Say the letter ' + currentLetter);
+            };
+                
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript.trim().toUpperCase();
+                console.log('Heard:', transcript);
+                processResult(transcript);
+            };
+                
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                handleRecordingError('speech', event.error);
+            };
+                
+            recognition.onend = function() {
+                console.log('Speech recognition ended');
+                resetUI();
+            };
+                
+            recognition.start();
+                
+            // Timeout fallback
+            setTimeout(() => {
+                if (recognition) {
+                    recognition.stop();
+                }
+            }, 6000);
+                
+        } catch (error) {
+            console.error('Web Speech API failed:', error);
+            handleRecordingError('speech', 'exception');
+        }
+    }
+        
+    async function useMediaRecorder() {
+        try {
+            showRecordingStatus('🎙️ Recording audio... Say the letter ' + currentLetter);
+                
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            const audioChunks = [];
+                
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+                
+            mediaRecorder.onstop = async () => {
+                showRecordingStatus('🔄 Processing your recording...');
+                    
+                // Convert to audio blob
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    
+                // Try to send to server for processing (simplified)
+                try {
+                    // For now, fall back to manual input since we don't have server-side speech processing
+                    stream.getTracks().forEach(track => track.stop());
+                    handleRecordingError('audio', 'server_processing');
+                } catch (error) {
+                    stream.getTracks().forEach(track => track.stop());
+                    handleRecordingError('audio', 'processing_failed');
+                }
+            };
+                
+            mediaRecorder.start();
+                
+            // Stop after 5 seconds
+            setTimeout(() => {
+                mediaRecorder.stop();
+            }, 5000);
+                
+        } catch (error) {
+            console.error('MediaRecorder failed:', error);
+            handleRecordingError('audio', 'access_denied');
+        }
+    }
+        
+    function useManualInput() {
+        showRecordingStatus('✍️ Manual input mode');
+            
+        setTimeout(() => {
+            const userPronunciation = prompt('Please type the letter you tried to say:');
+            if (userPronunciation) {
+                processResult(userPronunciation.trim().toUpperCase());
+            } else {
+                resetUI();
+            }
+        }, 1000);
+    }
+        
+    function showRecordingStatus(message) {
+        document.getElementById('record-btn').textContent = message;
+        console.log('Status:', message);
+    }
+        
+    function handleRecordingError(method, error) {
+        console.log('Recording error - Method:', method, 'Error:', error);
+            
+        let userMessage = '';
+            
+        if (method === 'speech') {
+            switch(error) {
+                case 'no-speech':
+                    userMessage = 'No speech detected. Please speak clearly.';
+                    break;
+                case 'audio-capture':
+                case 'not-allowed':
+                    userMessage = 'Microphone access denied. Please allow microphone access.';
+                    break;
+                case 'network':
+                    userMessage = 'Network error. Please check your connection.';
+                    break;
+                default:
+                    userMessage = 'Speech recognition error. Switching to manual input.';
+            }
+        } else if (method === 'audio') {
+            userMessage = 'Audio recording not available. Please type your answer.';
+        }
+            
+        alert('⚠️ ' + userMessage);
+        useManualInput();
+    }
+        
+    function processResult(result) {
+        console.log('Processing result:', result, 'Expected:', currentLetter);
+            
+        // Clean the result to extract letter
+        const cleanResult = result.replace(/[^A-Z]/g, '').charAt(0) || result.charAt(0);
+            
+        pronunciationCount++;
+        updateProgress();
+            
+        const resultDiv = document.getElementById('pronunciation-result');
+        const feedbackDiv = document.getElementById('pronunciation-feedback');
+        const accuracyDiv = document.getElementById('pronunciation-accuracy');
+            
+        resultDiv.classList.remove('hidden');
+            
+        if (cleanResult === currentLetter) {
+            const correctMessage = 'Excellent! Perfect pronunciation of letter ' + currentLetter + '!';
+            feedbackDiv.textContent = '🎉 ' + correctMessage;
+            feedbackDiv.className = 'text-lg font-medium text-green-600';
+            accuracyDiv.textContent = 'Accuracy: 100% - You\'re doing amazing!';
+                
+            speakFeedback(correctMessage);
+                
+            setTimeout(() => {
+                const encouragement = [
+                    'Keep up the fantastic work!',
+                    'You\'re a pronunciation star!',
+                    'Perfect! Ready for the next letter?',
+                    'Excellent job! Your teacher would be proud!',
+                    'Wonderful pronunciation! Keep practicing!'
+                ];
+                const randomEncouragement = encouragement[Math.floor(Math.random() * encouragement.length)];
+                speakFeedback(randomEncouragement);
+                alert('🌟 ' + randomEncouragement);
+            }, 2000);
+        } else {
+            const wrongMessage = 'Wrong! You said ' + cleanResult + ', but it should be ' + currentLetter + '.';
+            feedbackDiv.textContent = '❌ ' + wrongMessage;
+            feedbackDiv.className = 'text-lg font-medium text-red-600';
+            accuracyDiv.textContent = 'Accuracy: 0% - Let\'s try again!';
+                
+            speakFeedback(wrongMessage);
+                
+            setTimeout(() => {
+                const retryMessage = 'Would you like to try pronouncing ' + currentLetter + ' again?';
+                speakFeedback(retryMessage);
+                const retry = confirm(retryMessage);
+                if (retry) {
+                    startRecording();
+                }
+            }, 2500);
+        }
+            
+        resetUI();
+    }
+        
+    function resetUI() {
         document.getElementById('record-btn').classList.remove('hidden');
         document.getElementById('stop-btn').classList.add('hidden');
-
-        // Check pronunciation using OpenAI
-        try {
-            const response = await fetch('/api/check_pronunciation', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ word: currentLetter })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                pronunciationCount++;
-                updateProgress();
-
-                const resultDiv = document.getElementById('pronunciation-result');
-                const feedbackDiv = document.getElementById('pronunciation-feedback');
-                const accuracyDiv = document.getElementById('pronunciation-accuracy');
-
-                resultDiv.classList.remove('hidden');
-                feedbackDiv.textContent = data.feedback;
-                accuracyDiv.textContent = `Accuracy: ${data.accuracy}%`;
-
-                // Color code based on accuracy
-                if (data.is_correct) {
-                    feedbackDiv.className = 'text-lg font-medium text-green-600';
-                } else if (data.accuracy > 70) {
-                    feedbackDiv.className = 'text-lg font-medium text-yellow-600';
-                } else {
-                    feedbackDiv.className = 'text-lg font-medium text-red-600';
+        document.getElementById('record-btn').textContent = 'Record';
+    }
+        
+    function stopRecording() {
+        resetUI();
+    }
+    
+    // Test function for speech recognition
+    function testSpeechRecognition() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = function() {
+                alert('🎙️ Microphone test started. Say something!');
+            };
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                alert('✅ Success! I heard: "' + transcript + '"');
+            };
+            
+            recognition.onerror = function(event) {
+                let errorMsg = 'Error: ';
+                switch(event.error) {
+                    case 'no-speech':
+                        errorMsg += 'No speech detected';
+                        break;
+                    case 'audio-capture':
+                        errorMsg += 'Audio capture failed';
+                        break;
+                    case 'not-allowed':
+                        errorMsg += 'Microphone permission denied';
+                        break;
+                    default:
+                        errorMsg += event.error;
                 }
+                alert('❌ ' + errorMsg);
+            };
+            
+            recognition.onend = function() {
+                console.log('Test recognition ended');
+            };
+            
+            try {
+                recognition.start();
+            } catch (error) {
+                alert('❌ Speech recognition not available: ' + error.message);
             }
-        } catch (error) {
-            console.error('Error checking pronunciation:', error);
-            // Fallback response
-            const resultDiv = document.getElementById('pronunciation-result');
-            const feedbackDiv = document.getElementById('pronunciation-feedback');
-            resultDiv.classList.remove('hidden');
-            feedbackDiv.textContent = 'Good try! Keep practicing.';
-            feedbackDiv.className = 'text-lg font-medium text-yellow-600';
-        }
-    }
-
-    // Game functions
-    function checkAnswer(answer) {
-        gamesPlayed++;
-        updateProgress();
-
-        const resultDiv = document.getElementById('game-result');
-        resultDiv.classList.remove('hidden');
-
-        if (answer === 'correct') {
-            resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! Well done!</span>';
         } else {
-            resultDiv.innerHTML = '<span class="text-red-600 font-bold">🤔 Try again! You can do it!</span>';
+            alert('❌ Speech recognition is not supported in your browser. Please try Chrome, Edge, or Safari.');
         }
-
-        // Clear result after 2 seconds
-        setTimeout(() => {
-            resultDiv.classList.add('hidden');
-        }, 2000);
+    }
+    
+    // Function to show system diagnostics
+    function showDiagnostics() {
+        const diagnostics = {
+            browser: navigator.userAgent.split(' ')[0],
+            speechRecognition: hasSpeechRecognition() ? '✅ Available' : '❌ Not Available',
+            mediaRecorder: hasMediaRecorder() ? '✅ Available' : '❌ Not Available',
+            webAudio: (window.AudioContext || window.webkitAudioContext) ? '✅ Available' : '❌ Not Available',
+            microphonePermission: 'Unknown (will check on use)',
+            currentLetter: currentLetter,
+            lettersLearned: learnedLetters.size,
+            pronunciationAttempts: pronunciationCount
+        };
+        
+        let diagMessage = '🔧 System Diagnostics:\n\n';
+        for (const [key, value] of Object.entries(diagnostics)) {
+            diagMessage += `${key}: ${value}\n`;
+        }
+        
+        diagMessage += '\n💡 Recommendations:\n';
+        
+        if (!hasSpeechRecognition()) {
+            diagMessage += '- Use Chrome, Edge, or Safari for best speech recognition\n';
+        }
+        
+        if (!hasMediaRecorder()) {
+            diagMessage += '- Your browser may not support audio recording\n';
+        }
+        
+        diagMessage += '- Make sure your microphone is connected and enabled\n';
+        diagMessage += '- Check browser microphone permissions\n';
+        diagMessage += '- Try the "Test Mic" button first\n';
+        
+        alert(diagMessage);
+    }
+    
+    // Function to speak feedback using text-to-speech
+    function speakFeedback(message) {
+        // Cancel any ongoing speech
+        window.speechSynthesis.cancel();
+        
+        // Create speech utterance
+        const utterance = new SpeechSynthesisUtterance(message);
+        utterance.rate = 0.9;  // Slightly slower for clarity
+        utterance.pitch = 1.0; // Normal pitch
+        utterance.volume = 1.0; // Full volume
+        
+        // Select a clear voice if available
+        const voices = window.speechSynthesis.getVoices();
+        const englishVoices = voices.filter(voice => 
+            voice.lang.includes('en') && (voice.name.includes('Google') || voice.name.includes('Microsoft') || voice.name.includes('Samantha'))
+        );
+        
+        if (englishVoices.length > 0) {
+            utterance.voice = englishVoices[0];
+        }
+        
+        // Speak the message
+        window.speechSynthesis.speak(utterance);
+        
+        console.log('Speaking feedback:', message);
     }
 
-    function showWritingTips() {
-        alert(`Here's how to write the letter ${currentLetter}:\n\n1. Start at the top\n2. Draw smooth curves\n3. Keep it clear and neat!\n\nPractice makes perfect! ✍️`);
-    }
+    // Game functions (removed matching game)
+    // The letter matching game has been removed as requested
 
     // Update progress tracker
     function updateProgress(shouldSave = true) {
         document.getElementById('letters-learned').textContent = learnedLetters.size;
         document.getElementById('pronunciations').textContent = pronunciationCount;
         document.getElementById('games-played').textContent = gamesPlayed;
-
+            
+        // Update writing letter display
+        document.getElementById('writing-letter').textContent = currentLetter;
+            
         if (shouldSave) {
             saveProgress();
         }
+    }
+        
+    // Writing practice functions
+    let isWriting = false;
+    let canvas, ctx;
+    let lastX, lastY;
+        
+    function startWritingPractice() {
+        document.getElementById('writing-instructions').classList.remove('hidden');
+        document.getElementById('clear-writing-btn').classList.remove('hidden');
+        document.getElementById('writing-area').classList.add('hidden');
+            
+        // Initialize canvas
+        canvas = document.getElementById('trace-canvas');
+        ctx = canvas.getContext('2d');
+            
+        // Set up canvas
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#4f46e5';
+            
+        // Add background letter template
+        ctx.fillStyle = '#e0e0e0';
+        ctx.font = '96px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(currentLetter, 64, 64);
+            
+        // Set up drawing events
+        setupDrawing();
+    }
+        
+    function setupDrawing() {
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+            
+        // Touch events for mobile
+        canvas.addEventListener('touchstart', handleTouchStart);
+        canvas.addEventListener('touchmove', handleTouchMove);
+        canvas.addEventListener('touchend', stopDrawing);
+    }
+        
+    function handleTouchStart(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousedown', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+    }
+        
+    function handleTouchMove(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousemove', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+    }
+        
+    function startDrawing(e) {
+        isWriting = true;
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
+        
+    function draw(e) {
+        if (!isWriting) return;
+            
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+            
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
+        
+    function stopDrawing() {
+        isWriting = false;
+    }
+        
+    function clearWriting() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Redraw the template letter
+        ctx.fillStyle = '#e0e0e0';
+        ctx.font = '96px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(currentLetter, 64, 64);
+    }
+        
+    function showWritingTips() {
+        // Check if student has written something
+        const canvas = document.getElementById('trace-canvas');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let hasDrawing = false;
+                
+            // Check if there are non-background pixels
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                if (imageData.data[i] !== 224 || imageData.data[i+1] !== 224 || imageData.data[i+2] !== 224) { // Not gray background
+                    if (imageData.data[i] === 79 && imageData.data[i+1] === 70 && imageData.data[i+2] === 229) { // Blue drawing color
+                        hasDrawing = true;
+                        break;
+                    }
+                }
+            }
+                
+            if (hasDrawing) {
+                // Give encouraging feedback
+                const encouragement = [
+                    'Great job! Your letter looks wonderful!',
+                    'Excellent writing! Keep up the amazing work!',
+                    'Fantastic! You\'re becoming a writing expert!',
+                    'Perfect letter formation! You\'re doing so well!',
+                    'Wonderful handwriting! Your teacher would be proud!'
+                ];
+                const randomEncouragement = encouragement[Math.floor(Math.random() * encouragement.length)];
+                speakFeedback(randomEncouragement);
+                alert('🌟 ' + randomEncouragement + '\n\n' + getWritingInstructions(currentLetter));
+            } else {
+                // No drawing detected
+                const wrongMessage = 'Nothing detected! Please trace the letter ' + currentLetter + ' in the box above.';
+                speakFeedback(wrongMessage);
+                alert('❌ ' + wrongMessage + '\n\n' + getWritingInstructions(currentLetter));
+            }
+        } else {
+            // Canvas not initialized yet
+            alert(getWritingInstructions(currentLetter));
+        }
+    }
+        
+    function getWritingInstructions(letter) {
+        const tips = {
+            'A': 'Start at the top, draw a slanted line down, then up to the right, and connect with a horizontal line in the middle.',
+            'B': 'Start at the top, draw a vertical line down, then make two half circles on the right side.',
+            'C': 'Start at the top right, curve around to the bottom, like drawing a backward C.',
+            'D': 'Start at the top, draw a vertical line down, then curve around to close the shape.',
+            'E': 'Draw a vertical line, then three horizontal lines across it.',
+            'F': 'Similar to E, but only add two horizontal lines (top and middle).',
+            'G': 'Start like a C, then add a small horizontal line at the bottom.',
+            'H': 'Draw two vertical lines, then connect them with a horizontal line in the middle.',
+            'I': 'Just a vertical line with a small line at the top and bottom.',
+            'J': 'Start at the top, go down and curve to the left at the bottom.',
+            'K': 'Draw a vertical line, then add two diagonal lines from the middle.',
+            'L': 'Draw a vertical line, then add a horizontal line at the bottom.',
+            'M': 'Draw two connected peaks - like two mountains.',
+            'N': 'Start at top left, go down, then diagonal up, then down again.',
+            'O': 'Draw a perfect circle.',
+            'P': 'Like a backwards D with a vertical line.',
+            'Q': 'Like an O but with a small line coming down from the bottom.',
+            'R': 'Like a P but with a small diagonal leg.',
+            'S': 'Draw like a backwards 3.',
+            'T': 'Draw a horizontal line, then a vertical line in the middle.',
+            'U': 'Start at top left, go down and curve back up on the right.',
+            'V': 'Draw two diagonal lines meeting at the bottom.',
+            'W': 'Draw two connected Vs.',
+            'X': 'Draw two diagonal lines crossing in the middle.',
+            'Y': 'Start at top left, go down and curve, then a vertical line down the middle.',
+            'Z': 'Draw a horizontal line, then diagonal, then another horizontal line.'
+        };
+            
+        return `Writing Tips for ${letter}:\n\n${tips[letter] || 'Start with simple strokes and practice regularly!'}\n\nKeep your pencil grip comfortable and write slowly and carefully. ✍️`;
     }
 </script>
 {% endblock %}

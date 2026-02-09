@@ -518,6 +518,9 @@ def login_required(role=None):
     return decorator
 
 def redirect_to_dashboard(user):
+    if not user:
+        flash("Please log in first.")
+        return redirect(url_for("index"))
     grade = user.get("grade")
     if grade in ["1", "2", "3", "4", "5"]:
         return redirect(url_for(f"grade_{grade}_dashboard"))
@@ -577,69 +580,77 @@ def role_page(role):
 @app.route("/signup/student", methods=["GET", "POST"])
 def signup_student():
     if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        age = request.form.get("age") or None
-        grade = request.form.get("grade") or None
-        accessibility = request.form.get("accessibility") or None
-        email = request.form.get("email") or None
-        phone = request.form.get("phone") or None
-        password = request.form.get("password") or None
+        try:
+            name = request.form.get("name", "").strip()
+            age = request.form.get("age") or None
+            grade = request.form.get("grade") or None
+            accessibility = request.form.get("accessibility") or None
+            email = request.form.get("email") or None
+            phone = request.form.get("phone") or None
+            password = request.form.get("password") or None
 
-        if not name:
-            flash("Name is required.")
-            return redirect(request.url)
+            if not name:
+                flash("Name is required.")
+                return redirect(request.url)
 
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT id FROM students WHERE name = ?", (name,))
-        if cur.fetchone():
-            flash("A student with that name already exists.")
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT id FROM students WHERE name = ?", (name,))
+            if cur.fetchone():
+                flash("A student with that name already exists.")
+                conn.close()
+                return redirect(url_for("index"))
+
+            if not password:
+                flash("Password is required.")
+                conn.close()
+                return redirect(request.url)
+
+            password_hash = generate_password_hash(password)
+            cur.execute("""
+                INSERT INTO students (name, age, grade, accessibility, email, phone, password_hash, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (name, age, grade, accessibility, email, phone, password_hash, datetime.now(timezone.utc).isoformat()))
+            conn.commit()
             conn.close()
+            flash("Student signed up successfully. Please login.")
             return redirect(url_for("index"))
-
-        if not password:
-            flash("Password is required.")
-            conn.close()
+        except Exception as e:
+            flash(f"An error occurred during signup: {str(e)}")
             return redirect(request.url)
-
-        password_hash = generate_password_hash(password)
-        cur.execute("""
-            INSERT INTO students (name, age, grade, accessibility, email, phone, password_hash, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (name, age, grade, accessibility, email, phone, password_hash, datetime.now(timezone.utc).isoformat()))
-        conn.commit()
-        conn.close()
-        flash("Student signed up successfully. Please login.")
-        return redirect(url_for("index"))
     return render_template("signup_student.html")
 
 @app.route("/login/student", methods=["GET", "POST"])
 def login_student():
     if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        password = request.form.get("password", "")
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM students WHERE name = ?", (name,))
-        user = cur.fetchone()
-        conn.close()
+        try:
+            name = request.form.get("name", "").strip()
+            password = request.form.get("password", "")
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM students WHERE name = ?", (name,))
+            user = cur.fetchone()
+            conn.close()
 
-        if not user:
-            flash("Student not found. Please sign up.")
-            return redirect(request.url)
+            if not user:
+                flash("Student not found. Please sign up.")
+                return redirect(request.url)
 
-        if user["password_hash"] and check_password_hash(user["password_hash"], password):
-            session.clear()  # Clear any previous session data
-            session["user"] = {"role": "student", "id": user["id"], "name": user["name"], "grade": user["grade"]}
-            # Redirect to grade-specific dashboard for all grades
-            if user["grade"] and user["grade"] in ["1", "2", "3", "4", "5"]:
-                return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+            if user["password_hash"] and check_password_hash(user["password_hash"], password):
+                session.clear()  # Clear any previous session data
+                session["user"] = {"role": "student", "id": user["id"], "name": user["name"], "grade": user["grade"]}
+                # Redirect to grade-specific dashboard for all grades
+                if user["grade"] and user["grade"] in ["1", "2", "3", "4", "5"]:
+                    return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+                else:
+                    # For grades outside 1-5, redirect to general dashboard if needed
+                    # Since we removed the general dashboard, redirect to grade 1 as default
+                    return redirect_to_dashboard(session.get("user"))
             else:
-                # For grades outside 1-5, redirect to general dashboard if needed
-                # Since we removed the general dashboard, redirect to grade 1 as default
-                return redirect_to_dashboard(session.get("user"))
-        else:
-            flash("Incorrect password.")
+                flash("Incorrect password.")
+                return redirect(request.url)
+        except Exception as e:
+            flash(f"An error occurred during login: {str(e)}")
             return redirect(request.url)
     return render_template("login_student.html")
 
@@ -647,59 +658,67 @@ def login_student():
 @app.route("/signup/teacher", methods=["GET", "POST"])
 def signup_teacher():
     if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email") or None
-        phone = request.form.get("phone") or None
-        password = request.form.get("password") or None
-        if not name:
-            flash("Name is required.")
-            return redirect(request.url)
+        try:
+            name = request.form.get("name", "").strip()
+            email = request.form.get("email") or None
+            phone = request.form.get("phone") or None
+            password = request.form.get("password") or None
+            if not name:
+                flash("Name is required.")
+                return redirect(request.url)
 
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT id FROM teachers WHERE name = ?", (name,))
-        if cur.fetchone():
-            flash("A teacher/parent with that name already exists.")
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT id FROM teachers WHERE name = ?", (name,))
+            if cur.fetchone():
+                flash("A teacher/parent with that name already exists.")
+                conn.close()
+                return redirect(url_for("index"))
+
+            if not password:
+                flash("Password is required.")
+                conn.close()
+                return redirect(request.url)
+
+            password_hash = generate_password_hash(password)
+            cur.execute("""
+                INSERT INTO teachers (name, email, phone, password_hash, created_at)
+                VALUES (?, ?, ?, ?, ?)
+            """, (name, email, phone, password_hash, datetime.now(timezone.utc).isoformat()))
+            conn.commit()
             conn.close()
+            flash("Teacher/Parent signed up successfully. Please login.")
             return redirect(url_for("index"))
-
-        if not password:
-            flash("Password is required.")
-            conn.close()
+        except Exception as e:
+            flash(f"An error occurred during signup: {str(e)}")
             return redirect(request.url)
-
-        password_hash = generate_password_hash(password)
-        cur.execute("""
-            INSERT INTO teachers (name, email, phone, password_hash, created_at)
-            VALUES (?, ?, ?, ?, ?)
-        """, (name, email, phone, password_hash, datetime.now(timezone.utc).isoformat()))
-        conn.commit()
-        conn.close()
-        flash("Teacher/Parent signed up successfully. Please login.")
-        return redirect(url_for("index"))
     return render_template("signup_teacher.html")
 
 @app.route("/login/teacher", methods=["GET", "POST"])
 def login_teacher():
     if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        password = request.form.get("password", "")
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM teachers WHERE name = ?", (name,))
-        user = cur.fetchone()
-        conn.close()
+        try:
+            name = request.form.get("name", "").strip()
+            password = request.form.get("password", "")
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM teachers WHERE name = ?", (name,))
+            user = cur.fetchone()
+            conn.close()
 
-        if not user:
-            flash("Teacher/Parent not found. Please sign up.")
-            return redirect(request.url)
+            if not user:
+                flash("Teacher/Parent not found. Please sign up.")
+                return redirect(request.url)
 
-        if user["password_hash"] and check_password_hash(user["password_hash"], password):
-            session.clear()  # Clear any previous session data
-            session["user"] = {"role": "teacher", "id": user["id"], "name": user["name"]}
-            return redirect(url_for("teacher_dashboard"))
-        else:
-            flash("Incorrect password.")
+            if user["password_hash"] and check_password_hash(user["password_hash"], password):
+                session.clear()  # Clear any previous session data
+                session["user"] = {"role": "teacher", "id": user["id"], "name": user["name"]}
+                return redirect(url_for("teacher_dashboard"))
+            else:
+                flash("Incorrect password.")
+                return redirect(request.url)
+        except Exception as e:
+            flash(f"An error occurred during login: {str(e)}")
             return redirect(request.url)
     return render_template("login_teacher.html")
 
@@ -712,13 +731,9 @@ def login_teacher():
 @login_required(role="student")
 def grade_1_dashboard():
     user = session.get("user")
-    if user.get("grade") != "1":
-        flash("Access denied. This dashboard is for Grade 1 students only.")
-        # Redirect user to their actual grade dashboard
-        if user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
-            return redirect(url_for(f"grade_{user['grade']}_dashboard"))
-        else:
-            return redirect_to_dashboard(session.get("user"))
+    if not user:
+        flash("Please log in first.")
+        return redirect(url_for("index"))
     
     ai_summary = session.get("summary")
     audio_file = session.get("audio_file")
@@ -731,54 +746,81 @@ def grade_1_dashboard():
     )
 
 
+@app.route("/static/alphabet_images/<filename>")
+def serve_alphabet_image(filename):
+    """Serve alphabet images, with fallback to SVG if PNG not found"""
+    import os
+    from flask import send_file, abort
+    
+    # Try PNG first
+    png_path = os.path.join(app.root_path, "static", "alphabet_images", filename)
+    if os.path.exists(png_path):
+        return send_file(png_path)
+    
+    # Try SVG fallback
+    svg_filename = filename.replace(".png", ".svg")
+    svg_path = os.path.join(app.root_path, "static", "alphabet_images", svg_filename)
+    if os.path.exists(svg_path):
+        return send_file(svg_path, mimetype="image/svg+xml")
+    
+    # Default fallback image
+    default_path = os.path.join(app.root_path, "static", "alphabet_images", "default.svg")
+    return send_file(default_path, mimetype="image/svg+xml")
+
+
 @app.route("/grade/1/alphabets")
 @login_required(role="student")
 def grade_1_alphabets():
-    user = session.get("user")
-    if user.get("grade") != "1":
-        flash("Access denied. This content is for Grade 1 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_1_alphabets.html", user=user)
+    try:
+        user = session.get("user")
+        return render_template("grade_1_alphabets_new.html", user=user)
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}")
+        return redirect(url_for("index"))
 
 
 @app.route("/grade/1/math")
 @login_required(role="student")
 def grade_1_math():
-    user = session.get("user")
-    if user.get("grade") != "1":
-        flash("Access denied. This content is for Grade 1 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_1_math.html", user=user)
+    try:
+        user = session.get("user")
+        return render_template("grade_1_math_new.html", user=user)
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}")
+        return redirect(url_for("index"))
 
 
 @app.route("/grade/1/flashcards")
 @login_required(role="student")
 def grade_1_flashcards():
-    user = session.get("user")
-    if user.get("grade") != "1":
-        flash("Access denied. This content is for Grade 1 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_1_flashcards.html", user=user)
+    try:
+        user = session.get("user")
+        return render_template("grade_1_flashcards.html", user=user)
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}")
+        return redirect(url_for("index"))
 
 
 @app.route("/grade/1/shapes")
 @login_required(role="student")
 def grade_1_shapes():
-    user = session.get("user")
-    if user.get("grade") != "1":
-        flash("Access denied. This content is for Grade 1 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_1_shapes.html", user=user)
+    try:
+        user = session.get("user")
+        return render_template("grade_1_shapes.html", user=user)
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}")
+        return redirect(url_for("index"))
 
 
 @app.route("/grade/1/quiz")
 @login_required(role="student")
 def grade_1_quiz():
-    user = session.get("user")
-    if user.get("grade") != "1":
-        flash("Access denied. This content is for Grade 1 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_1_quiz.html", user=user)
+    try:
+        user = session.get("user")
+        return render_template("grade_1_quiz.html", user=user)
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}")
+        return redirect(url_for("index"))
 
 # Grade-2 Subject Routes
 @app.route("/grade/2/math")
@@ -1104,11 +1146,11 @@ def get_alphabet_info():
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a helpful educational assistant for teaching children. Provide simple, engaging content for alphabet learning."
+                    "content": "You are a helpful educational assistant for teaching Grade 1 children. Provide simple, engaging content for alphabet learning. Always suggest age-appropriate words that children know."
                 },
                 {
                     "role": "user",
-                    "content": f"Create educational content for the letter '{letter}' in the following JSON format: {{'word_example': 'a simple word starting with this letter', 'description': 'a short description of the letter sound', 'fun_fact': 'an interesting fact about this letter for children'}}"
+                    "content": f"Create educational content for the letter '{letter}' in the following JSON format: {{'word_example': 'a simple Grade 1 appropriate word starting with {letter} (like Apple, Ball, Cat, etc.)', 'description': 'a short description of the letter sound', 'fun_fact': 'an interesting fact about this letter for children'}}"
                 }
             ],
             temperature=0.7,
@@ -1122,9 +1164,16 @@ def get_alphabet_info():
             import json
             alphabet_info = json.loads(content)
         except:
-            # Manual parsing fallback
+            # Manual parsing fallback - ensure proper word for each letter
+            word_examples = {
+                "A": "Apple", "B": "Ball", "C": "Cat", "D": "Dog", "E": "Elephant",
+                "F": "Fish", "G": "Giraffe", "H": "House", "I": "Ice Cream", "J": "Jump",
+                "K": "Kite", "L": "Lion", "M": "Monkey", "N": "Nest", "O": "Orange",
+                "P": "Pig", "Q": "Queen", "R": "Rabbit", "S": "Sun", "T": "Tiger",
+                "U": "Umbrella", "V": "Van", "W": "Window", "X": "Xylophone", "Y": "Yellow", "Z": "Zebra"
+            }
             alphabet_info = {
-                "word_example": f"{letter}pple" if letter == "A" else f"{letter}all" if letter == "B" else f"{letter}at",
+                "word_example": word_examples.get(letter, f"{letter}pple"),
                 "description": f"The letter {letter} makes a '{letter.lower()}uh' sound",
                 "fun_fact": f"The letter {letter} is number {ord(letter) - ord('A') + 1} in the alphabet!"
             }
@@ -1133,9 +1182,16 @@ def get_alphabet_info():
         
     except Exception as e:
         print(f"Error getting alphabet info: {e}")
-        # Return fallback content
+        # Return fallback content with proper word mapping
+        word_examples = {
+            "A": "Apple", "B": "Ball", "C": "Cat", "D": "Dog", "E": "Elephant",
+            "F": "Fish", "G": "Giraffe", "H": "House", "I": "Ice Cream", "J": "Jump",
+            "K": "Kite", "L": "Lion", "M": "Monkey", "N": "Nest", "O": "Orange",
+            "P": "Pig", "Q": "Queen", "R": "Rabbit", "S": "Sun", "T": "Tiger",
+            "U": "Umbrella", "V": "Van", "W": "Window", "X": "Xylophone", "Y": "Yellow", "Z": "Zebra"
+        }
         return {
-            "word_example": f"{letter}pple" if letter == "A" else f"{letter}all" if letter == "B" else f"{letter}at",
+            "word_example": word_examples.get(letter, f"{letter}pple"),
             "description": f"The letter {letter} makes a '{letter.lower()}uh' sound",
             "fun_fact": f"The letter {letter} is number {ord(letter) - ord('A') + 1} in the alphabet!"
         }
