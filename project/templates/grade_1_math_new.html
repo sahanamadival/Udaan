@@ -67,9 +67,7 @@
                     <button onclick="checkAddition()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium">
                         <i class="fas fa-check mr-2"></i>Check Answer
                     </button>
-                    <button onclick="newAdditionProblem()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium">
-                        <i class="fas fa-sync mr-2"></i>New Problem
-                    </button>
+                    <!-- Removed next problem button since it auto-advances after correct answer -->
                 </div>
                 <div id="addition-result" class="mt-4 text-lg font-medium hidden"></div>
             </div>
@@ -98,83 +96,9 @@
                     <button onclick="checkSubtraction()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium">
                         <i class="fas fa-check mr-2"></i>Check Answer
                     </button>
-                    <button onclick="newSubtractionProblem()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium">
-                        <i class="fas fa-sync mr-2"></i>New Problem
-                    </button>
+                    <!-- Removed next problem button since it auto-advances after correct answer -->
                 </div>
                 <div id="subtraction-result" class="mt-4 text-lg font-medium hidden"></div>
-            </div>
-        </div>
-
-        <!-- Shapes Learning -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🔷 Learn Shapes</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {% set shapes = [
-                    {'name': 'Circle', 'symbol': '⭕', 'color': 'bg-red-100'},
-                    {'name': 'Square', 'symbol': '⬜', 'color': 'bg-blue-100'},
-                    {'name': 'Triangle', 'symbol': '🔺', 'color': 'bg-green-100'},
-                    {'name': 'Rectangle', 'symbol': '▭', 'color': 'bg-yellow-100'},
-                    {'name': 'Star', 'symbol': '⭐', 'color': 'bg-purple-100'},
-                    {'name': 'Heart', 'symbol': '❤️', 'color': 'bg-pink-100'},
-                    {'name': 'Diamond', 'symbol': '💎', 'color': 'bg-indigo-100'},
-                    {'name': 'Oval', 'symbol': '🪪', 'color': 'bg-teal-100'}
-                ] %}
-                {% for shape in shapes %}
-                <div class="shape-card bg-white rounded-xl shadow-md p-4 text-center hover:shadow-lg transition-all cursor-pointer border-2 border-transparent hover:border-indigo-300" 
-                     onclick="showShapeInfo('{{ shape.name }}')">
-                    <div class="text-4xl mb-2">{{ shape.symbol }}</div>
-                    <div class="text-lg font-bold text-indigo-600">{{ shape.name }}</div>
-                </div>
-                {% endfor %}
-            </div>
-            
-            <!-- Shape Details -->
-            <div id="shape-details" class="mt-6 bg-indigo-50 rounded-xl p-6 hidden">
-                <div class="text-center">
-                    <div class="text-5xl mb-4" id="shape-symbol">⭕</div>
-                    <div class="text-2xl font-bold text-indigo-600 mb-2" id="shape-name">Circle</div>
-                    <div class="text-lg text-gray-700 mb-4" id="shape-description">A round shape with no corners</div>
-                    <button onclick="speakShape()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium">
-                        <i class="fas fa-volume-up mr-2"></i>Hear Shape Name
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Colors Learning -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🎨 Learn Colors</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {% set colors = [
-                    {'name': 'Red', 'hex': '#FF0000'},
-                    {'name': 'Blue', 'hex': '#0000FF'},
-                    {'name': 'Green', 'hex': '#00FF00'},
-                    {'name': 'Yellow', 'hex': '#FFFF00'},
-                    {'name': 'Orange', 'hex': '#FFA500'},
-                    {'name': 'Purple', 'hex': '#800080'},
-                    {'name': 'Pink', 'hex': '#FFC0CB'},
-                    {'name': 'Brown', 'hex': '#A52A2A'}
-                ] %}
-                {% for color in colors %}
-                <div class="color-card text-center hover:scale-105 transition-transform cursor-pointer" 
-                     onclick="showColorInfo('{{ color.name }}', '{{ color.hex }}')">
-                    <div class="w-20 h-20 rounded-full mx-auto mb-2 border-4 border-gray-300" style="background-color: {{ color.hex }}"></div>
-                    <div class="font-bold text-indigo-600">{{ color.name }}</div>
-                </div>
-                {% endfor %}
-            </div>
-            
-            <!-- Color Details -->
-            <div id="color-details" class="mt-6 bg-indigo-50 rounded-xl p-6 hidden">
-                <div class="text-center">
-                    <div class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-gray-300" id="color-sample"></div>
-                    <div class="text-2xl font-bold text-indigo-600 mb-2" id="color-name">Red</div>
-                    <div class="text-lg text-gray-700 mb-4" id="color-description">The color of apples and roses</div>
-                    <button onclick="speakColor()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium">
-                        <i class="fas fa-volume-up mr-2"></i>Hear Color Name
-                    </button>
-                </div>
             </div>
         </div>
 
@@ -191,8 +115,8 @@
                     <div class="text-gray-600">Problems Solved</div>
                 </div>
                 <div class="bg-purple-50 rounded-xl p-4">
-                    <div class="text-3xl font-bold text-purple-600 mb-2" id="shapes-colors">0</div>
-                    <div class="text-gray-600">Shapes & Colors</div>
+                    <div class="text-3xl font-bold text-purple-600 mb-2" id="shapes-learned">0</div>
+                    <div class="text-gray-600">Shapes Learned</div>
                 </div>
             </div>
         </div>
@@ -209,12 +133,8 @@
 
 <script>
     let currentNumber = 1;
-    let currentShape = 'Circle';
-    let currentColor = 'Red';
-    let currentColorHex = '#FF0000';
     let numbersLearned = new Set();
     let problemsSolved = 0;
-    let shapesColorsLearned = new Set();
 
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
@@ -257,15 +177,67 @@
     }
 
     function countObjects() {
-        const count = document.querySelectorAll('#number-objects div').length;
-        alert(`There are ${count} objects! Great counting!`);
+        const objects = document.querySelectorAll('#number-objects div');
+        const count = objects.length;
+        
+        if (count === 0) {
+            alert('No objects to count!');
+            return;
+        }
+        
+        // Speak the count
+        const msg = new SpeechSynthesisUtterance(`There are ${count} objects! Let's count them: `);
+        msg.rate = 0.8;
+        msg.pitch = 1.2;
+        window.speechSynthesis.speak(msg);
+        
+        // Create a promise-based delay function
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // Function to highlight one object
+        async function highlightObject(index) {
+            if (index >= objects.length) return;
+            
+            const obj = objects[index];
+            
+            // Highlight the current object
+            obj.style.backgroundColor = '#fbbf24'; // Yellow for highlighting
+            obj.style.transform = 'scale(1.3)';
+            obj.style.transition = 'all 0.3s ease';
+            
+            // Speak the number
+            const numberMsg = new SpeechSynthesisUtterance((index + 1).toString());
+            numberMsg.rate = 0.8;
+            numberMsg.pitch = 1.2;
+            window.speechSynthesis.speak(numberMsg);
+            
+            // Wait for the speech to finish before resetting
+            await delay(1000);
+            
+            // Reset the object
+            obj.style.backgroundColor = '#3b82f6'; // Blue (original)
+            obj.style.transform = 'scale(1)';
+            
+            // Continue to next object
+            await delay(300);
+            await highlightObject(index + 1);
+        }
+        
+        // Start the synchronous counting
+        highlightObject(0);
     }
 
     // Addition functions
+    let currentAdditionProblem = {};
+    
     function generateAdditionProblem() {
         const num1 = Math.floor(Math.random() * 10) + 1;
         const num2 = Math.floor(Math.random() * (10 - num1)) + 1;
         const answer = num1 + num2;
+        
+        currentAdditionProblem = {num1, num2, answer};
         
         document.getElementById('addition-problem').textContent = `${num1} + ${num2} = ?`;
         document.getElementById('addition-answer').value = '';
@@ -279,19 +251,21 @@
 
     function checkAddition() {
         const userAnswer = parseInt(document.getElementById('addition-answer').value);
-        const problemText = document.getElementById('addition-problem').textContent;
-        const [num1, num2] = problemText.split(' + ').map(n => parseInt(n));
-        const correctAnswer = num1 + num2;
         
         const resultDiv = document.getElementById('addition-result');
         resultDiv.classList.remove('hidden');
         
-        if (userAnswer === correctAnswer) {
+        if (userAnswer === currentAdditionProblem.answer) {
             resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! Excellent math skills!</span>';
             problemsSolved++;
             updateProgress();
+            
+            // Move to next problem after delay
+            setTimeout(() => {
+                generateAdditionProblem();
+            }, 1500);
         } else {
-            resultDiv.innerHTML = `<span class="text-red-600 font-bold">🤔 Try again! ${num1} + ${num2} = ${correctAnswer}</span>`;
+            resultDiv.innerHTML = `<span class="text-red-600 font-bold">🤔 Try again! ${currentAdditionProblem.num1} + ${currentAdditionProblem.num2} = ${currentAdditionProblem.answer}</span>`;
         }
     }
 
@@ -300,10 +274,14 @@
     }
 
     // Subtraction functions
+    let currentSubtractionProblem = {};
+    
     function generateSubtractionProblem() {
         const num1 = Math.floor(Math.random() * 15) + 6; // Larger number
         const num2 = Math.floor(Math.random() * (num1 - 1)) + 1; // Smaller number
         const answer = num1 - num2;
+        
+        currentSubtractionProblem = {num1, num2, answer};
         
         document.getElementById('subtraction-problem').textContent = `${num1} - ${num2} = ?`;
         document.getElementById('subtraction-answer').value = '';
@@ -317,19 +295,21 @@
 
     function checkSubtraction() {
         const userAnswer = parseInt(document.getElementById('subtraction-answer').value);
-        const problemText = document.getElementById('subtraction-problem').textContent;
-        const [num1, num2] = problemText.split(' - ').map(n => parseInt(n));
-        const correctAnswer = num1 - num2;
         
         const resultDiv = document.getElementById('subtraction-result');
         resultDiv.classList.remove('hidden');
         
-        if (userAnswer === correctAnswer) {
+        if (userAnswer === currentSubtractionProblem.answer) {
             resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! Amazing subtraction!</span>';
             problemsSolved++;
             updateProgress();
+            
+            // Move to next problem after delay
+            setTimeout(() => {
+                generateSubtractionProblem();
+            }, 1500);
         } else {
-            resultDiv.innerHTML = `<span class="text-red-600 font-bold">🤔 Try again! ${num1} - ${num2} = ${correctAnswer}</span>`;
+            resultDiv.innerHTML = `<span class="text-red-600 font-bold">🤔 Try again! ${currentSubtractionProblem.num1} - ${currentSubtractionProblem.num2} = ${currentSubtractionProblem.answer}</span>`;
         }
     }
 
@@ -348,75 +328,11 @@
         }
     }
 
-    // Shape functions
-    function showShapeInfo(shapeName) {
-        const shapes = {
-            'Circle': {symbol: '⭕', description: 'A perfectly round shape with no corners or edges'},
-            'Square': {symbol: '⬜', description: 'A shape with 4 equal sides and 4 right angles'},
-            'Triangle': {symbol: '🔺', description: 'A shape with 3 sides and 3 angles'},
-            'Rectangle': {symbol: '▭', description: 'A shape with 4 sides, 2 long and 2 short'},
-            'Star': {symbol: '⭐', description: 'A shape with pointed ends, usually 5 or more points'},
-            'Heart': {symbol: '❤️', description: 'A shape that looks like the symbol of love'},
-            'Diamond': {symbol: '💎', description: 'A shape with 4 equal sides, like a tilted square'},
-            'Oval': {symbol: '🪪', description: 'A stretched circle, like an egg shape'}
-        };
-        
-        const shape = shapes[shapeName];
-        if (shape) {
-            currentShape = shapeName;
-            document.getElementById('shape-symbol').textContent = shape.symbol;
-            document.getElementById('shape-name').textContent = shapeName;
-            document.getElementById('shape-description').textContent = shape.description;
-            document.getElementById('shape-details').classList.remove('hidden');
-            
-            shapesColorsLearned.add(shapeName);
-            updateProgress();
-        }
-    }
-
-    function speakShape() {
-        const msg = new SpeechSynthesisUtterance(currentShape);
-        msg.rate = 0.8;
-        msg.pitch = 1.2;
-        window.speechSynthesis.speak(msg);
-    }
-
-    // Color functions
-    function showColorInfo(colorName, colorHex) {
-        const colorDescriptions = {
-            'Red': 'The color of apples, roses, and fire trucks',
-            'Blue': 'The color of the sky, ocean, and blueberries',
-            'Green': 'The color of grass, leaves, and frogs',
-            'Yellow': 'The color of the sun, bananas, and lemons',
-            'Orange': 'The color of oranges, pumpkins, and sunsets',
-            'Purple': 'The color of grapes, eggplants, and lavender',
-            'Pink': 'The color of flowers, cotton candy, and flamingos',
-            'Brown': 'The color of chocolate, tree trunks, and soil'
-        };
-        
-        currentColor = colorName;
-        currentColorHex = colorHex;
-        document.getElementById('color-sample').style.backgroundColor = colorHex;
-        document.getElementById('color-name').textContent = colorName;
-        document.getElementById('color-description').textContent = colorDescriptions[colorName] || `The color ${colorName}`;
-        document.getElementById('color-details').classList.remove('hidden');
-        
-        shapesColorsLearned.add(colorName);
-        updateProgress();
-    }
-
-    function speakColor() {
-        const msg = new SpeechSynthesisUtterance(currentColor);
-        msg.rate = 0.8;
-        msg.pitch = 1.2;
-        window.speechSynthesis.speak(msg);
-    }
-
     // Progress tracking
     function updateProgress() {
         document.getElementById('numbers-learned').textContent = numbersLearned.size;
         document.getElementById('problems-solved').textContent = problemsSolved;
-        document.getElementById('shapes-colors').textContent = shapesColorsLearned.size;
+        document.getElementById('shapes-learned').textContent = 0; // Removed shapes section
     }
 </script>
 {% endblock %}

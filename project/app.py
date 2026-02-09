@@ -868,6 +868,12 @@ def serve_alphabet_image(filename):
     return send_file(default_path, mimetype="image/svg+xml")
 
 
+@app.route("/grade/1/creative_corner")
+@login_required(role="student")
+def creative_corner():
+    return render_template("creative_corner.html")
+
+
 @app.route("/grade/1/alphabets")
 @login_required(role="student")
 def grade_1_alphabets():
