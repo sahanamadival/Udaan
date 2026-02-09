@@ -24,7 +24,7 @@ It leverages **AI** to provide grade-wise learning, interactive science modules,
 - 📝 Dyslexia-friendly reader: adjustable spacing, overlays, in-page TTS
 - 🃏 Flashcards & MCQ quizzes powered by GPT
 - 📖 Library of uploaded books
-- 🎓 **Grade-wise learning**: Separate dashboards for Grade 2 and Grade 4
+- 🎓 **Grade-wise learning**: Separate dashboards for Grade 1 and Grade 5
 - 📊 **Dynamic progress tracking**: Real SQLite-based stats instead of dummy data
 - 📈 **Subject modules**: Reading, Writing, Math, Science, Creative per grade
 
