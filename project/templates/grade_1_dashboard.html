@@ -100,22 +100,6 @@
             </div>
         </div>
 
-        <!-- Additional Learning Modules -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <!-- Flashcards -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-id-card text-2xl text-yellow-600"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Interactive Flashcards</h3>
-                    <p class="text-gray-600 mb-4">Practice with flashcards for all subjects</p>
-                    <a href="{{ url_for('grade_1_flashcards') }}"
-                        class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg transition-colors inline-block">
-                        Start Flashcards
-                    </a>
-                </div>
-            </div>
 
             <!-- Quizzes -->
             <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
@@ -140,9 +124,9 @@
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Creative Corner</h3>
                     <p class="text-gray-600 mb-4">Drawing and coloring activities</p>
-                    <button class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg transition-colors">
+                    <a href="{{ url_for('creative_corner') }}" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg transition-colors">
                         Get Creative
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -289,23 +273,7 @@
                             Reader</button>
                     </form>
                 </div>
-
-                <div
-                    class="bg-blue-50 border border-blue-100 rounded-xl p-6 hover:scale-105 transition-transform duration-300">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                            <span>🃏</span>
-                        </div>
-                        <h4 class="font-bold text-gray-800">Flashcards</h4>
-                    </div>
-                    <p class="text-gray-600 text-sm mb-4">Auto-generated flashcards from your materials.</p>
-                    <form action="{{ url_for('generate_flashcards') }}" method="POST">
-                        <button type="submit"
-                            class="bg-indigo-500 hover:bg-indigo-600 rounded-full py-2 px-6 text-white font-medium text-sm transition-colors">Create
-                            Flashcards</button>
-                    </form>
-                </div>
-
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 <div
                     class="bg-blue-50 border border-blue-100 rounded-xl p-6 hover:scale-105 transition-transform duration-300">
                     <div class="flex items-center gap-3 mb-4">

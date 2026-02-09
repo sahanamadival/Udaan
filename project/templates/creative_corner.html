@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}Creative Corner - Grade 1{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-pink-50 to-purple-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-purple-800 mb-2">🎨 Creative Corner 🎨</h1>
+                <p class="text-xl text-purple-600">Unleash your creativity with fun art and craft activities!</p>
+            </div>
+
+            <!-- Drawing Canvas -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">✏️ Digital Drawing Pad</h2>
+                <div class="text-center">
+                    <canvas id="drawingCanvas" width="800" height="400" class="border-2 border-gray-300 rounded-lg mx-auto bg-white cursor-crosshair"></canvas>
+                    <div class="mt-4 flex justify-center space-x-3">
+                        <input type="color" id="brushColor" value="#000000" class="w-12 h-10 rounded-lg border-2 border-gray-300">
+                        <input type="range" id="brushSize" min="1" max="20" value="5" class="w-32">
+                        <button onclick="clearCanvas()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium">
+                            <i class="fas fa-trash mr-2"></i>Clear
+                        </button>
+                        <button onclick="saveDrawing()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium">
+                            <i class="fas fa-save mr-2"></i>Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Color Picker -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🌈 Color Palette</h2>
+                <div class="text-center">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Choose a Color:</label>
+                        <input type="color" id="colorPicker" value="#3b82f6" class="w-16 h-16 rounded-lg border-2 border-gray-300">
+                        <div class="mt-2 flex flex-wrap justify-center gap-2">
+                            {% set color_presets = ['#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FFA500', '#800080', '#FFC0CB', '#A52A2A'] %}
+                            {% for preset_color in color_presets %}
+                            <div class="w-8 h-8 rounded-full cursor-pointer border-2 border-gray-300" 
+                                 style="background-color: {{ preset_color }};" 
+                                 onclick="setColor('{{ preset_color }}')"></div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <label class="block text-gray-700 mb-2">Color Name:</label>
+                        <input type="text" id="colorName" value="Blue" readonly class="border-2 border-gray-300 rounded-lg p-2 w-32 text-center">
+                        <button onclick="speakColor()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium ml-2">
+                            <i class="fas fa-volume-up mr-2"></i>Hear Color
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fun Patterns -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🌀 Fun Patterns</h2>
+                <div class="text-center">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Choose Pattern Type:</label>
+                        <select id="patternType" class="border-2 border-gray-300 rounded-lg p-2 mr-2">
+                            <option value="polka">Polka Dots</option>
+                            <option value="stripes">Stripes</option>
+                            <option value="checkerboard">Checkerboard</option>
+                            <option value="zigzag">Zigzag</option>
+                            <option value="spiral">Spiral</option>
+                        </select>
+                        <button onclick="createPattern()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium">
+                            <i class="fas fa-paint-brush mr-2"></i>Create Pattern
+                        </button>
+                    </div>
+                    <div id="patternDisplay" class="flex flex-wrap justify-center gap-2 p-4 bg-gray-100 rounded-lg min-h-32">
+                        <!-- Pattern will appear here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="text-center mt-8">
+                <a href="{{ url_for('grade_1_dashboard') }}" class="inline-block bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Drawing Canvas functionality
+    let canvas, ctx;
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        canvas = document.getElementById('drawingCanvas');
+        ctx = canvas.getContext('2d');
+        
+        // Set initial drawing properties
+        ctx.lineWidth = 5;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000000';
+        
+        // Event listeners for drawing
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        
+        // Touch events for mobile
+        canvas.addEventListener('touchstart', handleTouchStart);
+        canvas.addEventListener('touchmove', handleTouchMove);
+        canvas.addEventListener('touchend', stopDrawing);
+    });
+
+    function handleTouchStart(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousedown', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+    }
+
+    function handleTouchMove(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent('mousemove', {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+    }
+
+    function startDrawing(e) {
+        isDrawing = true;
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
+
+    function draw(e) {
+        if (!isDrawing) return;
+        
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+        
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
+
+    function stopDrawing() {
+        isDrawing = false;
+    }
+
+    // Brush color and size
+    document.getElementById('brushColor').addEventListener('change', function() {
+        ctx.strokeStyle = this.value;
+    });
+
+    document.getElementById('brushSize').addEventListener('change', function() {
+        ctx.lineWidth = this.value;
+    });
+
+    // Clear canvas
+    function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Save drawing
+    function saveDrawing() {
+        const link = document.createElement('a');
+        link.download = 'my_drawing.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    }
+
+    // Color picker functionality
+    function setColor(color) {
+        document.getElementById('colorPicker').value = color;
+        ctx.strokeStyle = color;
+        
+        // Update color name
+        const colorNames = {
+            '#FF0000': 'Red',
+            '#0000FF': 'Blue',
+            '#00FF00': 'Green',
+            '#FFFF00': 'Yellow',
+            '#FFA500': 'Orange',
+            '#800080': 'Purple',
+            '#FFC0CB': 'Pink',
+            '#A52A2A': 'Brown'
+        };
+        document.getElementById('colorName').value = colorNames[color] || 'Custom';
+    }
+    
+    document.getElementById('colorPicker').addEventListener('change', function() {
+        ctx.strokeStyle = this.value;
+        
+        // Update color name
+        const colorNames = {
+            '#FF0000': 'Red',
+            '#0000FF': 'Blue',
+            '#00FF00': 'Green',
+            '#FFFF00': 'Yellow',
+            '#FFA500': 'Orange',
+            '#800080': 'Purple',
+            '#FFC0CB': 'Pink',
+            '#A52A2A': 'Brown'
+        };
+        
+        // Find the closest color name
+        const colorValue = this.value.toUpperCase();
+        let closestColor = 'Custom';
+        for (const [code, name] of Object.entries(colorNames)) {
+            if (code === colorValue) {
+                closestColor = name;
+                break;
+            }
+        }
+        document.getElementById('colorName').value = closestColor;
+    });
+    
+    function speakColor() {
+        const colorName = document.getElementById('colorName').value;
+        const msg = new SpeechSynthesisUtterance(`The color is ${colorName}`);
+        msg.rate = 0.9;
+        msg.pitch = 1.0;
+        window.speechSynthesis.speak(msg);
+    }
+
+    // Pattern creator
+    function createPattern() {
+        const patternType = document.getElementById('patternType').value;
+        const display = document.getElementById('patternDisplay');
+        
+        // Clear previous pattern
+        display.innerHTML = '';
+        
+        // Get selected color
+        const selectedColor = document.getElementById('colorPicker').value;
+        
+        // Create pattern based on type
+        let patternElements = [];
+
+        switch(patternType) {
+            case 'polka':
+                patternElements = Array(10).fill().map(() => ({
+                    symbol: '●',
+                    style: `color: ${selectedColor}; font-size: 24px;`
+                }));
+                break;
+            case 'stripes':
+                patternElements = Array(8).fill().map(() => ({
+                    symbol: '▬',
+                    style: `color: ${selectedColor}; font-size: 24px;`
+                }));
+                break;
+            case 'checkerboard':
+                patternElements = Array(16).fill().map((_, i) => ({
+                    symbol: (i % 2 === 0) ? '■' : '□',
+                    style: `color: ${selectedColor}; font-size: 20px;`
+                }));
+                break;
+            case 'zigzag':
+                patternElements = Array(12).fill().map(() => ({
+                    symbol: '〰',
+                    style: `color: ${selectedColor}; font-size: 24px;`
+                }));
+                break;
+            case 'spiral':
+                patternElements = Array(8).fill().map(() => ({
+                    symbol: '🌀',
+                    style: `color: ${selectedColor}; font-size: 24px;`
+                }));
+                break;
+        }
+        
+        patternElements.forEach(element => {
+            const span = document.createElement('span');
+            span.className = 'pattern-element';
+            span.textContent = element.symbol;
+            span.style = element.style;
+            display.appendChild(span);
+        });
+    }
+</script>
+
+<style>
+    .pattern-element {
+        animation: pulse 0.5s ease-in-out;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(0.8); opacity: 0.7; }
+        50% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+</style>
+{% endblock %}

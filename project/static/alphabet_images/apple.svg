@@ -1,0 +1,7 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#ff6b6b"/>
+  <circle cx="100" cy="80" r="50" fill="#ff5252"/>
+  <path d="M100 130 Q120 160 110 180 Q100 170 90 180 Q80 160 100 130" fill="#8b4513"/>
+  <text x="100" y="75" font-family="Arial" font-size="24" fill="white" text-anchor="middle">A</text>
+  <text x="100" y="110" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Apple</text>
+</svg>

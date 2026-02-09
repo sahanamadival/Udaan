@@ -1,0 +1,9 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#ff9aa2"/>
+  <circle cx="100" cy="85" r="55" fill="#e91e63"/>
+  <circle cx="80" cy="70" r="8" fill="white"/>
+  <circle cx="120" cy="70" r="8" fill="white"/>
+  <path d="M85 100 Q100 120 115 100" stroke="white" stroke-width="3" fill="none"/>
+  <text x="100" y="80" font-family="Arial" font-size="24" fill="white" text-anchor="middle">E</text>
+  <text x="100" y="125" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Elephant</text>
+</svg>
