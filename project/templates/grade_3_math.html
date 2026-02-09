@@ -263,7 +263,7 @@
         `;
 
         q.options.forEach(opt => {
-            html += `<button onclick="checkAnswer('shape', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-theme transition-colors bg-blue-500 border-blue-700">${opt}</button>`;
+            html += `<button onclick="checkAnswer('time', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-theme transition-colors bg-blue-500 border-blue-700">${opt}</button>`;
         });
         html += `</div>`;
         container.innerHTML = html;
@@ -354,14 +354,10 @@
     }
 
     function checkAnswer(type, selected, correct) {
-        // Map type (singular from DOM) to data keys (plural in JSON)
-        // DOM IDs: time-feedback, shape-feedback, fraction-feedback, word-feedback
-        // JSON keys: time, shapes, fractions, word_problems
-
         const feedbackEl = document.getElementById(`${type}-feedback`);
         const scoreEl = document.getElementById(`${type}-score`);
 
-        // Map for data access
+        // Map for data access (JSON keys)
         const keyMap = {
             'time': 'time',
             'shape': 'shapes',
@@ -369,17 +365,14 @@
             'word': 'word_problems'
         };
         const dataKey = keyMap[type];
+        
+        // Map for state indices/scores
+        const stateKey = (type === 'shape') ? 'shapes' : (type === 'fraction') ? 'fractions' : type;
 
         if (selected === correct) {
             feedbackEl.textContent = "✅ Correct!";
             feedbackEl.className = "h-8 mt-2 text-xl font-bold text-center text-green-600";
             speak("Correct!");
-
-            // Map scores/indices keys (which I defined as plural/singular mixed...)
-            // Let's standardize state keys to match DOM type for simplicity where possible?
-            // Actually, my state keys are: time, shapes, fractions, word
-            // Let's use the type to map to state key.
-            const stateKey = (type === 'shape') ? 'shapes' : (type === 'fraction') ? 'fractions' : type;
 
             scores[stateKey]++;
             scoreEl.textContent = scores[stateKey];
@@ -390,7 +383,6 @@
             const remaining = (mathData[dataKey]?.length || 0) - indices[stateKey];
 
             if (remaining <= 2 && !isFetching) {
-                console.log("Pre-fetching more questions...");
                 fetchQuestions(true);
             }
 

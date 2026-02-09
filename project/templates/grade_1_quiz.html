@@ -4,488 +4,502 @@
 
 {% block content %}
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-indigo-800 mb-2">Grade 1 Quiz</h1>
-            <p class="text-xl text-indigo-600">Test your knowledge with fun quizzes</p>
-        </div>
-
-        <!-- Subject Selection -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Choose Quiz Topic</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <button onclick="selectTopic('alphabet')" class="bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-xl p-4 font-medium transition-colors">Alphabets</button>
-                <button onclick="selectTopic('numbers')" class="bg-green-100 hover:bg-green-200 text-green-700 rounded-xl p-4 font-medium transition-colors">Numbers</button>
-                <button onclick="selectTopic('shapes')" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-xl p-4 font-medium transition-colors">Shapes</button>
-                <button onclick="selectTopic('colors')" class="bg-red-100 hover:bg-red-200 text-red-700 rounded-xl p-4 font-medium transition-colors">Colors</button>
-                <button onclick="selectTopic('animals')" class="bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl p-4 font-medium transition-colors">Animals</button>
-                <button onclick="selectTopic('plants')" class="bg-teal-100 hover:bg-teal-200 text-teal-700 rounded-xl p-4 font-medium transition-colors">Plants</button>
-                <button onclick="selectTopic('addition')" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-xl p-4 font-medium transition-colors">Addition</button>
-                <button onclick="selectTopic('subtraction')" class="bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-xl p-4 font-medium transition-colors">Subtraction</button>
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-indigo-800 mb-2">Grade 1 Quiz</h1>
+                <p class="text-xl text-indigo-600">Test your knowledge with fun quizzes</p>
             </div>
-        </div>
 
-        <!-- Quiz Container -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 hidden" id="quiz-container">
-            <div class="flex justify-between items-center mb-6">
-                <h2 id="topic-title" class="text-2xl font-bold text-gray-800"></h2>
-                <div class="text-lg font-medium text-gray-600">
-                    Question <span id="current-question">1</span> of <span id="total-questions">5</span>
+            <!-- Subject Selection -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Choose Quiz Topic</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <button onclick="selectTopic('alphabet')"
+                        class="bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-xl p-4 font-medium transition-colors">Alphabets</button>
+                    <button onclick="selectTopic('numbers')"
+                        class="bg-green-100 hover:bg-green-200 text-green-700 rounded-xl p-4 font-medium transition-colors">Numbers</button>
+                    <button onclick="selectTopic('shapes')"
+                        class="bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-xl p-4 font-medium transition-colors">Shapes</button>
+                    <button onclick="selectTopic('colors')"
+                        class="bg-red-100 hover:bg-red-200 text-red-700 rounded-xl p-4 font-medium transition-colors">Colors</button>
+                    <button onclick="selectTopic('animals')"
+                        class="bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl p-4 font-medium transition-colors">Animals</button>
+                    <button onclick="selectTopic('plants')"
+                        class="bg-teal-100 hover:bg-teal-200 text-teal-700 rounded-xl p-4 font-medium transition-colors">Plants</button>
+                    <button onclick="selectTopic('addition')"
+                        class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-xl p-4 font-medium transition-colors">Addition</button>
+                    <button onclick="selectTopic('subtraction')"
+                        class="bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-xl p-4 font-medium transition-colors">Subtraction</button>
                 </div>
             </div>
-            
-            <div class="mb-6">
-                <div class="text-xl font-bold text-indigo-600 mb-4" id="question-text">Question will appear here</div>
-                <div class="bg-gray-100 rounded-xl p-4 mb-4" id="question-image">
-                    <!-- Image will be displayed here for visual questions -->
-                </div>
-            </div>
-            
-            <div class="space-y-3 mb-6" id="answers-container">
-                <!-- Answers will be populated here -->
-            </div>
-            
-            <div class="flex justify-between">
-                <button id="prev-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg disabled:opacity-50" disabled>
-                    Previous
-                </button>
-                <button id="next-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg">
-                    Next Question
-                </button>
-            </div>
-        </div>
 
-        <!-- Results Screen -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 hidden" id="results-container">
-            <div class="text-center">
-                <h2 class="text-3xl font-bold text-gray-800 mb-4">Quiz Completed!</h2>
-                <div class="text-5xl font-bold text-indigo-600 mb-4" id="final-score">0/0</div>
-                <div class="text-xl text-gray-600 mb-6" id="score-message">Well done!</div>
-                
-                <div class="mb-6">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Review Your Answers</h3>
-                    <div id="review-container">
-                        <!-- Review of answers will be shown here -->
+            <!-- Quiz Container -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 hidden" id="quiz-container">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="topic-title" class="text-2xl font-bold text-gray-800"></h2>
+                    <div class="text-lg font-medium text-gray-600">
+                        Question <span id="current-question">1</span> of <span id="total-questions">5</span>
                     </div>
                 </div>
-                
-                <div class="flex justify-center space-x-4">
-                    <button onclick="restartQuiz()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium">
-                        Retake Quiz
+
+                <div class="mb-6">
+                    <div class="text-xl font-bold text-indigo-600 mb-4" id="question-text">Question will appear here
+                    </div>
+                    <div class="bg-gray-100 rounded-xl p-4 mb-4" id="question-image">
+                        <!-- Image will be displayed here for visual questions -->
+                    </div>
+                </div>
+
+                <div class="space-y-3 mb-6" id="answers-container">
+                    <!-- Answers will be populated here -->
+                </div>
+
+                <div class="flex justify-between">
+                    <button id="prev-btn"
+                        class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2 rounded-lg disabled:opacity-50"
+                        disabled>
+                        Previous
                     </button>
-                    <button onclick="newQuiz()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium">
-                        New Quiz
+                    <button id="next-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg">
+                        Next Question
                     </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Back Button -->
-        <div class="text-center">
-            <a href="{{ url_for('grade_1_dashboard') }}" class="inline-block bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium">
-                Back to Dashboard
-            </a>
+            <!-- Results Screen -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 hidden" id="results-container">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">Quiz Completed!</h2>
+                    <div class="text-5xl font-bold text-indigo-600 mb-4" id="final-score">0/0</div>
+                    <div class="text-xl text-gray-600 mb-6" id="score-message">Well done!</div>
+
+                    <div class="mb-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Review Your Answers</h3>
+                        <div id="review-container">
+                            <!-- Review of answers will be shown here -->
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center space-x-4">
+                        <button onclick="restartQuiz()"
+                            class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium">
+                            Retake Quiz
+                        </button>
+                        <button onclick="newQuiz()"
+                            class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium">
+                            New Quiz
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="text-center">
+                <a href="{{ url_for('grade_1_dashboard') }}"
+                    class="inline-block bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium">
+                    Back to Dashboard
+                </a>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    let currentTopic = null;
-    let currentQuestionIndex = 0;
-    let score = 0;
-    let userAnswers = [];
-    let questions = [];
+    <script>
+        let currentTopic = null;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = [];
+        let questions = [];
 
-    // Quiz questions data
-    const quizQuestions = {
-        alphabet: [
-            {
-                question: "What sound does the letter 'B' make?",
-                options: ["Buh", "Ah", "Cuh", "Duh"],
-                correct: 0,
-                image: null
-            },
-            {
-                question: "Which letter comes after 'M'?",
-                options: ["N", "O", "L", "P"],
-                correct: 0,
-                image: null
-            },
-            {
-                question: "How many letters are in the alphabet?",
-                options: ["24", "25", "26", "27"],
-                correct: 2,
-                image: null
-            },
-            {
-                question: "What is the first letter of the alphabet?",
-                options: ["B", "A", "C", "Z"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "Which letter does 'Apple' start with?",
-                options: ["B", "A", "C", "D"],
-                correct: 1,
-                image: null
-            }
-        ],
-        numbers: [
-            {
-                question: "What number comes after 5?",
-                options: ["4", "6", "7", "3"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "How many fingers do you have on one hand?",
-                options: ["4", "5", "6", "10"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "Which number is bigger: 8 or 5?",
-                options: ["5", "8", "They are the same", "Cannot say"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "What number comes before 10?",
-                options: ["8", "9", "11", "7"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "How many eyes do you have?",
-                options: ["1", "2", "3", "4"],
-                correct: 1,
-                image: null
-            }
-        ],
-        shapes: [
-            {
-                question: "Which shape has 3 sides?",
-                options: ["Circle", "Square", "Triangle", "Rectangle"],
-                correct: 2,
-                image: null
-            },
-            {
-                question: "What shape is a ball?",
-                options: ["Square", "Triangle", "Circle", "Star"],
-                correct: 2,
-                image: null
-            },
-            {
-                question: "Which shape has 4 equal sides?",
-                options: ["Triangle", "Circle", "Square", "Rectangle"],
-                correct: 2,
-                image: null
-            },
-            {
-                question: "What shape is a door usually?",
-                options: ["Circle", "Triangle", "Square", "Rectangle"],
-                correct: 3,
-                image: null
-            },
-            {
-                question: "Which shape looks like the sun?",
-                options: ["Square", "Triangle", "Circle", "Star"],
-                correct: 2,
-                image: null
-            }
-        ],
-        colors: [
-            {
-                question: "What color is grass?",
-                options: ["Blue", "Red", "Green", "Yellow"],
-                correct: 2,
-                image: null
-            },
-            {
-                question: "What color is the sky?",
-                options: ["Green", "Blue", "Red", "Yellow"],
-                image: null,
-                correct: 1
-            },
-            {
-                question: "What color are apples (usually)?",
-                options: ["Blue", "Green", "Red", "Purple"],
-                correct: 2,
-                image: null
-            },
-            {
-                question: "What color is snow?",
-                options: ["White", "Black", "Blue", "Green"],
-                correct: 0,
-                image: null
-            },
-            {
-                question: "What color is a banana?",
-                options: ["Blue", "Green", "Red", "Yellow"],
-                correct: 3,
-                image: null
-            }
-        ],
-        animals: [
-            {
-                question: "Which animal says 'Meow'?",
-                options: ["Dog", "Cat", "Cow", "Lion"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "Which animal is known as the 'King of Jungle'?",
-                options: ["Tiger", "Elephant", "Lion", "Bear"],
-                correct: 2,
-                image: null
-            },
-            {
-                question: "Which animal has a trunk?",
-                options: ["Lion", "Elephant", "Tiger", "Monkey"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "Which animal can fly?",
-                options: ["Fish", "Elephant", "Bird", "Lion"],
-                correct: 2,
-                image: null
-            },
-            {
-                question: "Which animal lives in water?",
-                options: ["Cat", "Fish", "Lion", "Elephant"],
-                correct: 1,
-                image: null
-            }
-        ],
-        plants: [
-            {
-                question: "What do trees have that gives us oxygen?",
-                options: ["Trunk", "Leaves", "Roots", "Branches"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "What do flowers become?",
-                options: ["Trees", "Fruits", "Leaves", "Roots"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "What grows on the ground and is green?",
-                options: ["Tree", "Flower", "Grass", "Rock"],
-                correct: 2,
-                image: null
-            },
-            {
-                question: "What fruit grows on trees?",
-                options: ["Carrot", "Potato", "Apple", "Tomato"],
-                correct: 2,
-                image: null
-            },
-            {
-                question: "What do plants need to grow?",
-                options: ["Darkness", "Water and sunlight", "Cold", "Sand"],
-                correct: 1,
-                image: null
-            }
-        ],
-        addition: [
-            {
-                question: "What is 2 + 3?",
-                options: ["4", "5", "6", "3"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "What is 4 + 1?",
-                options: ["6", "5", "4", "3"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "What is 3 + 2?",
-                options: ["4", "5", "6", "7"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "What is 1 + 5?",
-                options: ["4", "5", "6", "7"],
-                correct: 2,
-                image: null
-            },
-            {
-                question: "What is 2 + 2?",
-                options: ["3", "4", "5", "6"],
-                correct: 1,
-                image: null
-            }
-        ],
-        subtraction: [
-            {
-                question: "What is 5 - 2?",
-                options: ["2", "3", "4", "1"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "What is 7 - 3?",
-                options: ["4", "5", "3", "6"],
-                correct: 0,
-                image: null
-            },
-            {
-                question: "What is 6 - 1?",
-                options: ["4", "5", "6", "7"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "What is 8 - 4?",
-                options: ["3", "4", "5", "6"],
-                correct: 1,
-                image: null
-            },
-            {
-                question: "What is 9 - 5?",
-                options: ["3", "4", "5", "6"],
-                correct: 1,
-                image: null
-            }
-        ]
-    };
+        // Quiz questions data
+        const quizQuestions = {
+            alphabet: [
+                {
+                    question: "What sound does the letter 'B' make?",
+                    options: ["Buh", "Ah", "Cuh", "Duh"],
+                    correct: 0,
+                    image: null
+                },
+                {
+                    question: "Which letter comes after 'M'?",
+                    options: ["N", "O", "L", "P"],
+                    correct: 0,
+                    image: null
+                },
+                {
+                    question: "How many letters are in the alphabet?",
+                    options: ["24", "25", "26", "27"],
+                    correct: 2,
+                    image: null
+                },
+                {
+                    question: "What is the first letter of the alphabet?",
+                    options: ["B", "A", "C", "Z"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "Which letter does 'Apple' start with?",
+                    options: ["B", "A", "C", "D"],
+                    correct: 1,
+                    image: null
+                }
+            ],
+            numbers: [
+                {
+                    question: "What number comes after 5?",
+                    options: ["4", "6", "7", "3"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "How many fingers do you have on one hand?",
+                    options: ["4", "5", "6", "10"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "Which number is bigger: 8 or 5?",
+                    options: ["5", "8", "They are the same", "Cannot say"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "What number comes before 10?",
+                    options: ["8", "9", "11", "7"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "How many eyes do you have?",
+                    options: ["1", "2", "3", "4"],
+                    correct: 1,
+                    image: null
+                }
+            ],
+            shapes: [
+                {
+                    question: "Which shape has 3 sides?",
+                    options: ["Circle", "Square", "Triangle", "Rectangle"],
+                    correct: 2,
+                    image: null
+                },
+                {
+                    question: "What shape is a ball?",
+                    options: ["Square", "Triangle", "Circle", "Star"],
+                    correct: 2,
+                    image: null
+                },
+                {
+                    question: "Which shape has 4 equal sides?",
+                    options: ["Triangle", "Circle", "Square", "Rectangle"],
+                    correct: 2,
+                    image: null
+                },
+                {
+                    question: "What shape is a door usually?",
+                    options: ["Circle", "Triangle", "Square", "Rectangle"],
+                    correct: 3,
+                    image: null
+                },
+                {
+                    question: "Which shape looks like the sun?",
+                    options: ["Square", "Triangle", "Circle", "Star"],
+                    correct: 2,
+                    image: null
+                }
+            ],
+            colors: [
+                {
+                    question: "What color is grass?",
+                    options: ["Blue", "Red", "Green", "Yellow"],
+                    correct: 2,
+                    image: null
+                },
+                {
+                    question: "What color is the sky?",
+                    options: ["Green", "Blue", "Red", "Yellow"],
+                    image: null,
+                    correct: 1
+                },
+                {
+                    question: "What color are apples (usually)?",
+                    options: ["Blue", "Green", "Red", "Purple"],
+                    correct: 2,
+                    image: null
+                },
+                {
+                    question: "What color is snow?",
+                    options: ["White", "Black", "Blue", "Green"],
+                    correct: 0,
+                    image: null
+                },
+                {
+                    question: "What color is a banana?",
+                    options: ["Blue", "Green", "Red", "Yellow"],
+                    correct: 3,
+                    image: null
+                }
+            ],
+            animals: [
+                {
+                    question: "Which animal says 'Meow'?",
+                    options: ["Dog", "Cat", "Cow", "Lion"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "Which animal is known as the 'King of Jungle'?",
+                    options: ["Tiger", "Elephant", "Lion", "Bear"],
+                    correct: 2,
+                    image: null
+                },
+                {
+                    question: "Which animal has a trunk?",
+                    options: ["Lion", "Elephant", "Tiger", "Monkey"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "Which animal can fly?",
+                    options: ["Fish", "Elephant", "Bird", "Lion"],
+                    correct: 2,
+                    image: null
+                },
+                {
+                    question: "Which animal lives in water?",
+                    options: ["Cat", "Fish", "Lion", "Elephant"],
+                    correct: 1,
+                    image: null
+                }
+            ],
+            plants: [
+                {
+                    question: "What do trees have that gives us oxygen?",
+                    options: ["Trunk", "Leaves", "Roots", "Branches"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "What do flowers become?",
+                    options: ["Trees", "Fruits", "Leaves", "Roots"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "What grows on the ground and is green?",
+                    options: ["Tree", "Flower", "Grass", "Rock"],
+                    correct: 2,
+                    image: null
+                },
+                {
+                    question: "What fruit grows on trees?",
+                    options: ["Carrot", "Potato", "Apple", "Tomato"],
+                    correct: 2,
+                    image: null
+                },
+                {
+                    question: "What do plants need to grow?",
+                    options: ["Darkness", "Water and sunlight", "Cold", "Sand"],
+                    correct: 1,
+                    image: null
+                }
+            ],
+            addition: [
+                {
+                    question: "What is 2 + 3?",
+                    options: ["4", "5", "6", "3"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "What is 4 + 1?",
+                    options: ["6", "5", "4", "3"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "What is 3 + 2?",
+                    options: ["4", "5", "6", "7"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "What is 1 + 5?",
+                    options: ["4", "5", "6", "7"],
+                    correct: 2,
+                    image: null
+                },
+                {
+                    question: "What is 2 + 2?",
+                    options: ["3", "4", "5", "6"],
+                    correct: 1,
+                    image: null
+                }
+            ],
+            subtraction: [
+                {
+                    question: "What is 5 - 2?",
+                    options: ["2", "3", "4", "1"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "What is 7 - 3?",
+                    options: ["4", "5", "3", "6"],
+                    correct: 0,
+                    image: null
+                },
+                {
+                    question: "What is 6 - 1?",
+                    options: ["4", "5", "6", "7"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "What is 8 - 4?",
+                    options: ["3", "4", "5", "6"],
+                    correct: 1,
+                    image: null
+                },
+                {
+                    question: "What is 9 - 5?",
+                    options: ["3", "4", "5", "6"],
+                    correct: 1,
+                    image: null
+                }
+            ]
+        };
 
-    // Select a quiz topic
-    function selectTopic(topic) {
-        currentTopic = topic;
-        questions = quizQuestions[topic];
-        currentQuestionIndex = 0;
-        score = 0;
-        userAnswers = Array(questions.length).fill(null);
-        
-        document.getElementById('topic-title').textContent = topic.charAt(0).toUpperCase() + topic.slice(1) + ' Quiz';
-        document.getElementById('total-questions').textContent = questions.length;
-        document.getElementById('quiz-container').classList.remove('hidden');
-        
-        showQuestion();
-    }
+        // Select a quiz topic
+        function selectTopic(topic) {
+            currentTopic = topic;
+            questions = quizQuestions[topic];
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = Array(questions.length).fill(null);
 
-    // Show current question
-    function showQuestion() {
-        const question = questions[currentQuestionIndex];
-        
-        document.getElementById('current-question').textContent = currentQuestionIndex + 1;
-        document.getElementById('question-text').textContent = question.question;
-        
-        // Clear previous image
-        document.getElementById('question-image').innerHTML = '';
-        
-        // Show image if available
-        if (question.image) {
-            document.getElementById('question-image').innerHTML = `<img src="${question.image}" alt="Question illustration" class="w-full h-48 object-contain">`;
+            document.getElementById('topic-title').textContent = topic.charAt(0).toUpperCase() + topic.slice(1) + ' Quiz';
+            document.getElementById('total-questions').textContent = questions.length;
+            document.getElementById('quiz-container').classList.remove('hidden');
+
+            showQuestion();
         }
-        
-        // Populate answer options
-        const answersContainer = document.getElementById('answers-container');
-        answersContainer.innerHTML = '';
-        
-        question.options.forEach((option, index) => {
-            const answerDiv = document.createElement('div');
-            answerDiv.className = 'bg-gray-100 hover:bg-gray-200 p-4 rounded-lg cursor-pointer answer-option transition-colors';
-            answerDiv.innerHTML = `
+
+        // Show current question
+        function showQuestion() {
+            const question = questions[currentQuestionIndex];
+
+            document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+            document.getElementById('question-text').textContent = question.question;
+
+            // Clear previous image
+            document.getElementById('question-image').innerHTML = '';
+
+            // Show image if available
+            if (question.image) {
+                document.getElementById('question-image').innerHTML = `<img src="${question.image}" alt="Question illustration" class="w-full h-48 object-contain">`;
+            }
+
+            // Populate answer options
+            const answersContainer = document.getElementById('answers-container');
+            answersContainer.innerHTML = '';
+
+            question.options.forEach((option, index) => {
+                const answerDiv = document.createElement('div');
+                answerDiv.className = 'bg-gray-100 hover:bg-gray-200 p-4 rounded-lg cursor-pointer answer-option transition-colors';
+                answerDiv.innerHTML = `
                 <label class="flex items-center">
                     <input type="radio" name="answer" value="${index}" class="mr-3" ${userAnswers[currentQuestionIndex] === index ? 'checked' : ''}>
                     <span>${String.fromCharCode(65 + index)}. ${option}</span>
                 </label>
             `;
-            
-            // Add event listener to update user answer
-            answerDiv.querySelector('input').addEventListener('change', function() {
-                userAnswers[currentQuestionIndex] = parseInt(this.value);
-                
-                // Enable next button
-                document.getElementById('next-btn').textContent = 
-                    currentQuestionIndex === questions.length - 1 ? 'Submit Quiz' : 'Next Question';
+
+                // Add event listener to update user answer
+                answerDiv.querySelector('input').addEventListener('change', function () {
+                    userAnswers[currentQuestionIndex] = parseInt(this.value);
+
+                    // Enable next button
+                    document.getElementById('next-btn').textContent =
+                        currentQuestionIndex === questions.length - 1 ? 'Submit Quiz' : 'Next Question';
+                });
+
+                answersContainer.appendChild(answerDiv);
             });
-            
-            answersContainer.appendChild(answerDiv);
-        });
-        
-        // Update navigation buttons
-        document.getElementById('prev-btn').disabled = currentQuestionIndex === 0;
-        
-        // Update next button text
-        document.getElementById('next-btn').textContent = 
-            currentQuestionIndex === questions.length - 1 ? 'Submit Quiz' : 'Next Question';
-    }
 
-    // Navigation functions
-    document.getElementById('prev-btn').addEventListener('click', function() {
-        if (currentQuestionIndex > 0) {
-            currentQuestionIndex--;
-            showQuestion();
+            // Update navigation buttons
+            document.getElementById('prev-btn').disabled = currentQuestionIndex === 0;
+
+            // Update next button text
+            document.getElementById('next-btn').textContent =
+                currentQuestionIndex === questions.length - 1 ? 'Submit Quiz' : 'Next Question';
         }
-    });
 
-    document.getElementById('next-btn').addEventListener('click', function() {
-        // If it's the last question and we're submitting
-        if (currentQuestionIndex === questions.length - 1) {
-            submitQuiz();
-        } else {
-            // Move to next question
-            if (currentQuestionIndex < questions.length - 1) {
-                currentQuestionIndex++;
+        // Navigation functions
+        document.getElementById('prev-btn').addEventListener('click', function () {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
                 showQuestion();
             }
-        }
-    });
+        });
 
-    // Submit quiz and show results
-    function submitQuiz() {
-        // Calculate final score
-        for (let i = 0; i < questions.length; i++) {
-            if (userAnswers[i] === questions[i].correct) {
-                score++;
+        document.getElementById('next-btn').addEventListener('click', function () {
+            // If it's the last question and we're submitting
+            if (currentQuestionIndex === questions.length - 1) {
+                submitQuiz();
+            } else {
+                // Move to next question
+                if (currentQuestionIndex < questions.length - 1) {
+                    currentQuestionIndex++;
+                    showQuestion();
+                }
             }
-        }
-        
-        // Show results screen
-        document.getElementById('quiz-container').classList.add('hidden');
-        document.getElementById('results-container').classList.remove('hidden');
-        
-        // Display final score
-        document.getElementById('final-score').textContent = `${score}/${questions.length}`;
-        
-        // Set score message
-        const scorePercentage = (score / questions.length) * 100;
-        let message = '';
-        
-        if (scorePercentage >= 80) {
-            message = 'Excellent! Great job!';
-        } else if (scorePercentage >= 60) {
-            message = 'Good work! Keep learning!';
-        } else if (scorePercentage >= 40) {
-            message = 'Nice try! Keep practicing!';
-        } else {
-            message = 'Keep trying! You\'ll get better!';
-        }
-        
-        document.getElementById('score-message').textContent = message;
-        
-        // Show review of answers
-        const reviewContainer = document.getElementById('review-container');
-        reviewContainer.innerHTML = '<div class="space-y-4">';
-        
-        questions.forEach((question, index) => {
-            const isCorrect = userAnswers[index] === question.correct;
-            const userAnswerText = userAnswers[index] !== null ? 
-                question.options[userAnswers[index]] : 'No answer';
-            const correctAnswerText = question.options[question.correct];
-            
-            reviewContainer.innerHTML += `
+        });
+
+        // Submit quiz and show results
+        function submitQuiz() {
+            // Calculate final score
+            for (let i = 0; i < questions.length; i++) {
+                if (userAnswers[i] === questions[i].correct) {
+                    score++;
+                }
+            }
+
+            // Show results screen
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('results-container').classList.remove('hidden');
+
+            // Display final score
+            document.getElementById('final-score').textContent = `${score}/${questions.length}`;
+
+            // Set score message
+            const scorePercentage = (score / questions.length) * 100;
+            let message = '';
+
+            if (scorePercentage >= 80) {
+                message = 'Excellent! Great job!';
+            } else if (scorePercentage >= 60) {
+                message = 'Good work! Keep learning!';
+            } else if (scorePercentage >= 40) {
+                message = 'Nice try! Keep practicing!';
+            } else {
+                message = 'Keep trying! You\'ll get better!';
+            }
+
+            document.getElementById('score-message').textContent = message;
+
+            // Show review of answers
+            const reviewContainer = document.getElementById('review-container');
+            reviewContainer.innerHTML = '<div class="space-y-4">';
+
+            questions.forEach((question, index) => {
+                const isCorrect = userAnswers[index] === question.correct;
+                const userAnswerText = userAnswers[index] !== null ?
+                    question.options[userAnswers[index]] : 'No answer';
+                const correctAnswerText = question.options[question.correct];
+
+                reviewContainer.innerHTML += `
                 <div class="border rounded-lg p-4 ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}">
                     <div class="font-bold text-gray-800 mb-2">${index + 1}. ${question.question}</div>
                     <div class="ml-4 space-y-1">
@@ -497,28 +511,49 @@
                     </div>
                 </div>
             `;
-        });
-        
-        reviewContainer.innerHTML += '</div>';
-    }
+            });
 
-    // Restart quiz with same topic
-    function restartQuiz() {
-        currentQuestionIndex = 0;
-        score = 0;
-        userAnswers = Array(questions.length).fill(null);
-        
-        document.getElementById('results-container').classList.add('hidden');
-        document.getElementById('quiz-container').classList.remove('hidden');
-        
-        showQuestion();
-    }
+            reviewContainer.innerHTML += '</div>';
 
-    // Start a new quiz with different topic
-    function newQuiz() {
-        currentTopic = null;
-        document.getElementById('results-container').classList.add('hidden');
-        document.getElementById('quiz-container').classList.add('hidden');
-    }
-</script>
-{% endblock %}
+            // Save Progress
+            saveProgress(score, questions.length);
+        }
+
+        // --- Save Progress ---
+        async function saveProgress(score, total) {
+            if (!currentTopic) return;
+
+            let prefix = 'g1_logic_'; // Default for shapes
+            if (['addition', 'subtraction', 'numbers'].includes(currentTopic)) prefix = 'g1_math_';
+            if (['animals', 'plants'].includes(currentTopic)) prefix = 'g1_science_';
+            if (['alphabet', 'colors'].includes(currentTopic)) prefix = 'g1_grammar_';
+
+            try {
+                await fetch('/api/submit_progress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quiz_id: `${prefix}quiz_${currentTopic}`, score: score, total: total })
+                });
+            } catch (e) { }
+        }
+
+        // Restart quiz with same topic
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            userAnswers = Array(questions.length).fill(null);
+
+            document.getElementById('results-container').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+
+            showQuestion();
+        }
+
+        // Start a new quiz with different topic
+        function newQuiz() {
+            currentTopic = null;
+            document.getElementById('results-container').classList.add('hidden');
+            document.getElementById('quiz-container').classList.add('hidden');
+        }
+    </script>
+    {% endblock %}

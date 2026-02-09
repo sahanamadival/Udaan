@@ -175,23 +175,18 @@
         }
     }
 
-    async function saveProgress() {
+    async function saveProgress(qid, pts) {
         try {
-            const data = {
-                learned: Array.from(learnedLetters),
-                pronunciationCount: pronunciationCount,
-                gamesPlayed: gamesPlayed
-            };
-
-            await fetch('/api/save_progress', {
+            await fetch('/api/submit_progress', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    activity_type: ACTIVITY_KEY,
-                    data: data
+                    quiz_id: `g1_grammar_${qid}`,
+                    score: pts,
+                    total: pts
                 })
             });
-            console.log("Progress saved");
+            console.log("Progress saved to DB");
         } catch (error) {
             console.error("Failed to save progress:", error);
         }
@@ -217,6 +212,7 @@
         // Add to learned letters
         learnedLetters.add(letter);
         updateProgress();
+        saveProgress(`alphabet_${letter}`, 1);
     }
 
     // Load letter information from OpenAI
@@ -338,6 +334,7 @@
                 // Color code based on accuracy
                 if (data.is_correct) {
                     feedbackDiv.className = 'text-lg font-medium text-green-600';
+                    saveProgress(`alphabet_pronunciation_${currentLetter}`, 2);
                 } else if (data.accuracy > 70) {
                     feedbackDiv.className = 'text-lg font-medium text-yellow-600';
                 } else {
@@ -365,6 +362,7 @@
 
         if (answer === 'correct') {
             resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! Well done!</span>';
+            saveProgress('alphabet_game', 3);
         } else {
             resultDiv.innerHTML = '<span class="text-red-600 font-bold">🤔 Try again! You can do it!</span>';
         }

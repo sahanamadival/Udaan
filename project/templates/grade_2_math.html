@@ -4,173 +4,192 @@
 
 {% block content %}
 <div class="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-6xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-emerald-800 mb-2">🔢 Math Mastery 🔢</h1>
-            <p class="text-xl text-emerald-600">Addition, Subtraction, and Multiplication Practice</p>
-        </div>
-
-        <!-- Math Operations Menu -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Choose Math Operation</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <button onclick="selectOperation('addition')" class="bg-green-100 hover:bg-green-200 rounded-xl p-6 text-center transition-colors">
-                    <div class="text-4xl mb-3">➕</div>
-                    <div class="text-xl font-bold text-green-700">Addition</div>
-                    <div class="text-gray-600">Learn to add numbers</div>
-                </button>
-                <button onclick="selectOperation('subtraction')" class="bg-orange-100 hover:bg-orange-200 rounded-xl p-6 text-center transition-colors">
-                    <div class="text-4xl mb-3">➖</div>
-                    <div class="text-xl font-bold text-orange-700">Subtraction</div>
-                    <div class="text-gray-600">Learn to subtract numbers</div>
-                </button>
-                <button onclick="selectOperation('multiplication')" class="bg-purple-100 hover:bg-purple-200 rounded-xl p-6 text-center transition-colors">
-                    <div class="text-4xl mb-3">✖️</div>
-                    <div class="text-xl font-bold text-purple-700">Multiplication</div>
-                    <div class="text-gray-600">Learn to multiply numbers</div>
-                </button>
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-emerald-800 mb-2">🔢 Math Mastery 🔢</h1>
+                <p class="text-xl text-emerald-600">Addition, Subtraction, and Multiplication Practice</p>
             </div>
-        </div>
 
-        <!-- Addition Practice -->
-        <div id="addition-section" class="bg-white rounded-2xl shadow-lg p-6 mb-8 hidden">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">➕ Addition Practice</h2>
-            <div class="text-center mb-6">
-                <div class="text-3xl font-bold text-green-600 mb-4" id="addition-problem">5 + 3 = ?</div>
-                <div class="flex justify-center space-x-4 mb-6" id="addition-objects">
-                    <div class="text-4xl">🍎</div>
-                    <div class="text-4xl">🍎</div>
-                    <div class="text-4xl">🍎</div>
-                    <div class="text-4xl">🍎</div>
-                    <div class="text-4xl">🍎</div>
-                    <div class="text-2xl mx-4">+</div>
-                    <div class="text-4xl">🍊</div>
-                    <div class="text-4xl">🍊</div>
-                    <div class="text-4xl">🍊</div>
+            <!-- Math Operations Menu -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Choose Math Operation</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <button onclick="selectOperation('addition')"
+                        class="bg-green-100 hover:bg-green-200 rounded-xl p-6 text-center transition-colors">
+                        <div class="text-4xl mb-3">➕</div>
+                        <div class="text-xl font-bold text-green-700">Addition</div>
+                        <div class="text-gray-600">Learn to add numbers</div>
+                    </button>
+                    <button onclick="selectOperation('subtraction')"
+                        class="bg-orange-100 hover:bg-orange-200 rounded-xl p-6 text-center transition-colors">
+                        <div class="text-4xl mb-3">➖</div>
+                        <div class="text-xl font-bold text-orange-700">Subtraction</div>
+                        <div class="text-gray-600">Learn to subtract numbers</div>
+                    </button>
+                    <button onclick="selectOperation('multiplication')"
+                        class="bg-purple-100 hover:bg-purple-200 rounded-xl p-6 text-center transition-colors">
+                        <div class="text-4xl mb-3">✖️</div>
+                        <div class="text-xl font-bold text-purple-700">Multiplication</div>
+                        <div class="text-gray-600">Learn to multiply numbers</div>
+                    </button>
                 </div>
-                <div class="grid grid-cols-4 gap-3 max-w-md mx-auto mb-6">
-                    <button onclick="checkAddition(8)" class="bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl">8</button>
-                    <button onclick="checkAddition(7)" class="bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl">7</button>
-                    <button onclick="checkAddition(9)" class="bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl">9</button>
-                    <button onclick="checkAddition(6)" class="bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl">6</button>
-                </div>
-                <div id="addition-result" class="text-lg font-medium hidden"></div>
             </div>
-        </div>
 
-        <!-- Subtraction Practice -->
-        <div id="subtraction-section" class="bg-white rounded-2xl shadow-lg p-6 mb-8 hidden">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">➖ Subtraction Practice</h2>
-            <div class="text-center mb-6">
-                <div class="text-3xl font-bold text-orange-600 mb-4" id="subtraction-problem">8 - 3 = ?</div>
-                <div class="flex justify-center space-x-4 mb-6" id="subtraction-objects">
-                    <div class="text-4xl">🍎</div>
-                    <div class="text-4xl">🍎</div>
-                    <div class="text-4xl">🍎</div>
-                    <div class="text-4xl">🍎</div>
-                    <div class="text-4xl">🍎</div>
-                    <div class="text-4xl">🍎</div>
-                    <div class="text-4xl">🍎</div>
-                    <div class="text-4xl">🍎</div>
-                    <div class="text-2xl mx-4 text-red-500">❌</div>
-                    <div class="text-4xl text-gray-300">🍎</div>
-                    <div class="text-4xl text-gray-300">🍎</div>
-                    <div class="text-4xl text-gray-300">🍎</div>
-                </div>
-                <div class="grid grid-cols-4 gap-3 max-w-md mx-auto mb-6">
-                    <button onclick="checkSubtraction(5)" class="bg-orange-100 hover:bg-orange-200 p-4 rounded-lg font-bold text-xl">5</button>
-                    <button onclick="checkSubtraction(4)" class="bg-orange-100 hover:bg-orange-200 p-4 rounded-lg font-bold text-xl">4</button>
-                    <button onclick="checkSubtraction(6)" class="bg-orange-100 hover:bg-orange-200 p-4 rounded-lg font-bold text-xl">6</button>
-                    <button onclick="checkSubtraction(3)" class="bg-orange-100 hover:bg-orange-200 p-4 rounded-lg font-bold text-xl">3</button>
-                </div>
-                <div id="subtraction-result" class="text-lg font-medium hidden"></div>
-            </div>
-        </div>
-
-        <!-- Multiplication Practice -->
-        <div id="multiplication-section" class="bg-white rounded-2xl shadow-lg p-6 mb-8 hidden">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">✖️ Multiplication Practice</h2>
-            <div class="text-center mb-6">
-                <div class="text-3xl font-bold text-purple-600 mb-4" id="multiplication-problem">3 × 4 = ?</div>
-                <div class="grid grid-cols-3 gap-2 max-w-md mx-auto mb-6">
-                    <div class="text-4xl text-center">🍎🍎🍎🍎</div>
-                    <div class="text-4xl text-center">🍎🍎🍎🍎</div>
-                    <div class="text-4xl text-center">🍎🍎🍎🍎</div>
-                </div>
-                <div class="grid grid-cols-4 gap-3 max-w-md mx-auto mb-6">
-                    <button onclick="checkMultiplication(12)" class="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg font-bold text-xl">12</button>
-                    <button onclick="checkMultiplication(10)" class="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg font-bold text-xl">10</button>
-                    <button onclick="checkMultiplication(15)" class="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg font-bold text-xl">15</button>
-                    <button onclick="checkMultiplication(8)" class="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg font-bold text-xl">8</button>
-                </div>
-                <div id="multiplication-result" class="text-lg font-medium hidden"></div>
-            </div>
-        </div>
-
-        <!-- Word Problems -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📝 Math Word Problems</h2>
-            <div class="text-center">
-                <div class="bg-gray-50 rounded-xl p-6 mb-6">
-                    <div class="text-lg text-gray-700 mb-4" id="word-problem">
-                        Sarah has 7 apples. She buys 5 more apples. How many apples does she have now?
+            <!-- Addition Practice -->
+            <div id="addition-section" class="bg-white rounded-2xl shadow-lg p-6 mb-8 hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">➕ Addition Practice</h2>
+                <div class="text-center mb-6">
+                    <div class="text-3xl font-bold text-green-600 mb-4" id="addition-problem">5 + 3 = ?</div>
+                    <div class="flex justify-center space-x-4 mb-6" id="addition-objects">
+                        <div class="text-4xl">🍎</div>
+                        <div class="text-4xl">🍎</div>
+                        <div class="text-4xl">🍎</div>
+                        <div class="text-4xl">🍎</div>
+                        <div class="text-4xl">🍎</div>
+                        <div class="text-2xl mx-4">+</div>
+                        <div class="text-4xl">🍊</div>
+                        <div class="text-4xl">🍊</div>
+                        <div class="text-4xl">🍊</div>
                     </div>
-                    <div class="flex justify-center space-x-4 mb-4">
-                        <div class="text-3xl">🍎</div>
-                        <div class="text-3xl">🍎</div>
-                        <div class="text-3xl">🍎</div>
-                        <div class="text-3xl">🍎</div>
-                        <div class="text-3xl">🍎</div>
-                        <div class="text-3xl">🍎</div>
-                        <div class="text-3xl">🍎</div>
+                    <div class="grid grid-cols-4 gap-3 max-w-md mx-auto mb-6">
+                        <button onclick="checkAddition(8)"
+                            class="bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl">8</button>
+                        <button onclick="checkAddition(7)"
+                            class="bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl">7</button>
+                        <button onclick="checkAddition(9)"
+                            class="bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl">9</button>
+                        <button onclick="checkAddition(6)"
+                            class="bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl">6</button>
                     </div>
-                    <div class="flex justify-center space-x-4 mb-4">
-                        <div class="text-3xl">+</div>
-                        <div class="text-3xl">🍎</div>
-                        <div class="text-3xl">🍎</div>
-                        <div class="text-3xl">🍎</div>
-                        <div class="text-3xl">🍎</div>
-                        <div class="text-3xl">🍎</div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-3 gap-3 max-w-md mx-auto mb-4">
-                    <button onclick="checkWordProblem(12)" class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-bold">12</button>
-                    <button onclick="checkWordProblem(10)" class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-bold">10</button>
-                    <button onclick="checkWordProblem(15)" class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-bold">15</button>
-                </div>
-                <div id="word-problem-result" class="text-lg font-medium hidden"></div>
-            </div>
-        </div>
-
-        <!-- Progress Tracker -->
-        <div class="bg-white rounded-2xl shadow-lg p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📊 Your Progress</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                <div>
-                    <div class="text-3xl font-bold text-green-600 mb-2" id="problems-solved">0</div>
-                    <div class="text-gray-600">Problems Solved</div>
-                </div>
-                <div>
-                    <div class="text-3xl font-bold text-blue-600 mb-2" id="correct-answers">0</div>
-                    <div class="text-gray-600">Correct Answers</div>
-                </div>
-                <div>
-                    <div class="text-3xl font-bold text-purple-600 mb-2" id="accuracy">0%</div>
-                    <div class="text-gray-600">Accuracy</div>
+                    <div id="addition-result" class="text-lg font-medium hidden"></div>
                 </div>
             </div>
-        </div>
 
-        <!-- Back Button -->
-        <div class="text-center mt-8">
-            <a href="{{ url_for('grade_2_dashboard') }}" class="inline-block bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
-            </a>
+            <!-- Subtraction Practice -->
+            <div id="subtraction-section" class="bg-white rounded-2xl shadow-lg p-6 mb-8 hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">➖ Subtraction Practice</h2>
+                <div class="text-center mb-6">
+                    <div class="text-3xl font-bold text-orange-600 mb-4" id="subtraction-problem">8 - 3 = ?</div>
+                    <div class="flex justify-center space-x-4 mb-6" id="subtraction-objects">
+                        <div class="text-4xl">🍎</div>
+                        <div class="text-4xl">🍎</div>
+                        <div class="text-4xl">🍎</div>
+                        <div class="text-4xl">🍎</div>
+                        <div class="text-4xl">🍎</div>
+                        <div class="text-4xl">🍎</div>
+                        <div class="text-4xl">🍎</div>
+                        <div class="text-4xl">🍎</div>
+                        <div class="text-2xl mx-4 text-red-500">❌</div>
+                        <div class="text-4xl text-gray-300">🍎</div>
+                        <div class="text-4xl text-gray-300">🍎</div>
+                        <div class="text-4xl text-gray-300">🍎</div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-3 max-w-md mx-auto mb-6">
+                        <button onclick="checkSubtraction(5)"
+                            class="bg-orange-100 hover:bg-orange-200 p-4 rounded-lg font-bold text-xl">5</button>
+                        <button onclick="checkSubtraction(4)"
+                            class="bg-orange-100 hover:bg-orange-200 p-4 rounded-lg font-bold text-xl">4</button>
+                        <button onclick="checkSubtraction(6)"
+                            class="bg-orange-100 hover:bg-orange-200 p-4 rounded-lg font-bold text-xl">6</button>
+                        <button onclick="checkSubtraction(3)"
+                            class="bg-orange-100 hover:bg-orange-200 p-4 rounded-lg font-bold text-xl">3</button>
+                    </div>
+                    <div id="subtraction-result" class="text-lg font-medium hidden"></div>
+                </div>
+            </div>
+
+            <!-- Multiplication Practice -->
+            <div id="multiplication-section" class="bg-white rounded-2xl shadow-lg p-6 mb-8 hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">✖️ Multiplication Practice</h2>
+                <div class="text-center mb-6">
+                    <div class="text-3xl font-bold text-purple-600 mb-4" id="multiplication-problem">3 × 4 = ?</div>
+                    <div class="grid grid-cols-3 gap-2 max-w-md mx-auto mb-6">
+                        <div class="text-4xl text-center">🍎🍎🍎🍎</div>
+                        <div class="text-4xl text-center">🍎🍎🍎🍎</div>
+                        <div class="text-4xl text-center">🍎🍎🍎🍎</div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-3 max-w-md mx-auto mb-6">
+                        <button onclick="checkMultiplication(12)"
+                            class="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg font-bold text-xl">12</button>
+                        <button onclick="checkMultiplication(10)"
+                            class="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg font-bold text-xl">10</button>
+                        <button onclick="checkMultiplication(15)"
+                            class="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg font-bold text-xl">15</button>
+                        <button onclick="checkMultiplication(8)"
+                            class="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg font-bold text-xl">8</button>
+                    </div>
+                    <div id="multiplication-result" class="text-lg font-medium hidden"></div>
+                </div>
+            </div>
+
+            <!-- Word Problems -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📝 Math Word Problems</h2>
+                <div class="text-center">
+                    <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                        <div class="text-lg text-gray-700 mb-4" id="word-problem">
+                            Sarah has 7 apples. She buys 5 more apples. How many apples does she have now?
+                        </div>
+                        <div class="flex justify-center space-x-4 mb-4">
+                            <div class="text-3xl">🍎</div>
+                            <div class="text-3xl">🍎</div>
+                            <div class="text-3xl">🍎</div>
+                            <div class="text-3xl">🍎</div>
+                            <div class="text-3xl">🍎</div>
+                            <div class="text-3xl">🍎</div>
+                            <div class="text-3xl">🍎</div>
+                        </div>
+                        <div class="flex justify-center space-x-4 mb-4">
+                            <div class="text-3xl">+</div>
+                            <div class="text-3xl">🍎</div>
+                            <div class="text-3xl">🍎</div>
+                            <div class="text-3xl">🍎</div>
+                            <div class="text-3xl">🍎</div>
+                            <div class="text-3xl">🍎</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 max-w-md mx-auto mb-4">
+                        <button onclick="checkWordProblem(12)"
+                            class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-bold">12</button>
+                        <button onclick="checkWordProblem(10)"
+                            class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-bold">10</button>
+                        <button onclick="checkWordProblem(15)"
+                            class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-bold">15</button>
+                    </div>
+                    <div id="word-problem-result" class="text-lg font-medium hidden"></div>
+                </div>
+            </div>
+
+            <!-- Progress Tracker -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📊 Your Progress</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <div>
+                        <div class="text-3xl font-bold text-green-600 mb-2" id="problems-solved">0</div>
+                        <div class="text-gray-600">Problems Solved</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-blue-600 mb-2" id="correct-answers">0</div>
+                        <div class="text-gray-600">Correct Answers</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-purple-600 mb-2" id="accuracy">0%</div>
+                        <div class="text-gray-600">Accuracy</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="text-center mt-8">
+                <a href="{{ url_for('grade_2_dashboard') }}"
+                    class="inline-block bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                </a>
+            </div>
         </div>
     </div>
-</div>
 </div>
 
 <script>
@@ -178,14 +197,24 @@
     let problemsSolved = 0;
     let correctAnswers = 0;
 
+    async function saveProgress(qid, pts) {
+        try {
+            await fetch('/api/submit_progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quiz_id: `g2_math_${qid}`, score: pts, total: 1 })
+            });
+        } catch (e) { }
+    }
+
     function selectOperation(operation) {
         currentOperation = operation;
-        
+
         // Hide all sections
         document.getElementById('addition-section').classList.add('hidden');
         document.getElementById('subtraction-section').classList.add('hidden');
         document.getElementById('multiplication-section').classList.add('hidden');
-        
+
         // Show selected section
         if (operation === 'addition') {
             document.getElementById('addition-section').classList.remove('hidden');
@@ -203,25 +232,25 @@
         const num1 = Math.floor(Math.random() * 10) + 1;
         const num2 = Math.floor(Math.random() * 10) + 1;
         const correctAnswer = num1 + num2;
-        
+
         document.getElementById('addition-problem').textContent = `${num1} + ${num2} = ?`;
-        
+
         // Generate visual objects
         const objectsContainer = document.getElementById('addition-objects');
         objectsContainer.innerHTML = '';
-        
+
         // First number objects
         for (let i = 0; i < num1; i++) {
             objectsContainer.innerHTML += '<div class="text-4xl">🍎</div>';
         }
-        
+
         objectsContainer.innerHTML += '<div class="text-2xl mx-4">+</div>';
-        
+
         // Second number objects
         for (let i = 0; i < num2; i++) {
             objectsContainer.innerHTML += '<div class="text-4xl">🍊</div>';
         }
-        
+
         window.currentAdditionAnswer = correctAnswer;
     }
 
@@ -229,13 +258,13 @@
         const num1 = Math.floor(Math.random() * 15) + 5;
         const num2 = Math.floor(Math.random() * (num1 - 1)) + 1;
         const correctAnswer = num1 - num2;
-        
+
         document.getElementById('subtraction-problem').textContent = `${num1} - ${num2} = ?`;
-        
+
         // Generate visual objects
         const objectsContainer = document.getElementById('subtraction-objects');
         objectsContainer.innerHTML = '';
-        
+
         // All objects
         for (let i = 0; i < num1; i++) {
             if (i < num2) {
@@ -244,14 +273,14 @@
                 objectsContainer.innerHTML += '<div class="text-4xl">🍎</div>';
             }
         }
-        
+
         objectsContainer.innerHTML += '<div class="text-2xl mx-4 text-red-500">❌</div>';
-        
+
         // Crossed out objects
         for (let i = 0; i < num2; i++) {
             objectsContainer.innerHTML += '<div class="text-4xl text-gray-300">🍎</div>';
         }
-        
+
         window.currentSubtractionAnswer = correctAnswer;
     }
 
@@ -259,13 +288,13 @@
         const num1 = Math.floor(Math.random() * 5) + 2;
         const num2 = Math.floor(Math.random() * 5) + 2;
         const correctAnswer = num1 * num2;
-        
+
         document.getElementById('multiplication-problem').textContent = `${num1} × ${num2} = ?`;
-        
+
         // Generate visual array
         const objectsContainer = document.getElementById('multiplication-objects');
         objectsContainer.innerHTML = '';
-        
+
         for (let i = 0; i < num1; i++) {
             let row = '<div class="text-4xl text-center">';
             for (let j = 0; j < num2; j++) {
@@ -274,7 +303,7 @@
             row += '</div>';
             objectsContainer.innerHTML += row;
         }
-        
+
         window.currentMultiplicationAnswer = correctAnswer;
     }
 
@@ -282,14 +311,15 @@
         problemsSolved++;
         const resultDiv = document.getElementById('addition-result');
         resultDiv.classList.remove('hidden');
-        
+
         if (selectedAnswer === window.currentAdditionAnswer) {
             correctAnswers++;
+            saveProgress('addition', 1);
             resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! Well done!</span>';
         } else {
             resultDiv.innerHTML = `<span class="text-red-600 font-bold">❌ Try again! The answer is ${window.currentAdditionAnswer}</span>`;
         }
-        
+
         updateProgress();
         setTimeout(() => {
             resultDiv.classList.add('hidden');
@@ -301,14 +331,15 @@
         problemsSolved++;
         const resultDiv = document.getElementById('subtraction-result');
         resultDiv.classList.remove('hidden');
-        
+
         if (selectedAnswer === window.currentSubtractionAnswer) {
             correctAnswers++;
+            saveProgress('subtraction', 1);
             resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! Well done!</span>';
         } else {
             resultDiv.innerHTML = `<span class="text-red-600 font-bold">❌ Try again! The answer is ${window.currentSubtractionAnswer}</span>`;
         }
-        
+
         updateProgress();
         setTimeout(() => {
             resultDiv.classList.add('hidden');
@@ -320,14 +351,15 @@
         problemsSolved++;
         const resultDiv = document.getElementById('multiplication-result');
         resultDiv.classList.remove('hidden');
-        
+
         if (selectedAnswer === window.currentMultiplicationAnswer) {
             correctAnswers++;
+            saveProgress('multiplication', 1);
             resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! Well done!</span>';
         } else {
             resultDiv.innerHTML = `<span class="text-red-600 font-bold">❌ Try again! The answer is ${window.currentMultiplicationAnswer}</span>`;
         }
-        
+
         updateProgress();
         setTimeout(() => {
             resultDiv.classList.add('hidden');
@@ -339,14 +371,14 @@
         problemsSolved++;
         const resultDiv = document.getElementById('word-problem-result');
         resultDiv.classList.remove('hidden');
-        
+
         if (selectedAnswer === 12) { // Hardcoded for the example problem
             correctAnswers++;
             resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! 7 + 5 = 12 apples!</span>';
         } else {
             resultDiv.innerHTML = '<span class="text-red-600 font-bold">❌ Try again! Count the apples carefully.</span>';
         }
-        
+
         updateProgress();
         setTimeout(() => {
             resultDiv.classList.add('hidden');
@@ -361,7 +393,7 @@
     }
 
     // Initialize with addition
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         selectOperation('addition');
     });
 </script>

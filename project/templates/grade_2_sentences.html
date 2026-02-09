@@ -4,205 +4,253 @@
 
 {% block content %}
 <div class="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-6xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-emerald-800 mb-2">✍️ Sentences & Spelling ✍️</h1>
-            <p class="text-xl text-emerald-600">Build sentences and practice spelling words</p>
-        </div>
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-emerald-800 mb-2">✍️ Sentences & Spelling ✍️</h1>
+                <p class="text-xl text-emerald-600">Build sentences and practice spelling words</p>
+            </div>
 
-        <!-- Learning Modules -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <!-- Sentence Builder -->
+            <!-- Learning Modules -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Sentence Builder -->
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📝 Sentence Builder</h2>
+                    <div class="text-center">
+                        <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                            <div class="text-xl text-gray-700 mb-4" id="sentence-template">
+                                The ___ ___ in the ___.
+                            </div>
+                            <div class="flex justify-center space-x-2 mb-4 text-2xl">
+                                <span>🐱</span>
+                                <span>cat</span>
+                                <span>jumps</span>
+                                <span>box</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 mb-6">
+                            <button onclick="buildSentence('The cat jumps in the box.')"
+                                class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-medium">The cat jumps in the
+                                box.</button>
+                            <button onclick="buildSentence('The dog runs in the park.')"
+                                class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-medium">The dog runs in the
+                                park.</button>
+                            <button onclick="buildSentence('The bird flies in the sky.')"
+                                class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-medium">The bird flies in the
+                                sky.</button>
+                            <button onclick="buildSentence('The fish swims in the water.')"
+                                class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-medium">The fish swims in the
+                                water.</button>
+                        </div>
+
+                        <div id="sentence-result" class="text-lg font-medium hidden"></div>
+                    </div>
+                </div>
+
+                <!-- Spelling Practice -->
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🔤 Spelling Practice</h2>
+                    <div class="text-center">
+                        <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                            <div class="text-2xl font-bold text-purple-600 mb-4" id="spelling-word">ELEPHANT</div>
+                            <div class="text-gray-600 mb-4">Spell this word:</div>
+                            <div class="flex justify-center space-x-2 mb-4" id="letter-spaces">
+                                <div
+                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
+                                    E</div>
+                                <div
+                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
+                                    L</div>
+                                <div
+                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
+                                    E</div>
+                                <div
+                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
+                                    P</div>
+                                <div
+                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
+                                    H</div>
+                                <div
+                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
+                                    A</div>
+                                <div
+                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
+                                    N</div>
+                                <div
+                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
+                                    T</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-2 mb-6">
+                            <button onclick="checkSpelling('E')"
+                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">E</button>
+                            <button onclick="checkSpelling('L')"
+                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">L</button>
+                            <button onclick="checkSpelling('P')"
+                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">P</button>
+                            <button onclick="checkSpelling('H')"
+                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">H</button>
+                            <button onclick="checkSpelling('A')"
+                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">A</button>
+                            <button onclick="checkSpelling('N')"
+                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">N</button>
+                            <button onclick="checkSpelling('T')"
+                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">T</button>
+                            <button onclick="checkSpelling('S')"
+                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">S</button>
+                        </div>
+
+                        <button onclick="speakWord()"
+                            class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-medium mr-3">
+                            <i class="fas fa-volume-up mr-2"></i>Hear Word
+                        </button>
+                        <button onclick="nextSpellingWord()"
+                            class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium">
+                            <i class="fas fa-arrow-right mr-2"></i>Next Word
+                        </button>
+
+                        <div id="spelling-result" class="text-lg font-medium mt-4 hidden"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Word Families -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📚 Word Families</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-blue-600 mb-4">-AT Family</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="bg-blue-50 p-3 rounded-lg">cat</div>
+                            <div class="bg-blue-50 p-3 rounded-lg">bat</div>
+                            <div class="bg-blue-50 p-3 rounded-lg">hat</div>
+                            <div class="bg-blue-50 p-3 rounded-lg">mat</div>
+                            <div class="bg-blue-50 p-3 rounded-lg">rat</div>
+                            <div class="bg-blue-50 p-3 rounded-lg">sat</div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-green-600 mb-4">-AN Family</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="bg-green-50 p-3 rounded-lg">can</div>
+                            <div class="bg-green-50 p-3 rounded-lg">man</div>
+                            <div class="bg-green-50 p-3 rounded-lg">pan</div>
+                            <div class="bg-green-50 p-3 rounded-lg">van</div>
+                            <div class="bg-green-50 p-3 rounded-lg">fan</div>
+                            <div class="bg-green-50 p-3 rounded-lg">tan</div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-orange-600 mb-4">-ING Family</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="bg-orange-50 p-3 rounded-lg">singing</div>
+                            <div class="bg-orange-50 p-3 rounded-lg">running</div>
+                            <div class="bg-orange-50 p-3 rounded-lg">jumping</div>
+                            <div class="bg-orange-50 p-3 rounded-lg">playing</div>
+                            <div class="bg-orange-50 p-3 rounded-lg">reading</div>
+                            <div class="bg-orange-50 p-3 rounded-lg">writing</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reading Comprehension -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📖 Reading Comprehension</h2>
+                <div class="max-w-3xl mx-auto">
+                    <div class="bg-yellow-50 rounded-xl p-6 mb-6">
+                        <h3 class="text-xl font-bold text-yellow-700 mb-3">The Hungry Cat</h3>
+                        <p class="text-gray-700 mb-4">
+                            Tom is a small orange cat. He lives in a big house with his family.
+                            Tom loves to eat fish and milk. Every morning, Tom waits by his food bowl.
+                            When his family gives him food, Tom eats happily. Tom is a very good cat.
+                        </p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                            <p class="font-medium text-gray-800 mb-2">1. What color is Tom?</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="checkComprehension(1, 'orange')"
+                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Orange</button>
+                                <button onclick="checkComprehension(1, 'black')"
+                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Black</button>
+                                <button onclick="checkComprehension(1, 'white')"
+                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">White</button>
+                                <button onclick="checkComprehension(1, 'brown')"
+                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Brown</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                            <p class="font-medium text-gray-800 mb-2">2. What does Tom love to eat?</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="checkComprehension(2, 'fish and milk')"
+                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Fish and milk</button>
+                                <button onclick="checkComprehension(2, 'meat')"
+                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Meat</button>
+                                <button onclick="checkComprehension(2, 'vegetables')"
+                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Vegetables</button>
+                                <button onclick="checkComprehension(2, 'fruits')"
+                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Fruits</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
+                            <p class="font-medium text-gray-800 mb-2">3. Where does Tom wait every morning?</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="checkComprehension(3, 'by his food bowl')"
+                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">By his food
+                                    bowl</button>
+                                <button onclick="checkComprehension(3, 'in his bed')"
+                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">In his bed</button>
+                                <button onclick="checkComprehension(3, 'outside')"
+                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Outside</button>
+                                <button onclick="checkComprehension(3, 'in the garden')"
+                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">In the garden</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="comprehension-result" class="text-center mt-6 text-lg font-medium hidden"></div>
+                </div>
+            </div>
+
+            <!-- Progress Tracker -->
             <div class="bg-white rounded-2xl shadow-lg p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📝 Sentence Builder</h2>
-                <div class="text-center">
-                    <div class="bg-gray-50 rounded-xl p-6 mb-6">
-                        <div class="text-xl text-gray-700 mb-4" id="sentence-template">
-                            The ___ ___ in the ___.
-                        </div>
-                        <div class="flex justify-center space-x-2 mb-4 text-2xl">
-                            <span>🐱</span>
-                            <span>cat</span>
-                            <span>jumps</span>
-                            <span>box</span>
-                        </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📊 Your Progress</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+                    <div>
+                        <div class="text-3xl font-bold text-blue-600 mb-2" id="sentences-built">0</div>
+                        <div class="text-gray-600">Sentences Built</div>
                     </div>
-                    
-                    <div class="grid grid-cols-2 gap-3 mb-6">
-                        <button onclick="buildSentence('The cat jumps in the box.')" class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-medium">The cat jumps in the box.</button>
-                        <button onclick="buildSentence('The dog runs in the park.')" class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-medium">The dog runs in the park.</button>
-                        <button onclick="buildSentence('The bird flies in the sky.')" class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-medium">The bird flies in the sky.</button>
-                        <button onclick="buildSentence('The fish swims in the water.')" class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-medium">The fish swims in the water.</button>
+                    <div>
+                        <div class="text-3xl font-bold text-purple-600 mb-2" id="words-spelled">0</div>
+                        <div class="text-gray-600">Words Spelled</div>
                     </div>
-                    
-                    <div id="sentence-result" class="text-lg font-medium hidden"></div>
-                </div>
-            </div>
-
-            <!-- Spelling Practice -->
-            <div class="bg-white rounded-2xl shadow-lg p-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🔤 Spelling Practice</h2>
-                <div class="text-center">
-                    <div class="bg-gray-50 rounded-xl p-6 mb-6">
-                        <div class="text-2xl font-bold text-purple-600 mb-4" id="spelling-word">ELEPHANT</div>
-                        <div class="text-gray-600 mb-4">Spell this word:</div>
-                        <div class="flex justify-center space-x-2 mb-4" id="letter-spaces">
-                            <div class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">E</div>
-                            <div class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">L</div>
-                            <div class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">E</div>
-                            <div class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">P</div>
-                            <div class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">H</div>
-                            <div class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">A</div>
-                            <div class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">N</div>
-                            <div class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">T</div>
-                        </div>
+                    <div>
+                        <div class="text-3xl font-bold text-green-600 mb-2" id="correct-spelling">0</div>
+                        <div class="text-gray-600">Correct Spelling</div>
                     </div>
-                    
-                    <div class="grid grid-cols-4 gap-2 mb-6">
-                        <button onclick="checkSpelling('E')" class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">E</button>
-                        <button onclick="checkSpelling('L')" class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">L</button>
-                        <button onclick="checkSpelling('P')" class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">P</button>
-                        <button onclick="checkSpelling('H')" class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">H</button>
-                        <button onclick="checkSpelling('A')" class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">A</button>
-                        <button onclick="checkSpelling('N')" class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">N</button>
-                        <button onclick="checkSpelling('T')" class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">T</button>
-                        <button onclick="checkSpelling('S')" class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">S</button>
-                    </div>
-                    
-                    <button onclick="speakWord()" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-medium mr-3">
-                        <i class="fas fa-volume-up mr-2"></i>Hear Word
-                    </button>
-                    <button onclick="nextSpellingWord()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium">
-                        <i class="fas fa-arrow-right mr-2"></i>Next Word
-                    </button>
-                    
-                    <div id="spelling-result" class="text-lg font-medium mt-4 hidden"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Word Families -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📚 Word Families</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-blue-600 mb-4">-AT Family</div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="bg-blue-50 p-3 rounded-lg">cat</div>
-                        <div class="bg-blue-50 p-3 rounded-lg">bat</div>
-                        <div class="bg-blue-50 p-3 rounded-lg">hat</div>
-                        <div class="bg-blue-50 p-3 rounded-lg">mat</div>
-                        <div class="bg-blue-50 p-3 rounded-lg">rat</div>
-                        <div class="bg-blue-50 p-3 rounded-lg">sat</div>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-green-600 mb-4">-AN Family</div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="bg-green-50 p-3 rounded-lg">can</div>
-                        <div class="bg-green-50 p-3 rounded-lg">man</div>
-                        <div class="bg-green-50 p-3 rounded-lg">pan</div>
-                        <div class="bg-green-50 p-3 rounded-lg">van</div>
-                        <div class="bg-green-50 p-3 rounded-lg">fan</div>
-                        <div class="bg-green-50 p-3 rounded-lg">tan</div>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-orange-600 mb-4">-ING Family</div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="bg-orange-50 p-3 rounded-lg">singing</div>
-                        <div class="bg-orange-50 p-3 rounded-lg">running</div>
-                        <div class="bg-orange-50 p-3 rounded-lg">jumping</div>
-                        <div class="bg-orange-50 p-3 rounded-lg">playing</div>
-                        <div class="bg-orange-50 p-3 rounded-lg">reading</div>
-                        <div class="bg-orange-50 p-3 rounded-lg">writing</div>
+                    <div>
+                        <div class="text-3xl font-bold text-yellow-600 mb-2" id="comprehension-score">0/3</div>
+                        <div class="text-gray-600">Comprehension</div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Reading Comprehension -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📖 Reading Comprehension</h2>
-            <div class="max-w-3xl mx-auto">
-                <div class="bg-yellow-50 rounded-xl p-6 mb-6">
-                    <h3 class="text-xl font-bold text-yellow-700 mb-3">The Hungry Cat</h3>
-                    <p class="text-gray-700 mb-4">
-                        Tom is a small orange cat. He lives in a big house with his family. 
-                        Tom loves to eat fish and milk. Every morning, Tom waits by his food bowl. 
-                        When his family gives him food, Tom eats happily. Tom is a very good cat.
-                    </p>
-                </div>
-                
-                <div class="space-y-4">
-                    <div class="bg-white border border-gray-200 rounded-lg p-4">
-                        <p class="font-medium text-gray-800 mb-2">1. What color is Tom?</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="checkComprehension(1, 'orange')" class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Orange</button>
-                            <button onclick="checkComprehension(1, 'black')" class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Black</button>
-                            <button onclick="checkComprehension(1, 'white')" class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">White</button>
-                            <button onclick="checkComprehension(1, 'brown')" class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Brown</button>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white border border-gray-200 rounded-lg p-4">
-                        <p class="font-medium text-gray-800 mb-2">2. What does Tom love to eat?</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="checkComprehension(2, 'fish and milk')" class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Fish and milk</button>
-                            <button onclick="checkComprehension(2, 'meat')" class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Meat</button>
-                            <button onclick="checkComprehension(2, 'vegetables')" class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Vegetables</button>
-                            <button onclick="checkComprehension(2, 'fruits')" class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Fruits</button>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white border border-gray-200 rounded-lg p-4">
-                        <p class="font-medium text-gray-800 mb-2">3. Where does Tom wait every morning?</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="checkComprehension(3, 'by his food bowl')" class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">By his food bowl</button>
-                            <button onclick="checkComprehension(3, 'in his bed')" class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">In his bed</button>
-                            <button onclick="checkComprehension(3, 'outside')" class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Outside</button>
-                            <button onclick="checkComprehension(3, 'in the garden')" class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">In the garden</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="comprehension-result" class="text-center mt-6 text-lg font-medium hidden"></div>
+            <!-- Back Button -->
+            <div class="text-center mt-8">
+                <a href="{{ url_for('grade_2_dashboard') }}"
+                    class="inline-block bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                </a>
             </div>
-        </div>
-
-        <!-- Progress Tracker -->
-        <div class="bg-white rounded-2xl shadow-lg p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📊 Your Progress</h2>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
-                <div>
-                    <div class="text-3xl font-bold text-blue-600 mb-2" id="sentences-built">0</div>
-                    <div class="text-gray-600">Sentences Built</div>
-                </div>
-                <div>
-                    <div class="text-3xl font-bold text-purple-600 mb-2" id="words-spelled">0</div>
-                    <div class="text-gray-600">Words Spelled</div>
-                </div>
-                <div>
-                    <div class="text-3xl font-bold text-green-600 mb-2" id="correct-spelling">0</div>
-                    <div class="text-gray-600">Correct Spelling</div>
-                </div>
-                <div>
-                    <div class="text-3xl font-bold text-yellow-600 mb-2" id="comprehension-score">0/3</div>
-                    <div class="text-gray-600">Comprehension</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Back Button -->
-        <div class="text-center mt-8">
-            <a href="{{ url_for('grade_2_dashboard') }}" class="inline-block bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
-            </a>
         </div>
     </div>
-</div>
 </div>
 
 <script>
@@ -219,7 +267,7 @@
         const resultDiv = document.getElementById('sentence-result');
         resultDiv.classList.remove('hidden');
         resultDiv.innerHTML = `<span class="text-green-600 font-bold">🎉 Great! "${sentence}" is a complete sentence!</span>`;
-        
+
         updateProgress();
         setTimeout(() => {
             resultDiv.classList.add('hidden');
@@ -228,16 +276,16 @@
 
     function checkSpelling(letter) {
         const currentLetter = currentSpellingWord[currentSpellingIndex];
-        
+
         if (letter === currentLetter) {
             // Correct letter
             const letterSpaces = document.getElementById('letter-spaces');
             const letterDivs = letterSpaces.children;
             letterDivs[currentSpellingIndex].textContent = letter;
             letterDivs[currentSpellingIndex].classList.add('bg-green-200', 'border-green-500');
-            
+
             currentSpellingIndex++;
-            
+
             if (currentSpellingIndex === currentSpellingWord.length) {
                 // Word completed
                 wordsSpelled++;
@@ -245,7 +293,7 @@
                 const resultDiv = document.getElementById('spelling-result');
                 resultDiv.classList.remove('hidden');
                 resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Perfect spelling!</span>';
-                
+
                 updateProgress();
                 setTimeout(() => {
                     resultDiv.classList.add('hidden');
@@ -258,7 +306,7 @@
             const resultDiv = document.getElementById('spelling-result');
             resultDiv.classList.remove('hidden');
             resultDiv.innerHTML = `<span class="text-red-600 font-bold">❌ Try again! The letter is ${currentLetter}</span>`;
-            
+
             updateProgress();
             setTimeout(() => {
                 resultDiv.classList.add('hidden');
@@ -279,10 +327,10 @@
         const nextIndex = (currentIndex + 1) % words.length;
         currentSpellingWord = words[nextIndex];
         currentSpellingIndex = 0;
-        
+
         // Update display
         document.getElementById('spelling-word').textContent = currentSpellingWord;
-        
+
         // Reset letter spaces
         const letterSpaces = document.getElementById('letter-spaces');
         letterSpaces.innerHTML = '';
@@ -293,27 +341,27 @@
 
     function checkComprehension(questionNum, answer) {
         if (answeredQuestions.has(questionNum)) return;
-        
+
         let correctAnswer = '';
-        switch(questionNum) {
+        switch (questionNum) {
             case 1: correctAnswer = 'orange'; break;
             case 2: correctAnswer = 'fish and milk'; break;
             case 3: correctAnswer = 'by his food bowl'; break;
         }
-        
+
         const resultDiv = document.getElementById('comprehension-result');
         resultDiv.classList.remove('hidden');
-        
+
         if (answer === correctAnswer) {
             comprehensionScore++;
             resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct answer!</span>';
         } else {
             resultDiv.innerHTML = `<span class="text-red-600 font-bold">❌ The correct answer is: ${correctAnswer}</span>`;
         }
-        
+
         answeredQuestions.add(questionNum);
         updateProgress();
-        
+
         setTimeout(() => {
             resultDiv.classList.add('hidden');
         }, 2000);
@@ -324,6 +372,20 @@
         document.getElementById('words-spelled').textContent = wordsSpelled;
         document.getElementById('correct-spelling').textContent = correctSpelling;
         document.getElementById('comprehension-score').textContent = `${comprehensionScore}/3`;
+
+        // Save to DB
+        saveProgress('sentences_module', 1);
+    }
+
+    // --- Save Progress ---
+    async function saveProgress(qid, pts) {
+        try {
+            await fetch('/api/submit_progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quiz_id: `g2_grammar_${qid}`, score: pts, total: 1 })
+            });
+        } catch (e) { }
     }
 </script>
 {% endblock %}

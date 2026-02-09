@@ -326,12 +326,27 @@ def update_progress(student_id, field):
     cur = conn.cursor()
 
     try:
+        # Legacy update
         cur.execute(f"""
             UPDATE student_progress
             SET {field} = {field} + 1,
                 last_updated = CURRENT_TIMESTAMP
             WHERE student_id=? AND grade=4
         """, (student_id,))
+        
+        # New unified system update (record in quiz_attempts)
+        # Map fields to unified prefixes
+        quiz_id = f"g4_{field.replace('_solved', '').replace('_done', '').replace('_analyzed', 'read')}"
+        if 'math' in field: quiz_id = "g4_math_practice"
+        elif 'science' in field: quiz_id = "g4_science_activity"
+        elif 'creative' in field: quiz_id = "g4_logic_writing"
+        elif 'books' in field: quiz_id = "g4_reading_master"
+        
+        cur.execute("""
+            INSERT INTO quiz_attempts (student_id, quiz_id, score, total, attempted_at)
+            VALUES (?, ?, ?, ?, ?)
+        """, (student_id, quiz_id, 1, 1, datetime.now(timezone.utc).isoformat()))
+
         conn.commit()
         conn.close()
     except sqlite3.OperationalError as e:
@@ -341,17 +356,7 @@ def update_progress(student_id, field):
             conn.close()
             migrate_student_progress_table()
             # Retry the operation
-            conn = sqlite3.connect("database.db")
-            cur = conn.cursor()
-            
-            cur.execute(f"""
-                UPDATE student_progress
-                SET {field} = {field} + 1,
-                    last_updated = CURRENT_TIMESTAMP
-                WHERE student_id=? AND grade=4
-            """, (student_id,))
-            conn.commit()
-            conn.close()
+            update_progress(student_id, field)
         else:
             raise e
 
@@ -633,13 +638,31 @@ def get_student_progress(student_id):
     cur.execute("SELECT COUNT(*) FROM uploads WHERE student_id = ?", (student_id,))
     books_read = cur.fetchone()[0]
     
-    # Count quizzes taken
-    cur.execute("SELECT COUNT(*) FROM quiz_attempts WHERE student_id = ?", (student_id,))
+    # Count general quizzes taken (from textbooks)
+    # Most general quizzes don't have a specific grade prefix g1_, g2_, etc.
+    cur.execute("SELECT COUNT(*) FROM quiz_attempts WHERE student_id = ? AND quiz_id NOT LIKE 'g%_%'", (student_id,))
     quizzes_taken = cur.fetchone()[0]
     
     # Count flashcards sets created
     cur.execute("SELECT COUNT(*) FROM flashcards WHERE student_id = ?", (student_id,))
     flashcards_created = cur.fetchone()[0]
+
+    # Dynamic Subject Points (Captured across all grades g1-g5)
+    # Math Points
+    cur.execute("SELECT SUM(score) FROM quiz_attempts WHERE student_id = ? AND quiz_id LIKE 'g%_math_%'", (student_id,))
+    math_points = cur.fetchone()[0] or 0
+
+    # Science/World Explorer Points
+    cur.execute("SELECT SUM(score) FROM quiz_attempts WHERE student_id = ? AND (quiz_id LIKE 'g%_science_%' OR quiz_id LIKE 'g%_transport%' OR quiz_id LIKE 'g%_food%')", (student_id,))
+    science_points = cur.fetchone()[0] or 0
+
+    # Grammar/English Hub Points
+    cur.execute("SELECT SUM(score) FROM quiz_attempts WHERE student_id = ? AND (quiz_id LIKE 'g%_grammar_%' OR quiz_id LIKE 'g%_sentences%' OR quiz_id LIKE 'g%_alphabets%' OR quiz_id LIKE 'g%_reading%')", (student_id,))
+    grammar_points = cur.fetchone()[0] or 0
+
+    # Logic/Brain Gym & Creative Points
+    cur.execute("SELECT SUM(score) FROM quiz_attempts WHERE student_id = ? AND (quiz_id LIKE 'g%_logic_%' OR quiz_id LIKE 'g%_art%')", (student_id,))
+    logic_points = cur.fetchone()[0] or 0
     
     conn.close()
     
@@ -647,10 +670,10 @@ def get_student_progress(student_id):
         "books_read": books_read,
         "quizzes_taken": quizzes_taken,
         "flashcards_created": flashcards_created,
-        # Placeholder for other stats until we have tables for them
-        "math_solved": quizzes_taken * 5, # Estimate
-        "science_projects": 0,
-        "stories_written": 0
+        "math_solved": math_points,
+        "science_done": science_points,
+        "grammar_done": grammar_points,
+        "logic_done": logic_points
     }
 
 @app.route("/")
@@ -822,12 +845,14 @@ def grade_1_dashboard():
     
     ai_summary = session.get("summary")
     audio_file = session.get("audio_file")
+    progress = get_student_progress(user["id"])
     return render_template(
         "grade_1_dashboard.html",
         user=user,
         ai_summary=ai_summary,
         audio_file=audio_file,
-        hindi_file=session.get("hindi_file")
+        hindi_file=session.get("hindi_file"),
+        progress=progress
     )
 
 
@@ -1311,12 +1336,14 @@ def grade_2_dashboard():
     
     ai_summary = session.get("summary")
     audio_file = session.get("audio_file")
+    progress = get_student_progress(user["id"])
     return render_template(
         "grade_2_dashboard.html",
         user=user,
         ai_summary=ai_summary,
         audio_file=audio_file,
-        hindi_file=session.get("hindi_file")
+        hindi_file=session.get("hindi_file"),
+        progress=progress
     )
 
 
@@ -1404,30 +1431,40 @@ def generate_grade3_grammar():
 
 def get_math_questions_logic():
     try:
-        # Optimized for speed, but ensuring coverage
+        # Improved for higher variety and specific Grade 3 constraints
         prompt = """
-        Generate 2 questions FOR EACH of the 4 categories below for Grade 3 Math.
-        IMPORTANT: Randomize numbers/questions. Return valid JSON only.
+        Generate 5 unique, fun questions FOR EACH category for Grade 3 Math.
+        IMPORTANT: Randomize all numbers and items (names, objects). 
+        Return ONLY valid JSON.
         
-        Structure:
+        Categories:
+        1. "time": Reading analog clocks (half-past, quarter-past, etc.). 
+           JSON: {"time_str": "string", "correct": "H:MM", "options": ["H:MM", "H:MM", "H:MM"]}
+        2. "shapes": Properties of 2D/3D shapes (vertices, sides, names).
+           JSON: {"clue": "string", "correct": "string", "options": ["string", "string", "string"]}
+        3. "fractions": Simple visual fractions (1/2, 1/4, 2/3, etc. as text clues).
+           JSON: {"clue": "string", "correct": "string", "options": ["string", "string", "string"]}
+        4. "word_problems": Single-step addition, subtraction, or simple multiplication story problems.
+           JSON: {"text": "string", "correct": "string", "options": ["string", "string", "string"]}
+        
+        Return JSON structure:
         {
-            "time": [ {"time_str": "Half past three", "correct": "3:30", "options": ["3:30", "4:30", "2:30"]} ],
-            "shapes": [ {"clue": "I have 3 sides.", "correct": "Triangle", "options": ["Square", "Triangle", "Circle"]} ],
-            "fractions": [ {"clue": "1 part of 2", "correct": "1/2", "options": ["1/2", "1/4", "3/4"]} ],
-            "word_problems": [ {"text": "Sam has 5 apples...", "correct": "10", "options": ["10", "15", "5"]} ]
+            "time": [...],
+            "shapes": [...],
+            "fractions": [...],
+            "word_problems": [...]
         }
         """
         
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.9,
-            max_tokens=1500  # Increased to prevent JSON truncation
+            temperature=1.0, # Higher temperature for more variety
+            max_tokens=2000
         )
         
         content = response.choices[0].message.content
-        import json
-        import re
+        import json, re
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if json_match:
             return json.loads(json_match.group())
@@ -1515,21 +1552,26 @@ def grade_3_food():
 def get_shelter_questions_logic():
     try:
         prompt = """
-        Generate 2 questions FOR EACH category for Grade 3 Shelter.
-        1. Category "rooms": Given a household item, identify the room it belongs in. (e.g., Bed -> Bedroom, Stove -> Kitchen).
-        2. Category "animal_human": Identify if a home is for an Animal or a Human. (e.g., Nest -> Animal, Apartment -> Human).
+        Generate 5 unique questions FOR EACH category for Grade 3 Shelter/Homes.
+        IMPORTANT: Use a wide variety of household items and home types. Randomize every time.
+        
+        Categories:
+        1. "rooms": Identify the room for a specific object (e.g., Mirror, Toaster, Sofa, Shower, Lawn mower).
+           JSON: {"clue": "string", "correct": "string", "options": ["string", "string", "string"]}
+        2. "homes": Identify if a home is for an Animal or a Human (e.g., Igloo, Kennel, Caravan, Burrow, Lighthouse).
+           JSON: {"clue": "string", "correct": "string", "options": ["string", "string", "string"]}
         
         Return JSON:
         {
-            "rooms": [ {"clue": "Where do you sleep?", "correct": "Bedroom", "options": ["Bedroom", "Kitchen", "Bathroom"]} ],
-            "homes": [ {"clue": "Bird lives in a...", "correct": "Nest", "options": ["Nest", "Den", "House"]} ]
+            "rooms": [...],
+            "homes": [...]
         }
         """
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.9,
-            max_tokens=1000
+            temperature=1.0, # High variety
+            max_tokens=1500
         )
         content = response.choices[0].message.content
         import json, re
@@ -1571,24 +1613,24 @@ def get_logic_questions_logic():
 def get_transport_questions_logic():
     try:
         prompt = """
-        Generate a list of 10 mixed transport items for a Drag-and-Drop sorting game for Grade 3.
+        Generate a list of 5 unique, fun transport items for a Drag-and-Drop sorting game for Grade 3.
+        IMPORTANT: Use a mix of common and interesting vehicles. 
         Categories: "Land", "Water", "Air".
-        Items should be simple nouns (e.g., Car, Boat, Rocket, Bicycle, Submarine).
         
-        Return JSON items only:
+        Return JSON:
         {
             "items": [
-                {"name": "Car", "category": "Land", "emoji": "🚗"},
-                {"name": "Boat", "category": "Water", "emoji": "🛥️"},
-                {"name": "Plane", "category": "Air", "emoji": "✈️"}
+                {"name": "Kayak", "category": "Water", "emoji": "🛶"},
+                {"name": "Scooter", "category": "Land", "emoji": "🛴"},
+                {"name": "Glider", "category": "Air", "emoji": "🛩️"}
             ]
         }
         """
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.9,
-            max_tokens=1000
+            temperature=1.0,
+            max_tokens=1500
         )
         content = response.choices[0].message.content
         import json, re
@@ -1601,21 +1643,26 @@ def get_transport_questions_logic():
 def get_science_questions_logic():
     try:
         prompt = """
-        Generate 2 questions FOR EACH category for Grade 3 Science/Nature.
-        1. Category "sink_float": Will this object sink or float in water? (e.g., Stone -> Sink, Feather -> Float).
-        2. Category "senses": Which sense organ do you use? (e.g., To smell a flower -> Nose).
+        Generate 5 unique questions FOR EACH category for Grade 3 Science/Nature.
+        IMPORTANT: Use interesting and diverse objects. Randomize every time.
+        
+        Categories:
+        1. "sink_float": Sink or Float? (e.g., Pinecone, Lego brick, Silver spoon, Cork, Watermelon).
+           JSON: {"clue": "string", "correct": "string", "options": ["Sink", "Float", "Both?"]}
+        2. "senses": Which sense do you use to detect this property? (e.g., Heat of a fire, Roughness of sandpaper, Scent of vanilla).
+           JSON: {"clue": "string", "correct": "string", "options": ["Eyes", "Ears", "Nose", "Tongue", "Skin/Touch"]}
         
         Return JSON:
         {
-            "sink_float": [ {"clue": "A heavy stone will...", "correct": "Sink", "options": ["Sink", "Float", "Fly"]} ],
-            "senses": [ {"clue": "I use this to see stars", "correct": "Eyes", "options": ["Eyes", "Ears", "Nose"]} ]
+            "sink_float": [...],
+            "senses": [...]
         }
         """
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.9,
-            max_tokens=1000
+            temperature=1.0,
+            max_tokens=1500
         )
         content = response.choices[0].message.content
         import json, re
@@ -1709,22 +1756,14 @@ def grade_4_dashboard():
             return redirect_to_dashboard(session.get("user"))
     
     # Get real progress data for the student
-    student_id = user["id"] if user else None
-    if student_id:
-        books, math, science, creative = get_grade4_progress(student_id)
-    else:
-        # Default values if no user
-        books, math, science, creative = 0, 0, 0, 0
+    progress = get_student_progress(user["id"])
     
     ai_summary = session.get("summary")
     audio_file = session.get("audio_file")
     return render_template(
         "grade_4_dashboard.html",
         user=user,
-        books=books,
-        math=math,
-        science=science,
-        creative=creative,
+        progress=progress,
         ai_summary=ai_summary,
         audio_file=audio_file,
         hindi_file=session.get("hindi_file")
@@ -1746,48 +1785,15 @@ def grade_5_dashboard():
     audio_file = session.pop("audio_file", None)
 
     # Fetch Progress Data
-    student_id = user["id"]
-    conn = get_db()
-    c = conn.cursor()
-
-    # 1. Books Mastered (Uploads)
-    c.execute("SELECT COUNT(*) FROM uploads WHERE student_id = ?", (student_id,))
-    books_count = c.fetchone()[0]
-
-    # Helper to get count from student_progress (using new schema)
-    def get_count_local(subject_field):
-        # First ensure the migration has run
-        migrate_student_progress_table()
-        
-        try:
-            c.execute(f"SELECT {subject_field} FROM student_progress WHERE student_id = ? AND grade = 5", (student_id,))
-            row = c.fetchone()
-            if row and row[0] is not None:
-                return row[0]
-            return 0
-        except sqlite3.OperationalError as e:
-            if "no such column" in str(e):
-                # Column doesn't exist, return 0
-                return 0
-            else:
-                raise e
-
-    # Map old activity types to new column names
-    math_count = get_count_local("math_solved")
-    science_count = get_count_local("science_done")
-    leadership_count = get_count_local("creative_done")
+    progress = get_student_progress(user["id"])
     
-    conn.close()
     return render_template(
         "grade_5_dashboard.html",
         user=user,
         ai_summary=ai_summary,
         audio_file=audio_file,
         hindi_file=session.pop("hindi_file", None),
-        books_count=books_count,
-        math_count=math_count,
-        science_count=science_count,
-        leadership_count=leadership_count
+        progress=progress
     )
 
 
@@ -1796,46 +1802,45 @@ def update_grade5_progress(student_id, activity_type):
     # First ensure the migration has run
     migrate_student_progress_table()
     
+    # Unified recording for dynamic dashboard
+    q_map = {
+        "grade_5_math": "g5_math_problems",
+        "grade_5_location": "g5_science_innovation", 
+        "grade_5_paragraph": "g5_logic_leadership"
+    }
+    
     try:
         conn = get_db()
         c = conn.cursor()
         
-        # Map old activity types to new column names
+        # Unified system record
+        quiz_id = q_map.get(activity_type, f"g5_{activity_type}")
+        c.execute("""
+            INSERT INTO quiz_attempts (student_id, quiz_id, score, total, attempted_at)
+            VALUES (?, ?, ?, ?, ?)
+        """, (student_id, quiz_id, 1, 1, datetime.now(timezone.utc).isoformat()))
+
+        # Legacy update
         field_mapping = {
             "grade_5_math": "math_solved",
             "grade_5_location": "science_done", 
             "grade_5_paragraph": "creative_done"
         }
         
-        subject_field = field_mapping.get(activity_type, "creative_done")  # default to creative_done
+        subject_field = field_mapping.get(activity_type, "creative_done")
         
-        # Check if exists
         c.execute(f"SELECT {subject_field} FROM student_progress WHERE student_id = ? AND grade = 5", (student_id,))
         row = c.fetchone()
         
-        count = 0
-        if row and row[0] is not None:
-            count = row[0]
-        
-        count += 1
-        
         if row:
-            # Update existing record
-            c.execute(f"UPDATE student_progress SET {subject_field} = ?, last_updated = CURRENT_TIMESTAMP WHERE student_id = ? AND grade = 5", (count, student_id))
+            c.execute(f"UPDATE student_progress SET {subject_field} = {subject_field} + 1, last_updated = CURRENT_TIMESTAMP WHERE student_id = ? AND grade = 5", (student_id,))
         else:
-            # Insert new record
-            c.execute(f"INSERT INTO student_progress (student_id, grade, {subject_field}) VALUES (?, 5, ?)", (student_id, count))
+            c.execute(f"INSERT INTO student_progress (student_id, grade, {subject_field}) VALUES (?, 5, 1)", (student_id,))
             
         conn.commit()
         conn.close()
-    except sqlite3.OperationalError as e:
-        if "no such column" in str(e):
-            # Column doesn't exist, migration should handle this
-            print(f"Column error for {activity_type}, migration needed")
-        else:
-            print(f"Error updating progress: {e}")
     except Exception as e:
-        print(f"Error updating progress: {e}")
+        print(f"Error updating grade 5 progress: {e}")
 
 
 # Grade 5 Feature Routes
@@ -2063,6 +2068,8 @@ def get_vocab_word():
         import re
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if json_match:
+            # Update Progress
+            update_grade5_progress(session["user"]["id"], "grade_5_vocab")
             return json.loads(json_match.group())
         else:
             return {"error": "Failed to generate word"}

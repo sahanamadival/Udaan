@@ -199,6 +199,16 @@
         document.getElementById('adj-feedback').textContent = '';
     }
 
+    async function saveProgress(qid, pts) {
+        try {
+            await fetch('/api/submit_progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quiz_id: `g3_grammar_${qid}`, score: pts, total: 1 })
+            });
+        } catch (e) { }
+    }
+
     function checkAdjective() {
         const q = allBlanksQuestions[currentBlankIndex];
         let correct = true;
@@ -207,6 +217,7 @@
         });
         if (correct) {
             document.getElementById('adj-feedback').textContent = "✅ Correct!";
+            saveProgress('blanks', 1);
             setTimeout(() => { currentBlankIndex++; loadBlankQuestion(); }, 1000);
         } else {
             document.getElementById('adj-feedback').textContent = "❌ Try again";
@@ -254,6 +265,7 @@
         const words = Array.from(document.getElementById('sentence-drop-zone').children).map(s => s.innerText).join(' ');
         if (words === sentenceQuestions[currentSentenceIndex].correct) {
             document.getElementById('sentence-feedback').textContent = "✅ Perfect!";
+            saveProgress('sentence', 1);
             setTimeout(() => { currentSentenceIndex++; loadSentenceQuestion(); }, 1000);
         } else {
             document.getElementById('sentence-feedback').textContent = "❌ Not quite";
