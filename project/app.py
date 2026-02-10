@@ -10,7 +10,6 @@ from openai import OpenAI
 from deep_translator import GoogleTranslator
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
-# from googletrans import Translator
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase.ttfonts import TTFont
@@ -1244,6 +1243,15 @@ def save_writing_progress():
     except Exception as e:
         return {'error': str(e)}, 500
 
+@app.route("/grade/4/phonics")
+@login_required(role="student")
+def grade_4_phonics():
+    user = session.get("user")
+    if user.get("grade") != "4":
+        flash("Access denied. This content is for Grade 4 students only.")
+        return redirect(url_for("grade_4_dashboard"))
+    return render_template("grade_4_phonics.html", user=user)
+
 @app.route("/grade/4/reading")
 @login_required(role="student")
 def grade_4_reading():
@@ -1830,6 +1838,7 @@ def grade_4_dashboard():
         audio_file=audio_file,
         hindi_file=session.get("hindi_file")
     )
+
 
 @app.route("/dashboard/grade/5")
 @login_required(role="student")

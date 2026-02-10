@@ -1,0 +1,563 @@
+{% extends "base.html" %}
+
+{% block title %}Word Wizard - Grade 4 - Udaan{% endblock %}
+
+{% block body_class %}min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 light-theme{% endblock %}
+
+{% block content %}
+<style>
+  /* Dyslexia-friendly styles */
+  body {
+    font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif;
+    line-height: 1.6;
+  }
+
+  .game-option {
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .game-option:hover {
+    transform: scale(1.02);
+  }
+
+  .word-letter {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin: 0.25rem;
+    background-color: #e0e7ff;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #4338ca;
+  }
+  .word-letter:hover {
+    background-color: #c7d2fe;
+    transform: translateY(-2px);
+  }
+  .word-letter.selected {
+    background-color: #4f46e5;
+    color: white;
+  }
+
+  .feedback-msg {
+    min-height: 2rem;
+    font-weight: bold;
+    font-size: 1.25rem;
+    margin-top: 1rem;
+  }
+</style>
+
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+
+    <!-- Title Section -->
+    <div class="bg-white rounded-3xl shadow-xl p-8 mb-8 text-center border-b-8 border-indigo-200">
+      <h1 class="text-4xl font-bold text-indigo-700 mb-4 flex items-center justify-center gap-3">
+        <span>🧙‍♂️</span> Word Wizard
+      </h1>
+      <p class="text-xl text-gray-700">Master complex words and meanings!</p>
+    </div>
+
+    <!-- Game Selection Tabs -->
+    <div class="flex flex-wrap justify-center gap-4 mb-8">
+      <button onclick="switchGame('context')" id="tab-context"
+        class="active-tab bg-indigo-600 text-white px-6 py-3 rounded-full font-bold text-lg shadow-lg hover:scale-105 transition-transform">
+        🕵️ Context Clues
+      </button>
+      <button onclick="switchGame('silent')" id="tab-silent"
+        class="bg-white text-indigo-600 px-6 py-3 rounded-full font-bold text-lg shadow-lg hover:scale-105 transition-transform">
+        🤫 Silent Scout
+      </button>
+      <button onclick="switchGame('idioms')" id="tab-idioms"
+        class="bg-white text-indigo-600 px-6 py-3 rounded-full font-bold text-lg shadow-lg hover:scale-105 transition-transform">
+        🐸 Idiom Invasion
+      </button>
+      <button onclick="switchGame('wordbuilder')" id="tab-wordbuilder"
+        class="bg-white text-indigo-600 px-6 py-3 rounded-full font-bold text-lg shadow-lg hover:scale-105 transition-transform">
+        🏗️ Word Builder
+      </button>
+    </div>
+
+    <!-- Game 1: Context Clue Captain -->
+    <div id="game-context" class="game-panel bg-white rounded-3xl shadow-xl p-8 mb-8 border-4 border-indigo-100">
+      <div class="text-center">
+        <h2 class="text-2xl font-bold text-indigo-800 mb-6">Context Clue Captain</h2>
+        <p class="text-gray-600 mb-6 text-lg">What does the <span class="font-bold text-indigo-600">highlighted</span> word mean in this sentence?</p>
+        
+        <div class="bg-indigo-50 p-6 rounded-2xl mb-8">
+            <p id="context-sentence" class="text-2xl leading-relaxed text-gray-800"></p>
+        </div>
+
+        <div id="context-options" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
+          <!-- Options inserted here -->
+        </div>
+
+        <div id="context-feedback" class="feedback-msg"></div>
+        <button onclick="nextContextLevel()" id="next-context-btn"
+          class="hidden mt-4 bg-indigo-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-600 transition-colors">Next Challenge ➡️</button>
+      </div>
+    </div>
+
+    <!-- Game 2: Silent Letter Scout -->
+    <div id="game-silent" class="game-panel hidden bg-white rounded-3xl shadow-xl p-8 mb-8 border-4 border-indigo-100">
+      <div class="text-center">
+        <h2 class="text-2xl font-bold text-indigo-800 mb-6">Silent Letter Scout</h2>
+        <p class="text-gray-600 mb-8 text-lg">Click on the <span class="text-red-500 font-bold">SILENT</span> letter in this word!</p>
+
+        <div id="silent-word-container" class="flex flex-wrap justify-center gap-2 mb-8 min-h-[80px] items-center">
+          <!-- Letters inserted here -->
+        </div>
+
+        <div id="silent-feedback" class="feedback-msg"></div>
+        <button onclick="nextSilentLevel()" id="next-silent-btn"
+          class="hidden mt-4 bg-indigo-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-600 transition-colors">Next Word ➡️</button>
+      </div>
+    </div>
+
+    <!-- Game 3: Idiom Invasion -->
+    <div id="game-idioms" class="game-panel hidden bg-white rounded-3xl shadow-xl p-8 mb-8 border-4 border-indigo-100">
+      <div class="text-center">
+        <h2 class="text-2xl font-bold text-indigo-800 mb-6">Idiom Invasion</h2>
+        <p class="text-gray-600 mb-6 text-lg">What is the <span class="font-bold text-purple-600">figurative meaning</span> of this phrase?</p>
+
+        <div class="bg-purple-50 p-6 rounded-2xl mb-8 transform -rotate-1 hover:rotate-0 transition-transform duration-300">
+            <h3 id="idiom-text" class="text-3xl font-bold text-purple-800"></h3>
+        </div>
+
+        <div id="idiom-options" class="flex flex-col gap-4 max-w-xl mx-auto mb-8">
+            <!-- Options inserted here -->
+        </div>
+
+        <div id="idiom-feedback" class="feedback-msg"></div>
+        <button onclick="nextIdiomLevel()" id="next-idiom-btn"
+          class="hidden mt-4 bg-indigo-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-600 transition-colors">Next Idiom ➡️</button>
+      </div>
+    </div>
+
+    <!-- Game 4: Word Builder (Preserved) -->
+    <div id="game-wordbuilder"
+      class="game-panel hidden bg-white rounded-3xl shadow-xl p-8 mb-8 border-4 border-indigo-100">
+      <div class="text-center">
+        <h2 class="text-2xl font-bold text-indigo-800 mb-6">Word Builder</h2>
+        <p class="text-xl text-gray-700 mb-2">Build the word: <span id="builder-target"
+            class="font-bold text-indigo-600 text-2xl"></span></p>
+        <p
+          class="text-sm text-indigo-500 mb-6 font-semibold bg-indigo-50 inline-block px-4 py-2 rounded-full border border-indigo-100">
+          ℹ️ Tip: You must select one option from EACH column (Prefix, Root, Suffix).
+        </p>
+
+        <div class="flex flex-wrap justify-center gap-8 mb-8">
+          <!-- Prefixes -->
+          <div class="bg-blue-50 p-4 rounded-xl">
+            <h3 class="font-bold text-blue-800 mb-2">Prefix</h3>
+            <div id="prefix-options" class="flex flex-col gap-2"></div>
+          </div>
+
+          <!-- Roots -->
+          <div class="bg-green-50 p-4 rounded-xl">
+            <h3 class="font-bold text-green-800 mb-2">Root Word</h3>
+            <div id="root-options" class="flex flex-col gap-2"></div>
+          </div>
+
+          <!-- Suffixes -->
+          <div class="bg-orange-50 p-4 rounded-xl">
+            <h3 class="font-bold text-orange-800 mb-2">Suffix</h3>
+            <div id="suffix-options" class="flex flex-col gap-2"></div>
+          </div>
+        </div>
+
+        <div class="bg-gray-100 p-4 rounded-xl min-h-[60px] flex items-center justify-center mb-6">
+          <div id="built-morphology" class="text-3xl font-bold text-gray-800 tracking-wide"></div>
+        </div>
+
+        <div class="flex justify-center gap-4">
+          <button onclick="checkWordBuilder()"
+            class="bg-indigo-500 hover:bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold text-xl shadow-md transition-colors">
+            Check Word
+          </button>
+          <button onclick="resetWordBuilder()"
+            class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-xl font-bold shadow-md transition-colors">
+            Reset
+          </button>
+        </div>
+
+        <div id="builder-feedback" class="feedback-msg"></div>
+        <button onclick="nextBuilderWord()" id="next-builder-btn"
+          class="hidden mt-4 bg-indigo-500 text-white px-6 py-2 rounded-lg font-bold">Next Word ➡️</button>
+      </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="text-center">
+      <a href="{{ url_for('grade_4_dashboard') }}"
+        class="inline-block bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md">
+        Back to Dashboard
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // --- Game Data ---
+  
+  // Context Clues Data
+  const contextData = [
+    { 
+        sentence: "The <span class='text-indigo-600 font-bold border-b-2 border-indigo-400'>ancient</span> tree had been in the park for over 200 years.", 
+        word: "ancient",
+        options: ["Very old", "Brand new", "Small", "Invisible"], 
+        correct: "Very old" 
+    },
+    { 
+        sentence: "The detective was <span class='text-indigo-600 font-bold border-b-2 border-indigo-400'>baffled</span> by the missing cookie mystery.", 
+        word: "baffled",
+        options: ["Happy", "Confused", "Hungry", "Asleep"], 
+        correct: "Confused" 
+    },
+    { 
+        sentence: "The king was a <span class='text-indigo-600 font-bold border-b-2 border-indigo-400'>benevolent</span> ruler who shared his wealth.", 
+        word: "benevolent",
+        options: ["Mean", "Kind and generous", "Scary", "Poor"], 
+        correct: "Kind and generous" 
+    },
+    { 
+        sentence: "Please <span class='text-indigo-600 font-bold border-b-2 border-indigo-400'>omit</span> the onions from my salad; I don't like them.", 
+        word: "omit",
+        options: ["Add extra", "Cook", "Leave out", "Chop up"], 
+        correct: "Leave out" 
+    }
+  ];
+
+  // Silent Letter Data
+  const silentData = [
+    { word: "KNIGHT", silentIndex: 0 }, // K
+    { word: "WRIST", silentIndex: 0 },  // W
+    { word: "LAMB", silentIndex: 3 },   // B
+    { word: "ISLAND", silentIndex: 1 }, // S
+    { word: "GNOME", silentIndex: 0 },  // G
+    { word: "CASTLE", silentIndex: 3 }  // T
+  ];
+
+  // Idiom Data
+  const idiomData = [
+    { idiom: "Piece of cake", options: ["A yummy dessert", "Very easy", "Hard work"], correct: "Very easy" },
+    { idiom: "Break a leg", options: ["Get hurt", "Good luck", "Stop walking"], correct: "Good luck" },
+    { idiom: "Under the weather", options: ["Standing in rain", "Feeling sick", "Looking at clouds"], correct: "Feeling sick" },
+    { idiom: "Spill the beans", options: ["Make a mess", "Plant a garden", "Tell a secret"], correct: "Tell a secret" },
+    { idiom: "Cost an arm and a leg", options: ["Very expensive", "Body parts", "Cheap"], correct: "Very expensive" }
+  ];
+
+  // Word Builder Data (Preserved)
+  const builderData = [
+    { target: "Unhappiness", parts: { prefix: "Un", root: "happy", suffix: "ness" }, meaning: "Not being happy" },
+    { target: "Replaying", parts: { prefix: "Re", root: "play", suffix: "ing" }, meaning: "Playing again" },
+    { target: "Disagree", parts: { prefix: "Dis", root: "agree", suffix: "" }, meaning: "Not agreeing" }, 
+    { target: "Teacher", parts: { prefix: "", root: "Teach", suffix: "er" }, meaning: "Someone who teaches" },
+    { target: "Impossible", parts: { prefix: "Im", root: "possible", suffix: "" }, meaning: "Not possible" }
+  ];
+
+  // --- State ---
+  let contextIndex = 0;
+  let silentIndex = 0;
+  let idiomIndex = 0;
+  let currentBuilderIndex = 0;
+
+  // Word Builder State
+  let selectedPrefix = "";
+  let selectedRoot = "";
+  let selectedSuffix = "";
+
+  // --- Init ---
+  document.addEventListener('DOMContentLoaded', () => {
+    loadContextLevel();
+    loadSilentLevel();
+    loadIdiomLevel();
+    loadBuilderLevel();
+  });
+
+  function switchGame(game) {
+    // Hide all panels
+    document.querySelectorAll('.game-panel').forEach(p => p.classList.add('hidden'));
+    document.getElementById('game-' + game).classList.remove('hidden');
+
+    // Update tabs
+    document.querySelectorAll('button[id^="tab-"]').forEach(b => {
+      b.classList.remove('active-tab', 'bg-indigo-600', 'text-white');
+      b.classList.add('bg-white', 'text-indigo-600');
+    });
+    const activeBtn = document.getElementById('tab-' + game);
+    if (activeBtn) {
+        activeBtn.classList.remove('bg-white', 'text-indigo-600');
+        activeBtn.classList.add('bg-indigo-600', 'text-white');
+    }
+  }
+
+  // --- Game 1: Context Clues Logic ---
+  function loadContextLevel() {
+    const data = contextData[contextIndex];
+    document.getElementById('context-sentence').innerHTML = data.sentence;
+    document.getElementById('context-feedback').textContent = "";
+    document.getElementById('next-context-btn').classList.add('hidden');
+    
+    const container = document.getElementById('context-options');
+    container.innerHTML = "";
+
+    // Shuffle options
+    const shuffled = [...data.options].sort(() => Math.random() - 0.5);
+
+    shuffled.forEach(opt => {
+        const btn = document.createElement('div');
+        btn.className = "game-option bg-indigo-50 border-2 border-indigo-200 p-4 rounded-xl text-center text-lg font-bold text-indigo-800 hover:bg-indigo-100";
+        btn.textContent = opt;
+        btn.onclick = () => checkContext(opt, btn, data.correct);
+        container.appendChild(btn);
+    });
+  }
+
+  function checkContext(selected, btnElement, correct) {
+    const feedback = document.getElementById('context-feedback');
+    
+    // Reset styles
+    const allBtns = document.getElementById('context-options').children;
+    for (let b of allBtns) {
+        b.classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+        b.classList.add('bg-indigo-50', 'border-indigo-200');
+    }
+
+    if (selected === correct) {
+        feedback.textContent = "🎉 Correct! That fits the context!";
+        feedback.className = "feedback-msg text-green-600";
+        btnElement.classList.remove('bg-indigo-50', 'border-indigo-200');
+        btnElement.classList.add('bg-green-200', 'border-green-400');
+        document.getElementById('next-context-btn').classList.remove('hidden');
+    } else {
+        feedback.textContent = "❌ Not quite. Look at the other words for clues.";
+        feedback.className = "feedback-msg text-orange-500";
+        btnElement.classList.remove('bg-indigo-50', 'border-indigo-200');
+        btnElement.classList.add('bg-red-200', 'border-red-400');
+    }
+  }
+
+  function nextContextLevel() {
+    contextIndex = (contextIndex + 1) % contextData.length;
+    loadContextLevel();
+  }
+
+
+  // --- Game 2: Silent Letter Logic ---
+  function loadSilentLevel() {
+    const data = silentData[silentIndex];
+    document.getElementById('silent-feedback').textContent = "";
+    document.getElementById('next-silent-btn').classList.add('hidden');
+    
+    const container = document.getElementById('silent-word-container');
+    container.innerHTML = "";
+
+    for (let i = 0; i < data.word.length; i++) {
+        const letterDiv = document.createElement('div');
+        letterDiv.textContent = data.word[i];
+        letterDiv.className = "word-letter";
+        letterDiv.onclick = () => checkSilent(i, letterDiv, data.silentIndex);
+        container.appendChild(letterDiv);
+    }
+  }
+
+  function checkSilent(index, element, correctIndex) {
+    const feedback = document.getElementById('silent-feedback');
+    
+    if (index === correctIndex) {
+        feedback.textContent = "🤫 shhh! Good job found the silent letter!";
+        feedback.className = "feedback-msg text-green-600";
+        element.style.backgroundColor = "#22c55e"; // Green
+        element.style.color = "white";
+        document.getElementById('next-silent-btn').classList.remove('hidden');
+    }
+    // Prevent clicking non-silent when already found? 
+    // Or just feedback for wrong attempts
+    else {
+        feedback.textContent = "🔊 That letter makes a sound!";
+        feedback.className = "feedback-msg text-orange-500";
+        element.style.backgroundColor = "#fca5a5"; // Red
+        setTimeout(() => {
+             element.style.backgroundColor = "#e0e7ff"; // Reset
+        }, 500);
+    }
+  }
+
+  function nextSilentLevel() {
+    silentIndex = (silentIndex + 1) % silentData.length;
+    loadSilentLevel();
+  }
+
+
+  // --- Game 3: Idiom Invasion Logic ---
+  function loadIdiomLevel() {
+    const data = idiomData[idiomIndex];
+    document.getElementById('idiom-text').textContent = `"${data.idiom}"`;
+    document.getElementById('idiom-feedback').textContent = "";
+    document.getElementById('next-idiom-btn').classList.add('hidden');
+    
+    const container = document.getElementById('idiom-options');
+    container.innerHTML = "";
+
+    const shuffled = [...data.options].sort(() => Math.random() - 0.5);
+    shuffled.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = "w-full text-left px-6 py-4 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 font-bold border-2 border-purple-100 transition-all";
+        btn.textContent = opt;
+        btn.onclick = () => checkIdiom(opt, btn, data.correct);
+        container.appendChild(btn);
+    });
+  }
+
+  function checkIdiom(selected, btn, correct) {
+     const feedback = document.getElementById('idiom-feedback');
+     const allBtns = document.getElementById('idiom-options').children;
+
+     for (let b of allBtns) {
+         b.disabled = true;
+         if (b.textContent === correct) {
+             b.classList.remove('bg-purple-50', 'border-purple-100');
+             b.classList.add('bg-green-100', 'border-green-400');
+         }
+     }
+
+     if (selected === correct) {
+        feedback.textContent = "🌟 You got it! That's what it really means.";
+        feedback.className = "feedback-msg text-green-600";
+        document.getElementById('next-idiom-btn').classList.remove('hidden');
+     } else {
+        feedback.textContent = "❌ Oops! That's the literal meaning (or wrong).";
+        feedback.className = "feedback-msg text-red-500";
+        btn.classList.add('bg-red-100', 'border-red-400');
+     }
+  }
+
+  function nextIdiomLevel() {
+    idiomIndex = (idiomIndex + 1) % idiomData.length;
+    loadIdiomLevel();
+  }
+
+
+  // --- Word Builder Logic (Preserved) ---
+  function loadBuilderLevel() {
+    const data = builderData[currentBuilderIndex];
+    document.getElementById('builder-target').textContent = data.meaning;
+    document.getElementById('builder-feedback').textContent = "";
+    document.getElementById('next-builder-btn').classList.add('hidden');
+    resetWordBuilder();
+
+    // Generate options
+    renderMorphologyOptions('prefix', ["Un", "Re", "Dis", "Im", "Pre", "Mis", ""], data.parts.prefix);
+    renderMorphologyOptions('root', ["happy", "play", "agree", "Teach", "possible", "view"], data.parts.root);
+    renderMorphologyOptions('suffix', ["ness", "ing", "er", "able", "ment", "ful", ""], data.parts.suffix);
+  }
+
+  function renderMorphologyOptions(type, allOptions, correct) {
+    const container = document.getElementById(type + '-options');
+    container.innerHTML = "";
+
+    // Ensure correct option is included
+    if (correct && !allOptions.includes(correct)) allOptions.push(correct);
+    if (correct === "" && !allOptions.includes("")) allOptions.push("");
+
+    allOptions.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = "morph-btn bg-white border-2 border-indigo-200 text-indigo-700 font-bold py-2 px-4 rounded-lg hover:bg-indigo-50 transition-colors";
+      btn.textContent = opt === "" ? "(None)" : opt;
+
+      if (opt === "") {
+        btn.className = "morph-btn bg-gray-100 border-2 border-gray-300 text-gray-500 font-bold py-2 px-4 rounded-lg hover:bg-gray-200";
+      }
+
+      btn.onclick = () => selectMorphologyPart(type, opt, btn);
+      container.appendChild(btn);
+    });
+  }
+
+  function selectMorphologyPart(type, value, btnElement) {
+    // Clear previous selection
+    const container = document.getElementById(type + '-options');
+    container.querySelectorAll('.morph-btn').forEach(b => {
+      b.classList.remove('bg-indigo-500', 'text-white', 'border-indigo-600');
+      b.classList.add('bg-white', 'text-indigo-700', 'border-indigo-200');
+      if (b.textContent === "(None)") {
+        b.classList.add('bg-gray-100', 'text-gray-500', 'border-gray-300');
+        b.classList.remove('bg-gray-600', 'text-white');
+      }
+    });
+
+    // Highlight new
+    btnElement.classList.remove('bg-white', 'text-indigo-700', 'border-indigo-200', 'bg-gray-100', 'text-gray-500', 'border-gray-300');
+    if (value === "") {
+      btnElement.classList.add('bg-gray-600', 'text-white', 'border-gray-700');
+    } else {
+      btnElement.classList.add('bg-indigo-500', 'text-white', 'border-indigo-600');
+    }
+
+    if (type === 'prefix') selectedPrefix = value;
+    if (type === 'root') selectedRoot = value;
+    if (type === 'suffix') selectedSuffix = value;
+
+    updateBuiltWord();
+  }
+
+  function updateBuiltWord() {
+    let word = "";
+    if (selectedPrefix) word += selectedPrefix;
+
+    if (selectedRoot) {
+      let root = selectedRoot;
+      if (selectedSuffix) {
+        if (root.endsWith('y') && !selectedSuffix.startsWith('i')) {
+          root = root.substring(0, root.length - 1) + 'i';
+        }
+      }
+      word += root.toLowerCase();
+    }
+
+    if (selectedSuffix) word += selectedSuffix;
+    document.getElementById('built-morphology').textContent = word;
+  }
+
+  function resetWordBuilder() {
+    selectedPrefix = "";
+    selectedRoot = "";
+    selectedSuffix = "";
+    document.getElementById('built-morphology').textContent = "___";
+
+    // Reset buttons visual
+    document.querySelectorAll('.morph-btn').forEach(b => {
+      b.className = "morph-btn bg-white border-2 border-indigo-200 text-indigo-700 font-bold py-2 px-4 rounded-lg hover:bg-indigo-50 transition-colors";
+      if (b.textContent === "(None)") {
+        b.className = "morph-btn bg-gray-100 border-2 border-gray-300 text-gray-500 font-bold py-2 px-4 rounded-lg hover:bg-gray-200";
+      }
+    });
+  }
+
+  function checkWordBuilder() {
+    const data = builderData[currentBuilderIndex];
+    const feedback = document.getElementById('builder-feedback');
+
+    if (selectedPrefix === data.parts.prefix &&
+      selectedRoot === data.parts.root &&
+      selectedSuffix === data.parts.suffix) {
+
+      feedback.textContent = `🎉 Correct! ${data.target}!`;
+      feedback.className = "feedback-msg text-green-600";
+      document.getElementById('next-builder-btn').classList.remove('hidden');
+    } else {
+      feedback.textContent = "Not quite. Check the parts!";
+      feedback.className = "feedback-msg text-orange-500";
+    }
+  }
+
+  function nextBuilderWord() {
+    currentBuilderIndex = (currentBuilderIndex + 1) % builderData.length;
+    loadBuilderLevel();
+  }
+</script>
+{% endblock %}
