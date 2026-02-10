@@ -12,6 +12,36 @@
                 <p class="text-xl text-indigo-600">Have fun with numbers and basic math!</p>
             </div>
 
+            <!-- Numbers Learning Section -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800">🔢 Learn Numbers 1-20</h2>
+                    <div class="text-5xl">📚</div>
+                </div>
+
+                <div class="bg-indigo-50 rounded-2xl p-8 mb-8">
+                    <div class="flex flex-wrap justify-center gap-4 mb-8">
+                        {% for i in range(1, 21) %}
+                        <div class="w-16 h-16 bg-indigo-100 rounded-xl flex items-center justify-center text-2xl font-bold text-indigo-600 cursor-pointer hover:bg-indigo-200 transition-colors shadow-md" onclick="showNumberInfo({{ i }})">
+                            {{ i }}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div id="number-info" class="text-center hidden">
+                        <div class="text-6xl font-bold text-indigo-600 mb-4" id="current-number">1</div>
+                        <div class="text-xl text-gray-700 mb-6" id="number-word">One</div>
+                        <div id="number-objects" class="flex justify-center flex-wrap gap-2 mb-6"></div>
+                        <button onclick="speakNumber()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium mr-3">
+                            <i class="fas fa-volume-up mr-2"></i>Hear Number
+                        </button>
+                        <button onclick="countObjects()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-play-circle mr-2"></i>Count Objects
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Addition Section -->
             <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
                 <div class="flex items-center justify-between mb-8">
@@ -206,6 +236,95 @@
             obj.textContent = i + 1;
             container.appendChild(obj);
         }
+    }
+
+    // Number learning functions
+    function showNumberInfo(number) {
+        const numberWords = [
+            '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+            'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen', 'Twenty'
+        ];
+        
+        document.getElementById('current-number').textContent = number;
+        document.getElementById('number-word').textContent = numberWords[number];
+        
+        // Generate objects for the selected number
+        const numberObjectsContainer = document.getElementById('number-objects');
+        numberObjectsContainer.innerHTML = '';
+        
+        for (let i = 0; i < number; i++) {
+            const obj = document.createElement('div');
+            obj.className = 'w-12 h-12 bg-blue-500 rounded-full shadow-sm flex items-center justify-center text-white text-lg font-bold';
+            obj.textContent = i + 1;
+            numberObjectsContainer.appendChild(obj);
+        }
+        
+        // Show the number info section
+        document.getElementById('number-info').classList.remove('hidden');
+        
+        // Scroll to the number info section
+        document.getElementById('number-info').scrollIntoView({behavior: 'smooth'});
+    }
+
+    function speakNumber() {
+        const number = document.getElementById('current-number').textContent;
+        const msg = new SpeechSynthesisUtterance(number);
+        msg.rate = 0.8;
+        msg.pitch = 1.2;
+        window.speechSynthesis.speak(msg);
+    }
+
+    function countObjects() {
+        const number = parseInt(document.getElementById('current-number').textContent);
+        const objects = document.querySelectorAll('#number-objects div');
+        
+        if (objects.length === 0) {
+            alert('No objects to count!');
+            return;
+        }
+        
+        // Speak the count
+        const msg = new SpeechSynthesisUtterance(`Let's count to ${number}: `);
+        msg.rate = 0.8;
+        msg.pitch = 1.2;
+        window.speechSynthesis.speak(msg);
+        
+        // Create a promise-based delay function
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // Function to highlight one object
+        async function highlightObject(index) {
+            if (index >= objects.length) return;
+            
+            const obj = objects[index];
+            
+            // Highlight the current object
+            obj.style.backgroundColor = '#fbbf24'; // Yellow for highlighting
+            obj.style.transform = 'scale(1.3)';
+            obj.style.transition = 'all 0.3s ease';
+            
+            // Speak the number
+            const numberMsg = new SpeechSynthesisUtterance((index + 1).toString());
+            numberMsg.rate = 0.8;
+            numberMsg.pitch = 1.2;
+            window.speechSynthesis.speak(numberMsg);
+            
+            // Wait for the speech to finish before resetting
+            await delay(1000);
+            
+            // Reset the object
+            obj.style.backgroundColor = '#3b82f6'; // Blue (original)
+            obj.style.transform = 'scale(1)';
+            
+            // Continue to next object
+            await delay(300);
+            await highlightObject(index + 1);
+        }
+        
+        // Start the synchronous counting
+        highlightObject(0);
     }
 
     function updateProgress() {
