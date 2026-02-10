@@ -22,7 +22,7 @@
                             <div class="text-xl text-gray-700 mb-4" id="sentence-template">
                                 The ___ ___ in the ___.
                             </div>
-                            <div class="flex justify-center space-x-2 mb-4 text-2xl">
+                            <div class="flex justify-center space-x-2 mb-4 text-2xl" id="sentence-visuals">
                                 <span>🐱</span>
                                 <span>cat</span>
                                 <span>jumps</span>
@@ -30,19 +30,14 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-3 mb-6">
-                            <button onclick="buildSentence('The cat jumps in the box.')"
-                                class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-medium">The cat jumps in the
-                                box.</button>
-                            <button onclick="buildSentence('The dog runs in the park.')"
-                                class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-medium">The dog runs in the
-                                park.</button>
-                            <button onclick="buildSentence('The bird flies in the sky.')"
-                                class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-medium">The bird flies in the
-                                sky.</button>
-                            <button onclick="buildSentence('The fish swims in the water.')"
-                                class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-medium">The fish swims in the
-                                water.</button>
+                        <div class="grid grid-cols-2 gap-3 mb-6" id="sentence-options">
+                            <!-- Options will be dynamically generated -->
+                        </div>
+
+                        <div class="mb-4">
+                            <button onclick="speakSentence()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium">
+                                <i class="fas fa-volume-up mr-2"></i>Hear Sentence
+                            </button>
                         </div>
 
                         <div id="sentence-result" class="text-lg font-medium hidden"></div>
@@ -51,65 +46,23 @@
 
                 <!-- Spelling Practice -->
                 <div class="bg-white rounded-2xl shadow-lg p-6">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🔤 Spelling Practice</h2>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🔤 Spelling Challenge</h2>
                     <div class="text-center">
                         <div class="bg-gray-50 rounded-xl p-6 mb-6">
-                            <div class="text-2xl font-bold text-purple-600 mb-4" id="spelling-word">ELEPHANT</div>
+                            <div class="text-4xl mb-4" id="spelling-image">🐘</div>
                             <div class="text-gray-600 mb-4">Spell this word:</div>
                             <div class="flex justify-center space-x-2 mb-4" id="letter-spaces">
-                                <div
-                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
-                                    E</div>
-                                <div
-                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
-                                    L</div>
-                                <div
-                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
-                                    E</div>
-                                <div
-                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
-                                    P</div>
-                                <div
-                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
-                                    H</div>
-                                <div
-                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
-                                    A</div>
-                                <div
-                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
-                                    N</div>
-                                <div
-                                    class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold">
-                                    T</div>
+                                <!-- Letter spaces will be dynamically generated -->
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-4 gap-2 mb-6">
-                            <button onclick="checkSpelling('E')"
-                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">E</button>
-                            <button onclick="checkSpelling('L')"
-                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">L</button>
-                            <button onclick="checkSpelling('P')"
-                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">P</button>
-                            <button onclick="checkSpelling('H')"
-                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">H</button>
-                            <button onclick="checkSpelling('A')"
-                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">A</button>
-                            <button onclick="checkSpelling('N')"
-                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">N</button>
-                            <button onclick="checkSpelling('T')"
-                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">T</button>
-                            <button onclick="checkSpelling('S')"
-                                class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg">S</button>
+                        <div class="grid grid-cols-4 gap-2 mb-6" id="spelling-options">
+                            <!-- Alphabet options will be dynamically generated -->
                         </div>
 
                         <button onclick="speakWord()"
-                            class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-medium mr-3">
+                            class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-medium">
                             <i class="fas fa-volume-up mr-2"></i>Hear Word
-                        </button>
-                        <button onclick="nextSpellingWord()"
-                            class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium">
-                            <i class="fas fa-arrow-right mr-2"></i>Next Word
                         </button>
 
                         <div id="spelling-result" class="text-lg font-medium mt-4 hidden"></div>
@@ -117,102 +70,48 @@
                 </div>
             </div>
 
-            <!-- Word Families -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📚 Word Families</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="text-center">
-                        <div class="text-3xl font-bold text-blue-600 mb-4">-AT Family</div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div class="bg-blue-50 p-3 rounded-lg">cat</div>
-                            <div class="bg-blue-50 p-3 rounded-lg">bat</div>
-                            <div class="bg-blue-50 p-3 rounded-lg">hat</div>
-                            <div class="bg-blue-50 p-3 rounded-lg">mat</div>
-                            <div class="bg-blue-50 p-3 rounded-lg">rat</div>
-                            <div class="bg-blue-50 p-3 rounded-lg">sat</div>
-                        </div>
+            <!-- Sentence Pronunciation Practice -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8" id="sentence-pronunciation-section">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🗣️ Sentence Pronunciation Practice</h2>
+                <div class="text-center">
+                    <div class="bg-blue-50 rounded-xl p-6 mb-6">
+                        <div class="text-xl text-gray-700 mb-4" id="pronunciation-sentence">The cat is sleeping in the sun.</div>
+                        <div class="text-gray-600 mb-4">Listen and repeat the sentence:</div>
                     </div>
-                    <div class="text-center">
-                        <div class="text-3xl font-bold text-green-600 mb-4">-AN Family</div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div class="bg-green-50 p-3 rounded-lg">can</div>
-                            <div class="bg-green-50 p-3 rounded-lg">man</div>
-                            <div class="bg-green-50 p-3 rounded-lg">pan</div>
-                            <div class="bg-green-50 p-3 rounded-lg">van</div>
-                            <div class="bg-green-50 p-3 rounded-lg">fan</div>
-                            <div class="bg-green-50 p-3 rounded-lg">tan</div>
-                        </div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-3xl font-bold text-orange-600 mb-4">-ING Family</div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div class="bg-orange-50 p-3 rounded-lg">singing</div>
-                            <div class="bg-orange-50 p-3 rounded-lg">running</div>
-                            <div class="bg-orange-50 p-3 rounded-lg">jumping</div>
-                            <div class="bg-orange-50 p-3 rounded-lg">playing</div>
-                            <div class="bg-orange-50 p-3 rounded-lg">reading</div>
-                            <div class="bg-orange-50 p-3 rounded-lg">writing</div>
-                        </div>
-                    </div>
+
+                    <button onclick="speakPronunciationSentence()" 
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-medium mr-3">
+                        <i class="fas fa-volume-up mr-2"></i>Listen to Sentence
+                    </button>
+                    <button onclick="nextPronunciationSentence()" 
+                        class="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-medium">
+                        <i class="fas fa-arrow-right mr-2"></i>Next Sentence
+                    </button>
                 </div>
             </div>
 
             <!-- Reading Comprehension -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8" id="comprehension-section">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📖 Reading Comprehension</h2>
                 <div class="max-w-3xl mx-auto">
-                    <div class="bg-yellow-50 rounded-xl p-6 mb-6">
-                        <h3 class="text-xl font-bold text-yellow-700 mb-3">The Hungry Cat</h3>
-                        <p class="text-gray-700 mb-4">
+                    <div class="bg-yellow-50 rounded-xl p-6 mb-6" id="story-content">
+                        <h3 class="text-xl font-bold text-yellow-700 mb-3" id="story-title">The Hungry Cat</h3>
+                        <p class="text-gray-700 mb-4" id="story-text">
                             Tom is a small orange cat. He lives in a big house with his family.
                             Tom loves to eat fish and milk. Every morning, Tom waits by his food bowl.
                             When his family gives him food, Tom eats happily. Tom is a very good cat.
                         </p>
                     </div>
 
-                    <div class="space-y-4">
-                        <div class="bg-white border border-gray-200 rounded-lg p-4">
-                            <p class="font-medium text-gray-800 mb-2">1. What color is Tom?</p>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button onclick="checkComprehension(1, 'orange')"
-                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Orange</button>
-                                <button onclick="checkComprehension(1, 'black')"
-                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Black</button>
-                                <button onclick="checkComprehension(1, 'white')"
-                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">White</button>
-                                <button onclick="checkComprehension(1, 'brown')"
-                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Brown</button>
-                            </div>
-                        </div>
+                    <div id="comprehension-questions">
+                        <!-- Questions will be dynamically generated -->
+                    </div>
 
-                        <div class="bg-white border border-gray-200 rounded-lg p-4">
-                            <p class="font-medium text-gray-800 mb-2">2. What does Tom love to eat?</p>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button onclick="checkComprehension(2, 'fish and milk')"
-                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Fish and milk</button>
-                                <button onclick="checkComprehension(2, 'meat')"
-                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Meat</button>
-                                <button onclick="checkComprehension(2, 'vegetables')"
-                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Vegetables</button>
-                                <button onclick="checkComprehension(2, 'fruits')"
-                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Fruits</button>
-                            </div>
-                        </div>
-
-                        <div class="bg-white border border-gray-200 rounded-lg p-4">
-                            <p class="font-medium text-gray-800 mb-2">3. Where does Tom wait every morning?</p>
-                            <div class="grid grid-cols-2 gap-2">
-                                <button onclick="checkComprehension(3, 'by his food bowl')"
-                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">By his food
-                                    bowl</button>
-                                <button onclick="checkComprehension(3, 'in his bed')"
-                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">In his bed</button>
-                                <button onclick="checkComprehension(3, 'outside')"
-                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">Outside</button>
-                                <button onclick="checkComprehension(3, 'in the garden')"
-                                    class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-left">In the garden</button>
-                            </div>
-                        </div>
+                    <div class="mt-4 text-center hidden" id="new-story-button">
+                        <button onclick="generateComprehension()" 
+                            class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium">
+                            <i class="fas fa-sync-alt mr-2"></i>New Story
+                        </button>
                     </div>
 
                     <div id="comprehension-result" class="text-center mt-6 text-lg font-medium hidden"></div>
@@ -222,7 +121,7 @@
             <!-- Progress Tracker -->
             <div class="bg-white rounded-2xl shadow-lg p-6">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📊 Your Progress</h2>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 text-center">
                     <div>
                         <div class="text-3xl font-bold text-blue-600 mb-2" id="sentences-built">0</div>
                         <div class="text-gray-600">Sentences Built</div>
@@ -236,8 +135,12 @@
                         <div class="text-gray-600">Correct Spelling</div>
                     </div>
                     <div>
-                        <div class="text-3xl font-bold text-yellow-600 mb-2" id="comprehension-score">0/3</div>
-                        <div class="text-gray-600">Comprehension</div>
+                        <div class="text-3xl font-bold text-yellow-600 mb-2" id="comprehension-score">0</div>
+                        <div class="text-gray-600">Comprehension Score</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-indigo-600 mb-2" id="pronunciation-practiced">0</div>
+                        <div class="text-gray-600">Pronunciation</div>
                     </div>
                 </div>
             </div>
@@ -258,9 +161,173 @@
     let wordsSpelled = 0;
     let correctSpelling = 0;
     let comprehensionScore = 0;
+    let pronunciationPracticed = 0;
     let currentSpellingWord = 'ELEPHANT';
     let currentSpellingIndex = 0;
     let answeredQuestions = new Set();
+    let currentSentence = '';
+    let currentPronunciationSentence = 'The cat is sleeping in the sun.';
+    let currentStory = {};
+    let currentQuestionIndex = 0;
+
+    // Data for dynamic content
+    const sentenceTemplates = [
+        { template: "The ___ ___ in the ___.", visuals: ['🐱', 'cat', 'jumps', 'box'], options: ['The cat jumps in the box.', 'The dog runs in the park.', 'The bird flies in the sky.', 'The fish swims in the water'] },
+        { template: "___ like to ___.", visuals: ['👧', 'Kids', 'play'], options: ['Kids like to play.', 'Dogs like to run.', 'Birds like to fly.', 'Fish like to swim'] },
+        { template: "I see a ___ ___.", visuals: ['🍎', 'big', 'apple'], options: ['I see a big apple.', 'I see a red ball.', 'I see a blue car.', 'I see a tall tree'] },
+        { template: "___ is my favorite ___.", visuals: ['Mom', 'teacher'], options: ['Mom is my favorite teacher.', 'Dad is my favorite helper.', 'Teacher is my favorite friend.', 'Book is my favorite toy'] }
+    ];
+
+    // Spelling words with corresponding images
+    const spellingWordsData = [
+        { word: 'ELEPHANT', image: '🐘' },
+        { word: 'BUTTERFLY', image: '🦋' },
+        { word: 'RAINBOW', image: '🌈' },
+        { word: 'SUNSHINE', image: '☀️' },
+        { word: 'FLOWER', image: '🌻' },
+        { word: 'GARDEN', image: '🏡' },
+        { word: 'WINDOW', image: '窗户' }, // Using Chinese character for window as there's no emoji
+        { word: 'TABLE', image: '🪑' },
+        { word: 'CHAIR', image: '🪑' },
+        { word: 'HOUSE', image: '🏠' },
+        { word: 'CAT', image: '🐱' },
+        { word: 'DOG', image: '🐶' },
+        { word: 'BIRD', image: '🐦' },
+        { word: 'FISH', image: '🐟' },
+        { word: 'TREE', image: '🌳' },
+        { word: 'BOOK', image: '📚' },
+        { word: 'BALL', image: '⚽' },
+        { word: 'CAR', image: '🚗' }
+    ];
+
+    const pronunciationSentences = [
+        'The cat is sleeping in the sun.',
+        'Children like to play outside.',
+        'I see a beautiful rainbow.',
+        'My mom makes delicious cookies.',
+        'The birds sing sweet songs.',
+        'We go to school every day.',
+        'Reading books is fun.',
+        'The flowers smell nice.',
+        'I like to drink water.',
+        'Dogs bark loudly.'
+    ];
+
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+    const stories = [
+        {
+            title: "The Hungry Cat",
+            text: "Tom is a small orange cat. He lives in a big house with his family. Tom loves to eat fish and milk. Every morning, Tom waits by his food bowl. When his family gives him food, Tom eats happily. Tom is a very good cat.",
+            questions: [
+                {
+                    id: 1,
+                    text: "1. What color is Tom?",
+                    options: ['Orange', 'Black', 'White', 'Brown'],
+                    answer: 'Orange'
+                },
+                {
+                    id: 2,
+                    text: "2. What does Tom love to eat?",
+                    options: ['Fish and milk', 'Meat', 'Vegetables', 'Fruits'],
+                    answer: 'Fish and milk'
+                },
+                {
+                    id: 3,
+                    text: "3. Where does Tom wait every morning?",
+                    options: ['By his food bowl', 'In his bed', 'Outside', 'In the garden'],
+                    answer: 'By his food bowl'
+                }
+            ]
+        },
+        {
+            title: "The Busy Bee",
+            text: "Buzzy is a busy bee. She flies from flower to flower. She collects nectar to make honey. Buzzy works hard all day. Her hive is full of golden honey. Everyone loves the honey Buzzy makes.",
+            questions: [
+                {
+                    id: 1,
+                    text: "1. What does Buzzy collect?",
+                    options: ['Nectar', 'Flowers', 'Water', 'Leaves'],
+                    answer: 'Nectar'
+                },
+                {
+                    id: 2,
+                    text: "2. What does Buzzy make with nectar?",
+                    options: ['Honey', 'Jam', 'Juice', 'Soup'],
+                    answer: 'Honey'
+                },
+                {
+                    id: 3,
+                    text: "3. What color is the honey?",
+                    options: ['Golden', 'White', 'Red', 'Blue'],
+                    answer: 'Golden'
+                }
+            ]
+        },
+        {
+            title: "The Helpful Friend",
+            text: "Amy is a kind girl. She helps her friends at school. When Tom drops his books, Amy picks them up. When Lisa feels sad, Amy shares her toys. Everyone likes Amy because she is helpful. Amy feels happy when she helps others.",
+            questions: [
+                {
+                    id: 1,
+                    text: "1. What kind of girl is Amy?",
+                    options: ['Kind', 'Mean', 'Shy', 'Angry'],
+                    answer: 'Kind'
+                },
+                {
+                    id: 2,
+                    text: "2. What does Amy do when Tom drops his books?",
+                    options: ['Picks them up', 'Walks away', 'Laughs', 'Tells the teacher'],
+                    answer: 'Picks them up'
+                },
+                {
+                    id: 3,
+                    text: "3. How does Amy feel when she helps others?",
+                    options: ['Happy', 'Sad', 'Angry', 'Tired'],
+                    answer: 'Happy'
+                }
+            ]
+        }
+    ];
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+        generateSentenceBuilder();
+        generateSpellingPractice();
+        generatePronunciationSentence();
+        generateComprehension();
+    });
+
+    function generateSentenceBuilder() {
+        // Select a random sentence template
+        const randomTemplate = sentenceTemplates[Math.floor(Math.random() * sentenceTemplates.length)];
+        
+        // Update template display
+        document.getElementById('sentence-template').textContent = randomTemplate.template;
+        
+        // Update visuals
+        const visualsContainer = document.getElementById('sentence-visuals');
+        visualsContainer.innerHTML = '';
+        randomTemplate.visuals.forEach(visual => {
+            const span = document.createElement('span');
+            span.textContent = visual;
+            span.className = 'text-2xl';
+            visualsContainer.appendChild(span);
+        });
+        
+        // Update options
+        const optionsContainer = document.getElementById('sentence-options');
+        optionsContainer.innerHTML = '';
+        randomTemplate.options.forEach(option => {
+            const button = document.createElement('button');
+            button.className = 'bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-medium';
+            button.textContent = option;
+            button.onclick = () => buildSentence(option);
+            optionsContainer.appendChild(button);
+        });
+        
+        currentSentence = randomTemplate.options[0]; // Store current sentence for pronunciation
+    }
 
     function buildSentence(sentence) {
         sentencesBuilt++;
@@ -271,7 +338,95 @@
         updateProgress();
         setTimeout(() => {
             resultDiv.classList.add('hidden');
+            generateSentenceBuilder(); // Generate a new sentence
         }, 2000);
+    }
+
+    function speakSentence() {
+        if (currentSentence) {
+            const msg = new SpeechSynthesisUtterance(currentSentence);
+            msg.rate = 0.8;
+            msg.pitch = 1.2;
+            window.speechSynthesis.speak(msg);
+        }
+    }
+
+    function nextSentence() {
+        generateSentenceBuilder();
+    }
+
+    function generateSpellingPractice() {
+        // Select a random word with image
+        const randomWordData = spellingWordsData[Math.floor(Math.random() * spellingWordsData.length)];
+        currentSpellingWord = randomWordData.word;
+        currentSpellingIndex = 0;
+
+        // Update display - only show the image, not the word text
+        document.getElementById('spelling-image').textContent = randomWordData.image;
+
+        // Generate letter spaces
+        const letterSpaces = document.getElementById('letter-spaces');
+        letterSpaces.innerHTML = '';
+        for (let i = 0; i < currentSpellingWord.length; i++) {
+            const letterSpace = document.createElement('div');
+            letterSpace.className = 'w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold';
+            letterSpace.textContent = '';
+            letterSpaces.appendChild(letterSpace);
+        }
+
+        // Generate spelling options with ALL letters of the word guaranteed to be present
+        const optionsContainer = document.getElementById('spelling-options');
+        optionsContainer.innerHTML = '';
+        
+        // Get all letters from the current word (with duplicates preserved)
+        const wordLetters = currentSpellingWord.toUpperCase().split('');
+        
+        // Select additional random letters to fill up to 8 options
+        let selectedLetters = [...wordLetters]; // Start with all letters from the word
+        
+        // Fill remaining slots with random letters from the alphabet
+        while (selectedLetters.length < 8) {
+            const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
+            selectedLetters.push(randomLetter);
+        }
+        
+        // Remove duplicates while keeping all original letters from the word
+        // First, separate the letters that came from the word vs random additions
+        const wordLetterCounts = {};
+        for (const letter of wordLetters) {
+            wordLetterCounts[letter] = (wordLetterCounts[letter] || 0) + 1;
+        }
+        
+        // Create the final array with all required word letters and additional random letters
+        let finalLetters = [];
+        
+        // Add all letters from the word (preserving duplicates)
+        for (const letter of wordLetters) {
+            finalLetters.push(letter);
+        }
+        
+        // Add random letters to reach 8 total, avoiding duplicates of word letters where possible
+        const usedLetters = {...wordLetterCounts};
+        while (finalLetters.length < 8) {
+            const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
+            // Only add if the letter isn't already in the word or we've added it less than its occurrence in the word
+            if (!(randomLetter in usedLetters) || usedLetters[randomLetter] < (wordLetterCounts[randomLetter] || 0)) {
+                finalLetters.push(randomLetter);
+                usedLetters[randomLetter] = (usedLetters[randomLetter] || 0) + 1;
+            }
+        }
+        
+        // Shuffle the selected letters
+        finalLetters = finalLetters.sort(() => Math.random() - 0.5);
+        
+        // Add the letters to the options
+        finalLetters.forEach(letter => {
+            const button = document.createElement('button');
+            button.className = 'bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg';
+            button.textContent = letter;
+            button.onclick = () => checkSpelling(letter);
+            optionsContainer.appendChild(button);
+        });
     }
 
     function checkSpelling(letter) {
@@ -297,12 +452,11 @@
                 updateProgress();
                 setTimeout(() => {
                     resultDiv.classList.add('hidden');
-                    nextSpellingWord();
+                    generateSpellingPractice(); // Automatically move to next word
                 }, 2000);
             }
         } else {
             // Wrong letter
-            wordsSpelled++;
             const resultDiv = document.getElementById('spelling-result');
             resultDiv.classList.remove('hidden');
             resultDiv.innerHTML = `<span class="text-red-600 font-bold">❌ Try again! The letter is ${currentLetter}</span>`;
@@ -319,35 +473,107 @@
         msg.rate = 0.8;
         msg.pitch = 1.2;
         window.speechSynthesis.speak(msg);
+        
+        // Automatically move to next word after hearing it
+        setTimeout(() => {
+            generateSpellingPractice();
+        }, 2000);
     }
 
-    function nextSpellingWord() {
-        const words = ['ELEPHANT', 'BUTTERFLY', 'RAINBOW', 'SUNSHINE', 'FLOWER'];
-        const currentIndex = words.indexOf(currentSpellingWord);
-        const nextIndex = (currentIndex + 1) % words.length;
-        currentSpellingWord = words[nextIndex];
-        currentSpellingIndex = 0;
-
+    function generatePronunciationSentence() {
+        // Select a random sentence
+        currentPronunciationSentence = pronunciationSentences[Math.floor(Math.random() * pronunciationSentences.length)];
+        
         // Update display
-        document.getElementById('spelling-word').textContent = currentSpellingWord;
-
-        // Reset letter spaces
-        const letterSpaces = document.getElementById('letter-spaces');
-        letterSpaces.innerHTML = '';
-        for (let i = 0; i < currentSpellingWord.length; i++) {
-            letterSpaces.innerHTML += '<div class="w-10 h-10 border-2 border-gray-300 rounded flex items-center justify-center text-xl font-bold"></div>';
-        }
+        document.getElementById('pronunciation-sentence').textContent = currentPronunciationSentence;
     }
 
-    function checkComprehension(questionNum, answer) {
-        if (answeredQuestions.has(questionNum)) return;
+    function generatePronunciationSentence() {
+        // Select a random sentence
+        currentPronunciationSentence = pronunciationSentences[Math.floor(Math.random() * pronunciationSentences.length)];
+        
+        // Update display
+        document.getElementById('pronunciation-sentence').textContent = currentPronunciationSentence;
+    }
 
-        let correctAnswer = '';
-        switch (questionNum) {
-            case 1: correctAnswer = 'orange'; break;
-            case 2: correctAnswer = 'fish and milk'; break;
-            case 3: correctAnswer = 'by his food bowl'; break;
-        }
+    function speakPronunciationSentence() {
+        pronunciationPracticed++;
+        const msg = new SpeechSynthesisUtterance(currentPronunciationSentence);
+        msg.rate = 0.8;
+        msg.pitch = 1.2;
+        window.speechSynthesis.speak(msg);
+        updateProgress();
+    }
+
+    function nextPronunciationSentence() {
+        generatePronunciationSentence();
+    }
+
+    function generateComprehension() {
+        // Clear any previously answered questions
+        answeredQuestions.clear();
+        
+        // Hide the "New Story" button
+        document.getElementById('new-story-button').classList.add('hidden');
+        
+        // Select a random story
+        const randomStory = stories[Math.floor(Math.random() * stories.length)];
+        currentStory = randomStory;
+        
+        // Update story content
+        document.getElementById('story-title').textContent = randomStory.title;
+        document.getElementById('story-text').textContent = randomStory.text;
+        
+        // Generate questions
+        const questionsContainer = document.getElementById('comprehension-questions');
+        questionsContainer.innerHTML = '';
+        
+        // Shuffle questions to make the order dynamic
+        const shuffledQuestions = [...randomStory.questions].sort(() => Math.random() - 0.5);
+        
+        shuffledQuestions.forEach(question => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'bg-white border border-gray-200 rounded-lg p-4 mb-4';
+            
+            const questionText = document.createElement('p');
+            questionText.className = 'font-medium text-gray-800 mb-2';
+            questionText.textContent = question.text;
+            
+            // Shuffle options to make the order dynamic
+            const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
+            
+            const optionsContainer = document.createElement('div');
+            optionsContainer.className = 'grid grid-cols-2 gap-2';
+            
+            shuffledOptions.forEach(option => {
+                const optionButton = document.createElement('button');
+                optionButton.className = 'bg-gray-100 hover:bg-gray-200 p-2 rounded text-left';
+                
+                // Add a data attribute to track the correct answer
+                optionButton.setAttribute('data-question-id', question.id);
+                optionButton.setAttribute('data-option-text', option);
+                optionButton.setAttribute('data-correct-answer', question.answer);
+                
+                optionButton.textContent = option;
+                
+                // Create a closure to properly capture the question parameters
+                optionButton.onclick = (function(qId, optText, correctAns) {
+                    return function() {
+                        checkComprehension(qId, optText, correctAns);
+                    };
+                })(question.id, option, question.answer);
+                
+                optionsContainer.appendChild(optionButton);
+            });
+            
+            questionDiv.appendChild(questionText);
+            questionDiv.appendChild(optionsContainer);
+            questionsContainer.appendChild(questionDiv);
+        });
+    }
+
+    function checkComprehension(questionId, answer, correctAnswer) {
+        if (answeredQuestions.has(questionId)) return;
 
         const resultDiv = document.getElementById('comprehension-result');
         resultDiv.classList.remove('hidden');
@@ -355,12 +581,20 @@
         if (answer === correctAnswer) {
             comprehensionScore++;
             resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct answer!</span>';
+            answeredQuestions.add(questionId); // Mark as answered
         } else {
             resultDiv.innerHTML = `<span class="text-red-600 font-bold">❌ The correct answer is: ${correctAnswer}</span>`;
+            answeredQuestions.add(questionId); // Mark as answered to prevent further attempts
         }
 
-        answeredQuestions.add(questionNum);
         updateProgress();
+
+        // Check if all questions have been answered
+        if (answeredQuestions.size === currentStory.questions.length) {
+            setTimeout(() => {
+                document.getElementById('new-story-button').classList.remove('hidden');
+            }, 2000);
+        }
 
         setTimeout(() => {
             resultDiv.classList.add('hidden');
@@ -371,7 +605,8 @@
         document.getElementById('sentences-built').textContent = sentencesBuilt;
         document.getElementById('words-spelled').textContent = wordsSpelled;
         document.getElementById('correct-spelling').textContent = correctSpelling;
-        document.getElementById('comprehension-score').textContent = `${comprehensionScore}/3`;
+        document.getElementById('comprehension-score').textContent = comprehensionScore;
+        document.getElementById('pronunciation-practiced').textContent = pronunciationPracticed;
 
         // Save to DB
         saveProgress('sentences_module', 1);

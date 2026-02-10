@@ -246,15 +246,8 @@
                             I am big and gray. I have a long trunk. I live in Africa and Asia.
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto mb-4">
-                        <button onclick="checkAnimal('Elephant')"
-                            class="bg-indigo-100 hover:bg-indigo-200 p-3 rounded-lg font-medium">Elephant</button>
-                        <button onclick="checkAnimal('Giraffe')"
-                            class="bg-indigo-100 hover:bg-indigo-200 p-3 rounded-lg font-medium">Giraffe</button>
-                        <button onclick="checkAnimal('Lion')"
-                            class="bg-indigo-100 hover:bg-indigo-200 p-3 rounded-lg font-medium">Lion</button>
-                        <button onclick="checkAnimal('Bear')"
-                            class="bg-indigo-100 hover:bg-indigo-200 p-3 rounded-lg font-medium">Bear</button>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto mb-4" id="animal-options">
+                        <!-- Options will be dynamically generated -->
                     </div>
                     <div id="animal-result" class="text-lg font-medium hidden"></div>
                 </div>
@@ -333,7 +326,7 @@
         resultDiv.classList.remove('hidden');
 
         if (selectedAnimal === currentAnimal) {
-            resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! That\'s an ' + currentAnimal + '!</span>';
+            resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! That\'s a ' + currentAnimal + '!</span>';
         } else {
             resultDiv.innerHTML = '<span class="text-red-600 font-bold">❌ Try again! Read the clues carefully.</span>';
         }
@@ -350,13 +343,61 @@
             { emoji: '🦁', clue: 'I have a mane and I roar. I am the king of the jungle.', name: 'Lion' },
             { emoji: '🐧', clue: 'I am black and white. I live in cold places but I cannot fly.', name: 'Penguin' },
             { emoji: '🦋', clue: 'I start as a caterpillar. I have colorful wings.', name: 'Butterfly' },
-            { emoji: '🐢', clue: 'I carry my house on my back. I move very slowly.', name: 'Turtle' }
+            { emoji: '🐢', clue: 'I carry my house on my back. I move very slowly.', name: 'Turtle' },
+            { emoji: '🐘', clue: 'I am big and gray. I have a long trunk. I live in Africa and Asia.', name: 'Elephant' },
+            { emoji: '🦒', clue: 'I have a very long neck. I eat leaves from tall trees.', name: 'Giraffe' },
+            { emoji: '🐻', clue: 'I am big and furry. I love to eat honey and fish.', name: 'Bear' },
+            { emoji: '🐵', clue: 'I swing from tree to tree. I love bananas.', name: 'Monkey' },
+            { emoji: '🐯', clue: 'I have orange fur with black stripes. I am a big cat.', name: 'Tiger' },
+            { emoji: '🦊', clue: 'I have a bushy tail and pointy ears. I am very clever.', name: 'Fox' },
+            { emoji: '🦉', clue: 'I am a wise bird that hunts at night. I can turn my head almost all the way around.', name: 'Owl' },
+            { emoji: '🐸', clue: 'I start as a tadpole in water. I hop and I am green.', name: 'Frog' }
         ];
 
         const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
         document.getElementById('animal-emoji').textContent = randomAnimal.emoji;
         document.getElementById('animal-clue').textContent = randomAnimal.clue;
+        
+        // Generate dynamic options
+        generateAnimalOptions(randomAnimal.name, animals);
         currentAnimal = randomAnimal.name;
+    }
+
+    function generateAnimalOptions(correctAnswer, allAnimals) {
+        const optionsContainer = document.getElementById('animal-options');
+        optionsContainer.innerHTML = '';
+        
+        // Create array with correct answer and 3 random incorrect answers
+        const options = [correctAnswer];
+        
+        // Get 3 random incorrect animals
+        const incorrectAnimals = allAnimals
+            .filter(animal => animal.name !== correctAnswer)
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 3)
+            .map(animal => animal.name);
+        
+        options.push(...incorrectAnimals);
+        
+        // Shuffle the options
+        shuffleArray(options);
+        
+        // Create buttons for each option
+        options.forEach(option => {
+            const button = document.createElement('button');
+            button.className = 'bg-indigo-100 hover:bg-indigo-200 p-3 rounded-lg font-medium w-full';
+            button.textContent = option;
+            button.onclick = () => checkAnimal(option);
+            optionsContainer.appendChild(button);
+        });
+    }
+
+    // Helper function to shuffle an array
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
     }
 
     function updateProgress() {
@@ -384,6 +425,8 @@
         // Simulate learning some plants
         plantsLearned = 8;
         updateProgress();
+        // Start the animal game
+        nextAnimal();
     });
 </script>
 {% endblock %}

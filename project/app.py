@@ -988,7 +988,7 @@ def grade_2_plants():
     if user.get("grade") != "2":
         flash("Access denied. This content is for Grade 2 students only.")
         return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_2_plants.html", user=user)
+    return render_template("grade_2_nature.html", user=user)
 
 @app.route("/grade/2/reading")
 @login_required(role="student")
