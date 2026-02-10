@@ -64,9 +64,10 @@
     <div class="max-w-5xl mx-auto">
         <!-- Header -->
         <div class="text-center mb-8">
-            <h1 class="text-5xl font-bold text-orange-800 mb-4">🔢 Math Fun!</h1>
-            <p class="text-2xl text-orange-700">Practice Time, Shapes & More</p>
-            <button class="speak-btn" onclick="speak('Math Fun! Practice Time, Shapes, and More')">🔊</button>
+            <h1 class="text-5xl font-bold text-orange-800 mb-4">🔢 Math Mastery</h1>
+            <p class="text-2xl text-orange-700">Practice Time, Shapes & Word Problems</p>
+            <button class="speak-btn"
+                onclick="speak('Math Mastery! Practice Time, Shapes, and Word Problems')">🔊</button>
         </div>
 
         <!-- Practice Zone -->
@@ -167,7 +168,11 @@
             const dataEl = document.getElementById('server-data');
             const serverData = dataEl ? JSON.parse(dataEl.textContent) : null;
 
-            if (serverData && !serverData.error) {
+            // Check if we have actual questions, not just an empty structure or error
+            const hasQuestions = serverData && !serverData.error &&
+                (serverData.time?.length > 0 || serverData.shapes?.length > 0);
+
+            if (hasQuestions) {
                 mathData = serverData;
                 renderAllQuestions();
                 document.getElementById('loading-state').style.display = 'none';
@@ -186,7 +191,7 @@
         if (isFetching) return;
         isFetching = true;
 
-        if (!isBackground && !mathData.time) { // Only show loading if we have NO data
+        if (!isBackground && (!mathData.time || mathData.time.length === 0)) { // Only show loading if we have NO data
             document.getElementById('loading-state').style.display = 'block';
             document.getElementById('game-zone').style.display = 'none';
         }
@@ -198,7 +203,7 @@
             if (data.error) throw new Error(data.error);
 
             // Append data
-            if (!mathData.time) mathData = data; // Init if empty
+            if (!mathData.time || mathData.time.length === 0) mathData = data; // Init if empty
             else {
                 // Safely merge arrays
                 if (data.time) mathData.time.push(...data.time);
@@ -365,7 +370,7 @@
             'word': 'word_problems'
         };
         const dataKey = keyMap[type];
-        
+
         // Map for state indices/scores
         const stateKey = (type === 'shape') ? 'shapes' : (type === 'fraction') ? 'fractions' : type;
 

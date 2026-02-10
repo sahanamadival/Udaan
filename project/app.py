@@ -434,6 +434,13 @@ def migrate_database():
             cur.execute("ALTER TABLE student_progress ADD COLUMN streak_count INTEGER DEFAULT 0")
             print("Added streak_count column to student_progress table")
         
+        # Check teachers table for missing columns
+        cur.execute("PRAGMA table_info(teachers)")
+        teacher_columns = [row[1] for row in cur.fetchall()]
+        if "grade" not in teacher_columns:
+            cur.execute("ALTER TABLE teachers ADD COLUMN grade TEXT")
+            print("Added grade column to teachers table")
+
         # Create grade_activities table if it doesn't exist
         cur.execute("""CREATE TABLE IF NOT EXISTS grade_activities (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -453,6 +460,39 @@ def migrate_database():
         print(f"Error during database migration: {e}")
         conn.rollback()
         raise
+    finally:
+        conn.close()
+
+def create_default_teachers():
+    """Ensure 5 default teacher accounts exist, one for each grade."""
+    conn = sqlite3.connect("database.db")
+    cur = conn.cursor()
+    
+    try:
+        # Check if we already have the standard teachers
+        cur.execute("SELECT COUNT(*) FROM teachers")
+        count = cur.fetchone()[0]
+        
+        # We only auto-create if there are fewer than 5 teachers (assuming fresh setup or migration)
+        # Or more robustly, we check for each grade.
+        for grade in range(1, 6):
+            grade_str = str(grade)
+            teacher_name = f"Teacher_Grade{grade_str}"
+            cur.execute("SELECT id FROM teachers WHERE grade = ?", (grade_str,))
+            if not cur.fetchone():
+                # Create default account
+                # Password is "udaan123" for all by default, can be changed later
+                password_hash = generate_password_hash("udaan123")
+                email = f"teacher{grade_str}@udaan.com"
+                cur.execute("""
+                    INSERT INTO teachers (name, email, password_hash, grade, created_at)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (teacher_name, email, password_hash, grade_str, datetime.now(timezone.utc).isoformat()))
+                print(f"Created default teacher account for Grade {grade_str}")
+                
+        conn.commit()
+    except Exception as e:
+        print(f"Error creating default teachers: {e}")
     finally:
         conn.close()
 
@@ -780,6 +820,10 @@ def login_student():
 # Teacher signup/login
 @app.route("/signup/teacher", methods=["GET", "POST"])
 def signup_teacher():
+    # Disabled to prevent unauthorized access. Using pre-defined accounts instead.
+    flash("Teacher signup is currently disabled. Please use your assigned credentials.")
+    return redirect(url_for("index"))
+    
     if request.method == "POST":
         try:
             name = request.form.get("name", "").strip()
@@ -835,7 +879,12 @@ def login_teacher():
 
             if user["password_hash"] and check_password_hash(user["password_hash"], password):
                 session.clear()  # Clear any previous session data
-                session["user"] = {"role": "teacher", "id": user["id"], "name": user["name"]}
+                session["user"] = {
+                    "role": "teacher", 
+                    "id": user["id"], 
+                    "name": user["name"],
+                    "grade": user["grade"] # Store teacher's grade
+                }
                 return redirect(url_for("teacher_dashboard"))
             else:
                 flash("Incorrect password.")
@@ -2938,10 +2987,16 @@ def submit_quiz():
 @login_required(role="teacher")
 def teacher_dashboard():
     user = session.get("user")
+    teacher_grade = user.get("grade")
     conn = get_db()
     cur = conn.cursor()
 
-    cur.execute("SELECT * FROM students ORDER BY datetime(created_at) DESC")
+    if teacher_grade:
+        cur.execute("SELECT * FROM students WHERE grade = ? ORDER BY datetime(created_at) DESC", (teacher_grade,))
+    else:
+        # Fallback for old teachers without a grade assigned (though new system enforces it)
+        cur.execute("SELECT * FROM students ORDER BY datetime(created_at) DESC")
+        
     students = cur.fetchall()
 
     recent_students = []
@@ -2982,14 +3037,47 @@ def teacher_dashboard():
             "activity": activity_score,
         })
 
-    # Sort by activity descending and keep top 6 for the dashboard list
+    # Sort by activity descending and keep all students for the dashboard list
     recent_students.sort(key=lambda s: s["activity"], reverse=True)
-    recent_students = recent_students[:6]
-
+    
     num_students = len(students)
     class_avg_pct = 0
     if num_students and total_quizzes:
         class_avg_pct = round((total_scores / num_students) * 100, 1)
+
+    # Calculate real class performance data over time
+    class_performance_data = []
+    if teacher_grade:
+        cur.execute("""
+            SELECT qa.score, qa.total, qa.attempted_at 
+            FROM quiz_attempts qa
+            JOIN students s ON qa.student_id = s.id
+            WHERE s.grade = ?
+            ORDER BY qa.attempted_at ASC
+        """, (teacher_grade,))
+        all_quizzes = cur.fetchall()
+        
+        # Group by date and calculate daily average
+        daily_scores = {}
+        for q in all_quizzes:
+            try:
+                date_str = q["attempted_at"].split("T")[0]
+                if date_str not in daily_scores:
+                    daily_scores[date_str] = []
+                # Individual quiz percentage
+                pct = (q["score"] / q["total"]) * 100 if q["total"] > 0 else 0
+                daily_scores[date_str].append(pct)
+            except (ValueError, KeyError, IndexError):
+                continue
+        
+        # Sort dates and get last 10 points
+        sorted_dates = sorted(daily_scores.keys())
+        for d in sorted_dates:
+            avg_daily = sum(daily_scores[d]) / len(daily_scores[d])
+            class_performance_data.append(round(avg_daily, 1))
+        
+        # Limit to last 10 data points for the trend
+        class_performance_data = class_performance_data[-10:]
 
     conn.close()
 
@@ -3002,6 +3090,7 @@ def teacher_dashboard():
         total_flashcards=total_flashcards,
         total_quizzes=total_quizzes,
         class_avg_pct=class_avg_pct,
+        class_performance_data=class_performance_data,
     )
 
 
@@ -3033,12 +3122,16 @@ def upload_books():
 @app.route("/student_progress")
 @login_required(role="teacher")
 def student_progress():
+    user = session.get("user")
+    teacher_grade = user.get("grade")
     conn = get_db()
     cur = conn.cursor()
-
+    
     filter_id = request.args.get("student_id")
     if filter_id:
         cur.execute("SELECT * FROM students WHERE id = ?", (filter_id,))
+    elif teacher_grade:
+        cur.execute("SELECT * FROM students WHERE grade = ?", (teacher_grade,))
     else:
         cur.execute("SELECT * FROM students")
     students = cur.fetchall()
@@ -3989,5 +4082,7 @@ if __name__ == "__main__":
     migrate_student_progress_table()
     # Run additional database migration to ensure schema matches production
     migrate_database()
+    # Create default teacher accounts for each grade
+    create_default_teachers()
     port = int(os.environ.get("PORT", 5000))  
     app.run(host='0.0.0.0', port=port, debug=True)

@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS teachers (
     email TEXT,
     phone TEXT,
     password_hash TEXT,
+    grade TEXT,
     created_at TEXT
 );
 
