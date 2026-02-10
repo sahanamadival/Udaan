@@ -6,14 +6,54 @@
 <div class="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-6xl mx-auto">
+
             <!-- Header -->
             <div class="text-center mb-8">
                 <h1 class="text-4xl font-bold text-emerald-800 mb-2">🔢 Math Mastery 🔢</h1>
                 <p class="text-xl text-emerald-600">Addition, Subtraction, and Multiplication Practice</p>
             </div>
 
+
+
+            <!-- Number Learning Section-->
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8" id="numbers-section">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800">🔢 Learn Numbers 1-100</h2>
+                    <div class="text-5xl">📚</div>
+                </div>
+
+                <div class="bg-indigo-50 rounded-2xl p-8 mb-8">
+                    <div class="mb-8 flex justify-center space-x-4 flex-wrap gap-2">
+                        <button onclick="selectNumberRange(1, 20)"
+                            class="bg-green-100 hover:bg-green-200 rounded-xl p-4 text-center transition-colors font-medium">1-20</button>
+                        <button onclick="selectNumberRange(21, 50)"
+                            class="bg-blue-100 hover:bg-blue-200 rounded-xl p-4 text-center transition-colors font-medium">21-50</button>
+                        <button onclick="selectNumberRange(51, 100)"
+                            class="bg-purple-100 hover:bg-purple-200 rounded-xl p-4 text-center transition-colors font-medium">51-100</button>
+                        <button onclick="selectNumberRange(1, 100)"
+                            class="bg-orange-100 hover:bg-orange-200 rounded-xl p-4 text-center transition-colors font-medium">1-100</button>
+                    </div>
+                    
+                    <div class="flex flex-wrap justify-center gap-4 mb-8 max-h-96 overflow-y-auto p-2" id="number-grid-container">
+                        <!-- Numbers will be dynamically generated -->
+                    </div>
+
+                    <div id="number-info" class="text-center hidden">
+                        <div class="text-6xl font-bold text-indigo-600 mb-4" id="current-number">1</div>
+                        <div class="text-xl text-gray-700 mb-6" id="number-word">One</div>
+                        <div id="number-objects" class="flex justify-center flex-wrap gap-2 mb-6"></div>
+                        <button onclick="speakNumber()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium mr-3">
+                            <i class="fas fa-volume-up mr-2"></i>Hear Number
+                        </button>
+                        <button onclick="countObjects()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-play-circle mr-2"></i>Count Objects
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Math Operations Menu -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8" id="math-menu-section">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Choose Math Operation</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <button onclick="selectOperation('addition')"
@@ -43,25 +83,10 @@
                 <div class="text-center mb-6">
                     <div class="text-3xl font-bold text-green-600 mb-4" id="addition-problem">5 + 3 = ?</div>
                     <div class="flex justify-center space-x-4 mb-6" id="addition-objects">
-                        <div class="text-4xl">🍎</div>
-                        <div class="text-4xl">🍎</div>
-                        <div class="text-4xl">🍎</div>
-                        <div class="text-4xl">🍎</div>
-                        <div class="text-4xl">🍎</div>
-                        <div class="text-2xl mx-4">+</div>
-                        <div class="text-4xl">🍊</div>
-                        <div class="text-4xl">🍊</div>
-                        <div class="text-4xl">🍊</div>
+                        <!-- Objects will be dynamically generated -->
                     </div>
-                    <div class="grid grid-cols-4 gap-3 max-w-md mx-auto mb-6">
-                        <button onclick="checkAddition(8)"
-                            class="bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl">8</button>
-                        <button onclick="checkAddition(7)"
-                            class="bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl">7</button>
-                        <button onclick="checkAddition(9)"
-                            class="bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl">9</button>
-                        <button onclick="checkAddition(6)"
-                            class="bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl">6</button>
+                    <div class="grid grid-cols-4 gap-3 max-w-md mx-auto mb-6" id="addition-options">
+                        <!-- Options will be dynamically generated -->
                     </div>
                     <div id="addition-result" class="text-lg font-medium hidden"></div>
                 </div>
@@ -73,28 +98,10 @@
                 <div class="text-center mb-6">
                     <div class="text-3xl font-bold text-orange-600 mb-4" id="subtraction-problem">8 - 3 = ?</div>
                     <div class="flex justify-center space-x-4 mb-6" id="subtraction-objects">
-                        <div class="text-4xl">🍎</div>
-                        <div class="text-4xl">🍎</div>
-                        <div class="text-4xl">🍎</div>
-                        <div class="text-4xl">🍎</div>
-                        <div class="text-4xl">🍎</div>
-                        <div class="text-4xl">🍎</div>
-                        <div class="text-4xl">🍎</div>
-                        <div class="text-4xl">🍎</div>
-                        <div class="text-2xl mx-4 text-red-500">❌</div>
-                        <div class="text-4xl text-gray-300">🍎</div>
-                        <div class="text-4xl text-gray-300">🍎</div>
-                        <div class="text-4xl text-gray-300">🍎</div>
+                        <!-- Objects will be dynamically generated -->
                     </div>
-                    <div class="grid grid-cols-4 gap-3 max-w-md mx-auto mb-6">
-                        <button onclick="checkSubtraction(5)"
-                            class="bg-orange-100 hover:bg-orange-200 p-4 rounded-lg font-bold text-xl">5</button>
-                        <button onclick="checkSubtraction(4)"
-                            class="bg-orange-100 hover:bg-orange-200 p-4 rounded-lg font-bold text-xl">4</button>
-                        <button onclick="checkSubtraction(6)"
-                            class="bg-orange-100 hover:bg-orange-200 p-4 rounded-lg font-bold text-xl">6</button>
-                        <button onclick="checkSubtraction(3)"
-                            class="bg-orange-100 hover:bg-orange-200 p-4 rounded-lg font-bold text-xl">3</button>
+                    <div class="grid grid-cols-4 gap-3 max-w-md mx-auto mb-6" id="subtraction-options">
+                        <!-- Options will be dynamically generated -->
                     </div>
                     <div id="subtraction-result" class="text-lg font-medium hidden"></div>
                 </div>
@@ -105,59 +112,25 @@
                 <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">✖️ Multiplication Practice</h2>
                 <div class="text-center mb-6">
                     <div class="text-3xl font-bold text-purple-600 mb-4" id="multiplication-problem">3 × 4 = ?</div>
-                    <div class="grid grid-cols-3 gap-2 max-w-md mx-auto mb-6">
-                        <div class="text-4xl text-center">🍎🍎🍎🍎</div>
-                        <div class="text-4xl text-center">🍎🍎🍎🍎</div>
-                        <div class="text-4xl text-center">🍎🍎🍎🍎</div>
+                    <div id="multiplication-objects" class="grid grid-cols-3 gap-2 max-w-md mx-auto mb-6">
+                        <!-- Objects will be dynamically generated -->
                     </div>
-                    <div class="grid grid-cols-4 gap-3 max-w-md mx-auto mb-6">
-                        <button onclick="checkMultiplication(12)"
-                            class="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg font-bold text-xl">12</button>
-                        <button onclick="checkMultiplication(10)"
-                            class="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg font-bold text-xl">10</button>
-                        <button onclick="checkMultiplication(15)"
-                            class="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg font-bold text-xl">15</button>
-                        <button onclick="checkMultiplication(8)"
-                            class="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg font-bold text-xl">8</button>
+                    <div class="grid grid-cols-4 gap-3 max-w-md mx-auto mb-6" id="multiplication-options">
+                        <!-- Options will be dynamically generated -->
                     </div>
                     <div id="multiplication-result" class="text-lg font-medium hidden"></div>
                 </div>
             </div>
 
             <!-- Word Problems -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8" id="word-problems-section">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📝 Math Word Problems</h2>
                 <div class="text-center">
-                    <div class="bg-gray-50 rounded-xl p-6 mb-6">
-                        <div class="text-lg text-gray-700 mb-4" id="word-problem">
-                            Sarah has 7 apples. She buys 5 more apples. How many apples does she have now?
-                        </div>
-                        <div class="flex justify-center space-x-4 mb-4">
-                            <div class="text-3xl">🍎</div>
-                            <div class="text-3xl">🍎</div>
-                            <div class="text-3xl">🍎</div>
-                            <div class="text-3xl">🍎</div>
-                            <div class="text-3xl">🍎</div>
-                            <div class="text-3xl">🍎</div>
-                            <div class="text-3xl">🍎</div>
-                        </div>
-                        <div class="flex justify-center space-x-4 mb-4">
-                            <div class="text-3xl">+</div>
-                            <div class="text-3xl">🍎</div>
-                            <div class="text-3xl">🍎</div>
-                            <div class="text-3xl">🍎</div>
-                            <div class="text-3xl">🍎</div>
-                            <div class="text-3xl">🍎</div>
-                        </div>
+                    <div class="bg-gray-50 rounded-xl p-6 mb-6" id="word-problem-container">
+                        <div class="text-lg text-gray-700 mb-4" id="word-problem">Loading...</div>
+                        <div id="word-problem-visuals" class="flex justify-center space-x-4 mb-4"></div>
                     </div>
-                    <div class="grid grid-cols-3 gap-3 max-w-md mx-auto mb-4">
-                        <button onclick="checkWordProblem(12)"
-                            class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-bold">12</button>
-                        <button onclick="checkWordProblem(10)"
-                            class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-bold">10</button>
-                        <button onclick="checkWordProblem(15)"
-                            class="bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-bold">15</button>
-                    </div>
+                    <div class="grid grid-cols-3 gap-3 max-w-md mx-auto mb-4" id="word-problem-options"></div>
                     <div id="word-problem-result" class="text-lg font-medium hidden"></div>
                 </div>
             </div>
@@ -165,7 +138,11 @@
             <!-- Progress Tracker -->
             <div class="bg-white rounded-2xl shadow-lg p-6">
                 <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📊 Your Progress</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+                    <div>
+                        <div class="text-3xl font-bold text-indigo-600 mb-2" id="numbers-learned">0</div>
+                        <div class="text-gray-600">Numbers Learned</div>
+                    </div>
                     <div>
                         <div class="text-3xl font-bold text-green-600 mb-2" id="problems-solved">0</div>
                         <div class="text-gray-600">Problems Solved</div>
@@ -197,6 +174,9 @@
     let problemsSolved = 0;
     let correctAnswers = 0;
 
+    let numbersLearned = new Set();
+    let currentRange = { start: 1, end: 20 }; // Default to 1-20 range for number learning
+
     async function saveProgress(qid, pts) {
         try {
             await fetch('/api/submit_progress', {
@@ -206,6 +186,126 @@
             });
         } catch (e) { }
     }
+
+    // Number learning functions
+    function selectNumberRange(start, end) {
+        currentRange = { start, end };
+        generateNumberGrid();
+    }
+
+    function generateNumberGrid() {
+        const container = document.getElementById('number-grid-container');
+        container.innerHTML = '';
+        
+        // Show numbers in the selected range with proper layout
+        for (let i = currentRange.start; i <= currentRange.end; i++) {
+            const numberElement = document.createElement('div');
+            numberElement.className = 'w-16 h-16 bg-indigo-100 rounded-xl flex items-center justify-center text-2xl font-bold text-indigo-600 cursor-pointer hover:bg-indigo-200 transition-colors shadow-md';
+            numberElement.textContent = i;
+            numberElement.onclick = () => showNumberInfo(i);
+            container.appendChild(numberElement);
+        }
+    }
+
+    function showNumberInfo(number) {
+        const numberWords = [
+            '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+            'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen', 'Twenty',
+            'Twenty-one', 'Twenty-two', 'Twenty-three', 'Twenty-four', 'Twenty-five', 'Twenty-six', 'Twenty-seven', 'Twenty-eight', 'Twenty-nine', 'Thirty',
+            'Thirty-one', 'Thirty-two', 'Thirty-three', 'Thirty-four', 'Thirty-five', 'Thirty-six', 'Thirty-seven', 'Thirty-eight', 'Thirty-nine', 'Forty',
+            'Forty-one', 'Forty-two', 'Forty-three', 'Forty-four', 'Forty-five', 'Forty-six', 'Forty-seven', 'Forty-eight', 'Forty-nine', 'Fifty',
+            'Fifty-one', 'Fifty-two', 'Fifty-three', 'Fifty-four', 'Fifty-five', 'Fifty-six', 'Fifty-seven', 'Fifty-eight', 'Fifty-nine', 'Sixty',
+            'Sixty-one', 'Sixty-two', 'Sixty-three', 'Sixty-four', 'Sixty-five', 'Sixty-six', 'Sixty-seven', 'Sixty-eight', 'Sixty-nine', 'Seventy',
+            'Seventy-one', 'Seventy-two', 'Seventy-three', 'Seventy-four', 'Seventy-five', 'Seventy-six', 'Seventy-seven', 'Seventy-eight', 'Seventy-nine', 'Eighty',
+            'Eighty-one', 'Eighty-two', 'Eighty-three', 'Eighty-four', 'Eighty-five', 'Eighty-six', 'Eighty-seven', 'Eighty-eight', 'Eighty-nine', 'Ninety',
+            'Ninety-one', 'Ninety-two', 'Ninety-three', 'Ninety-four', 'Ninety-five', 'Ninety-six', 'Ninety-seven', 'Ninety-eight', 'Ninety-nine', 'One Hundred'
+        ];
+        
+        document.getElementById('current-number').textContent = number;
+        document.getElementById('number-word').textContent = numberWords[number] || '';
+        numbersLearned.add(number);
+        updateProgress();
+        
+        // Generate objects for the selected number
+        const numberObjectsContainer = document.getElementById('number-objects');
+        numberObjectsContainer.innerHTML = '';
+        const objects = ['🍎', '🍊', '🍇', '🍌', '🍒', '🍓', '🍑', '🍍', '🥝', '🥥', '🥭', '🍎', '🍊', '🍇', '🍌', '🍐', '🍓', '🍑', '🍍', '🥝'];
+        const randomObject = objects[Math.floor(Math.random() * objects.length)];
+        
+        for (let i = 0; i < number; i++) {
+            const obj = document.createElement('div');
+            obj.className = 'w-12 h-12 bg-blue-500 rounded-full shadow-sm flex items-center justify-center text-white text-lg font-bold';
+            obj.textContent = i + 1;
+            numberObjectsContainer.appendChild(obj);
+        }
+        
+        // Show the number info section
+        document.getElementById('number-info').classList.remove('hidden');
+        document.getElementById('number-info').scrollIntoView({behavior: 'smooth'});
+    }
+
+    function speakNumber() {
+        const number = document.getElementById('current-number').textContent;
+        const msg = new SpeechSynthesisUtterance(number);
+        msg.rate = 0.8;
+        msg.pitch = 1.2;
+        window.speechSynthesis.speak(msg);
+    }
+
+    function countObjects() {
+        const number = parseInt(document.getElementById('current-number').textContent);
+        const objects = document.querySelectorAll('#number-objects div');
+        
+        if (objects.length === 0) {
+            alert('No objects to count!');
+            return;
+        }
+        
+        // Speak the count
+        const msg = new SpeechSynthesisUtterance(`Let's count to ${number}: `);
+        msg.rate = 0.8;
+        msg.pitch = 1.2;
+        window.speechSynthesis.speak(msg);
+        
+        // Create a promise-based delay function
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // Function to highlight one object
+        async function highlightObject(index) {
+            if (index >= objects.length) return;
+            
+            const obj = objects[index];
+            
+            // Highlight the current object
+            obj.style.backgroundColor = '#fbbf24'; // Yellow for highlighting
+            obj.style.transform = 'scale(1.3)';
+            obj.style.transition = 'all 0.3s ease';
+            
+            // Speak the number
+            const numberMsg = new SpeechSynthesisUtterance((index + 1).toString());
+            numberMsg.rate = 0.8;
+            numberMsg.pitch = 1.2;
+            window.speechSynthesis.speak(numberMsg);
+            
+            // Wait for the speech to finish before resetting
+            await delay(1000);
+            
+            // Reset the object
+            obj.style.backgroundColor = '#3b82f6'; // Blue (original)
+            obj.style.transform = 'scale(1)';
+            
+            // Continue to next object
+            await delay(300);
+            await highlightObject(index + 1);
+        }
+        
+        // Start the synchronous counting
+        highlightObject(0);
+    }
+
+
 
     function selectOperation(operation) {
         currentOperation = operation;
@@ -229,82 +329,212 @@
     }
 
     function generateAdditionProblem() {
-        const num1 = Math.floor(Math.random() * 10) + 1;
-        const num2 = Math.floor(Math.random() * 10) + 1;
+        const num1 = Math.floor(Math.random() * 15) + 5; // Numbers 5-20 for grade 2
+        const num2 = Math.floor(Math.random() * 10) + 1; // Numbers 1-10 for grade 2
         const correctAnswer = num1 + num2;
+        const wrongAnswers = [];
+        for (let i = 0; i < 3; i++) {
+            let wrongAnswer;
+            do {
+                wrongAnswer = Math.max(1, correctAnswer + Math.floor(Math.random() * 5) - 2); // Close but wrong answers
+            } while (wrongAnswer === correctAnswer || wrongAnswers.includes(wrongAnswer));
+            wrongAnswers.push(wrongAnswer);
+        }
 
         document.getElementById('addition-problem').textContent = `${num1} + ${num2} = ?`;
 
-        // Generate visual objects
+        // Generate visual objects with varied emojis
         const objectsContainer = document.getElementById('addition-objects');
         objectsContainer.innerHTML = '';
+        const objects = ['🍎', '🍊', '🍇', '🍌', '🍒', '🍓', '🍑', '🍍', '🥝', '🥥', '🥭', '🍐', '🍉', '🍈', '🍋', '🍅', '🥑', '🍆', '🥒', '🥕', '🌽', '🌶', '🥔', '🍠', '🥐', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🥞', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠', '🥡'];
+        const firstObject = objects[Math.floor(Math.random() * objects.length)];
+        const secondObject = objects[Math.floor(Math.random() * objects.length)];
 
         // First number objects
         for (let i = 0; i < num1; i++) {
-            objectsContainer.innerHTML += '<div class="text-4xl">🍎</div>';
+            objectsContainer.innerHTML += `<div class="text-4xl">${firstObject}</div>`;
         }
 
         objectsContainer.innerHTML += '<div class="text-2xl mx-4">+</div>';
 
         // Second number objects
         for (let i = 0; i < num2; i++) {
-            objectsContainer.innerHTML += '<div class="text-4xl">🍊</div>';
+            objectsContainer.innerHTML += `<div class="text-4xl">${secondObject}</div>`;
         }
+
+        // Generate answer options
+        const optionsContainer = document.getElementById('addition-options');
+        optionsContainer.innerHTML = '';
+        const allOptions = [correctAnswer, ...wrongAnswers].sort(() => Math.random() - 0.5); // Shuffle options
+        allOptions.forEach(option => {
+            const button = document.createElement('button');
+            button.className = 'bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl';
+            button.textContent = option;
+            button.onclick = () => checkAddition(option);
+            optionsContainer.appendChild(button);
+        });
 
         window.currentAdditionAnswer = correctAnswer;
     }
 
     function generateSubtractionProblem() {
-        const num1 = Math.floor(Math.random() * 15) + 5;
-        const num2 = Math.floor(Math.random() * (num1 - 1)) + 1;
+        const num1 = Math.floor(Math.random() * 15) + 10; // Numbers 10-25 for grade 2
+        const num2 = Math.floor(Math.random() * (num1 - 1)) + 1; // Ensure num2 is less than num1
         const correctAnswer = num1 - num2;
+        const wrongAnswers = [];
+        for (let i = 0; i < 3; i++) {
+            let wrongAnswer;
+            do {
+                wrongAnswer = Math.max(1, correctAnswer + Math.floor(Math.random() * 5) - 2); // Close but wrong answers
+            } while (wrongAnswer === correctAnswer || wrongAnswers.includes(wrongAnswer));
+            wrongAnswers.push(wrongAnswer);
+        }
 
         document.getElementById('subtraction-problem').textContent = `${num1} - ${num2} = ?`;
 
-        // Generate visual objects
+        // Generate visual objects with varied emojis
         const objectsContainer = document.getElementById('subtraction-objects');
         objectsContainer.innerHTML = '';
+        const objects = ['🍎', '🍊', '🍇', '🍌', '🍒', '🍓', '🍑', '🍍', '🥝', '🥥', '🥭', '🍐', '🍉', '🍈', '🍋', '🍅', '🥑', '🍆', '🥒', '🥕', '🌽', '🌶', '🥔', '🍠', '🥐', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🥞', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠', '🥡'];
+        const randomObject = objects[Math.floor(Math.random() * objects.length)];
 
-        // All objects
+        // All objects (minuend)
         for (let i = 0; i < num1; i++) {
-            if (i < num2) {
-                objectsContainer.innerHTML += '<div class="text-4xl text-gray-300">🍎</div>';
-            } else {
-                objectsContainer.innerHTML += '<div class="text-4xl">🍎</div>';
-            }
+            objectsContainer.innerHTML += `<div class="text-4xl">${randomObject}</div>`;
         }
 
-        objectsContainer.innerHTML += '<div class="text-2xl mx-4 text-red-500">❌</div>';
+        objectsContainer.innerHTML += '<div class="text-2xl mx-4 text-red-500">-</div>';
 
-        // Crossed out objects
+        // Subtracted objects (subtrahend) - shown as crossed out
         for (let i = 0; i < num2; i++) {
-            objectsContainer.innerHTML += '<div class="text-4xl text-gray-300">🍎</div>';
+            objectsContainer.innerHTML += `<div class="text-4xl text-gray-300">${randomObject}</div>`;
         }
+
+        // Generate answer options
+        const optionsContainer = document.getElementById('subtraction-options');
+        optionsContainer.innerHTML = '';
+        const allOptions = [correctAnswer, ...wrongAnswers].sort(() => Math.random() - 0.5); // Shuffle options
+        allOptions.forEach(option => {
+            const button = document.createElement('button');
+            button.className = 'bg-orange-100 hover:bg-orange-200 p-4 rounded-lg font-bold text-xl';
+            button.textContent = option;
+            button.onclick = () => checkSubtraction(option);
+            optionsContainer.appendChild(button);
+        });
 
         window.currentSubtractionAnswer = correctAnswer;
     }
 
     function generateMultiplicationProblem() {
-        const num1 = Math.floor(Math.random() * 5) + 2;
-        const num2 = Math.floor(Math.random() * 5) + 2;
+        const num1 = Math.floor(Math.random() * 5) + 2; // Numbers 2-6 for grade 2
+        const num2 = Math.floor(Math.random() * 5) + 2; // Numbers 2-6 for grade 2
         const correctAnswer = num1 * num2;
+        const wrongAnswers = [];
+        for (let i = 0; i < 3; i++) {
+            let wrongAnswer;
+            do {
+                wrongAnswer = Math.max(1, correctAnswer + Math.floor(Math.random() * 5) - 2); // Close but wrong answers
+            } while (wrongAnswer === correctAnswer || wrongAnswers.includes(wrongAnswer));
+            wrongAnswers.push(wrongAnswer);
+        }
 
         document.getElementById('multiplication-problem').textContent = `${num1} × ${num2} = ?`;
 
-        // Generate visual array
+        // Generate visual array with varied emojis
         const objectsContainer = document.getElementById('multiplication-objects');
         objectsContainer.innerHTML = '';
+        const objects = ['🍎', '🍊', '🍇', '🍌', '🍒', '🍓', '🍑', '🍍', '🥝', '🥥', '🥭', '🍐', '🍉', '🍈', '🍋', '🍅', '🥑', '🍆', '🥒', '🥕', '🌽', '🌶', '🥔', '🍠', '🥐', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🥞', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠', '🥡'];
+        const randomObject = objects[Math.floor(Math.random() * objects.length)];
 
         for (let i = 0; i < num1; i++) {
             let row = '<div class="text-4xl text-center">';
             for (let j = 0; j < num2; j++) {
-                row += '🍎';
+                row += randomObject;
             }
             row += '</div>';
             objectsContainer.innerHTML += row;
         }
 
+        // Generate answer options
+        const optionsContainer = document.getElementById('multiplication-options');
+        optionsContainer.innerHTML = '';
+        const allOptions = [correctAnswer, ...wrongAnswers].sort(() => Math.random() - 0.5); // Shuffle options
+        allOptions.forEach(option => {
+            const button = document.createElement('button');
+            button.className = 'bg-purple-100 hover:bg-purple-200 p-4 rounded-lg font-bold text-xl';
+            button.textContent = option;
+            button.onclick = () => checkMultiplication(option);
+            optionsContainer.appendChild(button);
+        });
+
         window.currentMultiplicationAnswer = correctAnswer;
+    }
+
+    function generateWordProblem() {
+        const objects = ['apples', 'oranges', 'bananas', 'toys', 'books', 'pencils', 'crayons', 'balloons', 'cookies', 'flowers'];
+        const names = ['Sarah', 'Tom', 'Emma', 'Jack', 'Lisa', 'Mike', 'Anna', 'David', 'Sophie', 'Ben'];
+        const object = objects[Math.floor(Math.random() * objects.length)];
+        const name1 = names[Math.floor(Math.random() * names.length)];
+        const name2 = names[Math.floor(Math.random() * names.length)];
+        const num1 = Math.floor(Math.random() * 10) + 5;
+        const num2 = Math.floor(Math.random() * 10) + 1;
+        const operation = Math.random() > 0.5 ? 'addition' : 'subtraction';
+
+        let problemText, answer;
+        let visualsHTML = '';
+        const objEmoji = ['🍎', '🍊', '🍌', '🧸', '📚', '✏️', '🖍️', '🎈', '🍪', '🌸'][objects.indexOf(object) % 10];
+
+        if (operation === 'addition') {
+            problemText = `${name1} has ${num1} ${object}. ${name2} gives ${num1 === 1 ? 'him' : 'her'} ${num2} more. How many ${object} does ${name1} have now?`;
+            answer = num1 + num2;
+        } else {
+            problemText = `${name1} has ${num1} ${object}. ${name1} gives ${num2} to ${name2}. How many ${object} does ${name1} have left?`;
+            answer = num1 - num2;
+        }
+
+        document.getElementById('word-problem').textContent = problemText;
+
+        // Generate visuals for word problem
+        for (let i = 0; i < num1; i++) {
+            visualsHTML += `<div class="text-3xl">${objEmoji}</div>`;
+        }
+
+        if (operation === 'addition') {
+            visualsHTML += `<div class="text-3xl">+</div>`;
+            for (let i = 0; i < num2; i++) {
+                visualsHTML += `<div class="text-3xl">${objEmoji}</div>`;
+            }
+        } else {
+            visualsHTML += `<div class="text-3xl">-</div>`;
+            for (let i = 0; i < num2; i++) {
+                visualsHTML += `<div class="text-3xl text-gray-300">${objEmoji}</div>`;
+            }
+        }
+
+        document.getElementById('word-problem-visuals').innerHTML = visualsHTML;
+
+        // Generate answer options
+        const optionsContainer = document.getElementById('word-problem-options');
+        optionsContainer.innerHTML = '';
+        const wrongAnswers = [];
+        for (let i = 0; i < 2; i++) {
+            let wrongAnswer;
+            do {
+                wrongAnswer = Math.max(1, answer + Math.floor(Math.random() * 5) - 2); // Close but wrong answers
+            } while (wrongAnswer === answer || wrongAnswers.includes(wrongAnswer));
+            wrongAnswers.push(wrongAnswer);
+        }
+
+        const allOptions = [answer, ...wrongAnswers].sort(() => Math.random() - 0.5); // Shuffle options
+        allOptions.forEach(option => {
+            const button = document.createElement('button');
+            button.className = 'bg-blue-100 hover:bg-blue-200 p-3 rounded-lg font-bold';
+            button.textContent = option;
+            button.onclick = () => checkWordProblem(option);
+            optionsContainer.appendChild(button);
+        });
+
+        window.currentWordProblemAnswer = answer;
     }
 
     function checkAddition(selectedAnswer) {
@@ -372,29 +602,34 @@
         const resultDiv = document.getElementById('word-problem-result');
         resultDiv.classList.remove('hidden');
 
-        if (selectedAnswer === 12) { // Hardcoded for the example problem
+        if (selectedAnswer === window.currentWordProblemAnswer) {
             correctAnswers++;
-            resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! 7 + 5 = 12 apples!</span>';
+            saveProgress('word_problem', 1);
+            resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! Well done!</span>';
         } else {
-            resultDiv.innerHTML = '<span class="text-red-600 font-bold">❌ Try again! Count the apples carefully.</span>';
+            resultDiv.innerHTML = `<span class="text-red-600 font-bold">❌ Try again! The answer is ${window.currentWordProblemAnswer}</span>`;
         }
 
         updateProgress();
         setTimeout(() => {
             resultDiv.classList.add('hidden');
+            generateWordProblem();
         }, 2000);
     }
 
     function updateProgress() {
+        document.getElementById('numbers-learned').textContent = numbersLearned.size;
         document.getElementById('problems-solved').textContent = problemsSolved;
         document.getElementById('correct-answers').textContent = correctAnswers;
         const accuracy = problemsSolved > 0 ? Math.round((correctAnswers / problemsSolved) * 100) : 0;
         document.getElementById('accuracy').textContent = `${accuracy}%`;
     }
 
-    // Initialize with addition
+    // Initialize everything
     document.addEventListener('DOMContentLoaded', function () {
-        selectOperation('addition');
+        generateNumberGrid(); // Initialize number grid
+        generateWordProblem(); // Initialize word problem section
+        selectOperation('addition'); // Start with addition
     });
 </script>
 {% endblock %}
