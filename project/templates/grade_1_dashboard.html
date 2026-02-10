@@ -101,6 +101,8 @@
         </div>
 
 
+        <!-- Fun Activities - Quizzes and Creative Corner side by side -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <!-- Quizzes -->
             <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
                 <div class="text-center">
@@ -273,7 +275,7 @@
                             Reader</button>
                     </form>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+
                 <div
                     class="bg-blue-50 border border-blue-100 rounded-xl p-6 hover:scale-105 transition-transform duration-300">
                     <div class="flex items-center gap-3 mb-4">
@@ -316,6 +318,22 @@
                     <a href="{{ url_for('games_dashboard') }}"
                         class="bg-green-500 hover:bg-green-600 rounded-full py-2 px-6 text-white font-medium text-sm transition-colors inline-block">Play
                         Games</a>
+                </div>
+
+                <div
+                    class="bg-blue-50 border border-blue-100 rounded-xl p-6 hover:scale-105 transition-transform duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-yellow-200 flex items-center justify-center">
+                            <span>🃏</span>
+                        </div>
+                        <h4 class="font-bold text-gray-800">Flashcards</h4>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">AI-generated flashcards from your textbook.</p>
+                    <form action="{{ url_for('generate_flashcards') }}" method="POST">
+                        <button type="submit"
+                            class="bg-yellow-500 hover:bg-yellow-600 rounded-full py-2 px-6 text-white font-medium text-sm transition-colors inline-block">Generate
+                        Flashcards</button>
+                    </form>
                 </div>
             </div>
         </div>
