@@ -33,8 +33,7 @@
         <a class="button" href="{{ url_for('login_student') }}">🔑 Student Login</a>
         <a class="button" href="{{ url_for('signup_student') }}" style="background:linear-gradient(90deg,#22c55e 0%, #16a34a 100%);">📝 Student Signup</a>
       {% elif role == 'teacher' %}
-        <a class="button" href="{{ url_for('login_teacher') }}">🔑 Teacher/Parent Login</a>
-        <a class="button" href="{{ url_for('signup_teacher') }}" style="background:linear-gradient(90deg,#22c55e 0%, #16a34a 100%);">📝 Teacher/Parent Signup</a>
+        <a class="button" href="{{ url_for('teacher_portal') }}">👩‍🏫 Teacher/Parent Portal</a>
       {% endif %}
     </div>
 

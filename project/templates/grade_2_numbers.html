@@ -4,198 +4,156 @@
 
 {% block content %}
 <div class="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-6xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-emerald-800 mb-2">🔢 Numbers & Counting 🔢</h1>
-            <p class="text-xl text-emerald-600">Count numbers 1-100 with visual objects</p>
-        </div>
-
-        <!-- Number Range Selection -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Choose Number Range</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <button onclick="selectNumberRange(1, 20)" class="bg-green-100 hover:bg-green-200 rounded-xl p-4 text-center font-medium transition-colors">
-                    <div class="text-2xl font-bold">1-20</div>
-                    <div class="text-sm">Basic Counting</div>
-                </button>
-                <button onclick="selectNumberRange(21, 50)" class="bg-blue-100 hover:bg-blue-200 rounded-xl p-4 text-center font-medium transition-colors">
-                    <div class="text-2xl font-bold">21-50</div>
-                    <div class="text-sm">Medium Numbers</div>
-                </button>
-                <button onclick="selectNumberRange(51, 100)" class="bg-purple-100 hover:bg-purple-200 rounded-xl p-4 text-center font-medium transition-colors">
-                    <div class="text-2xl font-bold">51-100</div>
-                    <div class="text-sm">Advanced Counting</div>
-                </button>
-                <button onclick="selectNumberRange(1, 100)" class="bg-orange-100 hover:bg-orange-200 rounded-xl p-4 text-center font-medium transition-colors">
-                    <div class="text-2xl font-bold">1-100</div>
-                    <div class="text-sm">All Numbers</div>
-                </button>
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-emerald-800 mb-2">🔢 Numbers & Counting 🔢</h1>
+                <p class="text-xl text-emerald-600">Count numbers 1-100 with visual objects</p>
             </div>
-        </div>
 
-        <!-- Counting Practice -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">👆 Count the Objects</h2>
-            <div class="text-center">
-                <div class="text-5xl font-bold text-emerald-600 mb-6" id="current-number">15</div>
-                <div class="bg-gray-50 rounded-xl p-8 mb-6 min-h-48 flex items-center justify-center">
-                    <div class="flex flex-wrap justify-center gap-2" id="counting-objects">
-                        <!-- Objects will be generated here -->
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-5 gap-2 max-w-md mx-auto mb-6">
-                    <button onclick="checkCount(10)" class="bg-emerald-100 hover:bg-emerald-200 p-3 rounded-lg font-bold">10</button>
-                    <button onclick="checkCount(15)" class="bg-emerald-100 hover:bg-emerald-200 p-3 rounded-lg font-bold">15</button>
-                    <button onclick="checkCount(20)" class="bg-emerald-100 hover:bg-emerald-200 p-3 rounded-lg font-bold">20</button>
-                    <button onclick="checkCount(25)" class="bg-emerald-100 hover:bg-emerald-200 p-3 rounded-lg font-bold">25</button>
-                    <button onclick="checkCount(30)" class="bg-emerald-100 hover:bg-emerald-200 p-3 rounded-lg font-bold">30</button>
-                </div>
-                
-                <div id="counting-result" class="text-lg font-medium hidden"></div>
-            </div>
-        </div>
-
-        <!-- Number Patterns -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🔄 Number Patterns</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="text-center">
-                    <h3 class="text-xl font-bold text-blue-600 mb-4">Counting by 2s</h3>
-                    <div class="text-2xl mb-4">2, 4, 6, __, 10</div>
-                    <div class="grid grid-cols-3 gap-2 mb-4">
-                        <button onclick="checkPattern('2s', 8)" class="bg-blue-100 hover:bg-blue-200 p-2 rounded">8</button>
-                        <button onclick="checkPattern('2s', 12)" class="bg-blue-100 hover:bg-blue-200 p-2 rounded">12</button>
-                        <button onclick="checkPattern('2s', 14)" class="bg-blue-100 hover:bg-blue-200 p-2 rounded">14</button>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <h3 class="text-xl font-bold text-purple-600 mb-4">Counting by 5s</h3>
-                    <div class="text-2xl mb-4">5, 10, 15, __, 25</div>
-                    <div class="grid grid-cols-3 gap-2 mb-4">
-                        <button onclick="checkPattern('5s', 20)" class="bg-purple-100 hover:bg-purple-200 p-2 rounded">20</button>
-                        <button onclick="checkPattern('5s', 30)" class="bg-purple-100 hover:bg-purple-200 p-2 rounded">30</button>
-                        <button onclick="checkPattern('5s', 35)" class="bg-purple-100 hover:bg-purple-200 p-2 rounded">35</button>
-                    </div>
-                </div>
-            </div>
-            <div id="pattern-result" class="text-center mt-4 text-lg font-medium hidden"></div>
-        </div>
-
-        <!-- Place Value -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🔢 Place Value</h2>
-            <div class="text-center">
-                <div class="text-4xl font-bold text-orange-600 mb-6" id="place-value-number">47</div>
-                <div class="flex justify-center items-center mb-6">
-                    <div class="text-center mx-4">
-                        <div class="text-3xl font-bold text-blue-600">4</div>
-                        <div class="text-sm text-gray-600">Tens</div>
-                        <div class="text-xl mt-2">🔟</div>
-                    </div>
-                    <div class="text-2xl mx-4">+</div>
-                    <div class="text-center mx-4">
-                        <div class="text-3xl font-bold text-green-600">7</div>
-                        <div class="text-sm text-gray-600">Ones</div>
-                        <div class="text-xl mt-2">1️⃣</div>
-                    </div>
-                </div>
-                <div class="bg-gray-50 rounded-xl p-4 max-w-md mx-auto">
-                    <div class="text-lg">47 = 4 tens + 7 ones</div>
-                    <div class="text-sm text-gray-600 mt-2">Forty-seven</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Number Words -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🔤 Number Words</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {% set number_words = [
-                    {'num': 1, 'word': 'One', 'emoji': '1️⃣'},
-                    {'num': 2, 'word': 'Two', 'emoji': '2️⃣'},
-                    {'num': 3, 'word': 'Three', 'emoji': '3️⃣'},
-                    {'num': 4, 'word': 'Four', 'emoji': '4️⃣'},
-                    {'num': 5, 'word': 'Five', 'emoji': '5️⃣'},
-                    {'num': 6, 'word': 'Six', 'emoji': '6️⃣'},
-                    {'num': 7, 'word': 'Seven', 'emoji': '7️⃣'},
-                    {'num': 8, 'word': 'Eight', 'emoji': '8️⃣'},
-                    {'num': 9, 'word': 'Nine', 'emoji': '9️⃣'},
-                    {'num': 10, 'word': 'Ten', 'emoji': '🔟'}
-                ] %}
-                
-                {% for item in number_words %}
-                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-4 text-center hover:shadow-lg transition-shadow">
-                    <div class="text-3xl mb-2">{{ item.emoji }}</div>
-                    <div class="text-xl font-bold text-orange-600">{{ item.num }}</div>
-                    <div class="text-gray-700">{{ item.word }}</div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Greater Than / Less Than -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">⚖️ Greater Than / Less Than</h2>
-            <div class="text-center">
-                <div class="flex justify-center items-center mb-6 text-3xl">
-                    <div class="mx-4">
-                        <div class="text-4xl font-bold text-blue-600">25</div>
-                        <div class="text-sm text-gray-600">🍎🍎🍎... (25)</div>
-                    </div>
-                    <div class="mx-4 text-5xl font-bold text-gray-400">?</div>
-                    <div class="mx-4">
-                        <div class="text-4xl font-bold text-green-600">18</div>
-                        <div class="text-sm text-gray-600">🍊🍊🍊... (18)</div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-4 max-w-md mx-auto">
-                    <button onclick="checkComparison('greater')" class="bg-blue-100 hover:bg-blue-200 p-4 rounded-lg font-bold text-xl">
-                        <div class="text-3xl mb-2">&gt;</div>
-                        <div>Greater Than</div>
+            <!-- Number Range Selection -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Choose Number Range</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <button onclick="selectNumberRange(1, 20)"
+                        class="bg-green-100 hover:bg-green-200 rounded-xl p-4 text-center font-medium transition-colors">
+                        <div class="text-2xl font-bold">1-20</div>
+                        <div class="text-sm">Basic Counting</div>
                     </button>
-                    <button onclick="checkComparison('less')" class="bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl">
-                        <div class="text-3xl mb-2">&lt;</div>
-                        <div>Less Than</div>
+                    <button onclick="selectNumberRange(21, 50)"
+                        class="bg-blue-100 hover:bg-blue-200 rounded-xl p-4 text-center font-medium transition-colors">
+                        <div class="text-2xl font-bold">21-50</div>
+                        <div class="text-sm">Medium Numbers</div>
+                    </button>
+                    <button onclick="selectNumberRange(51, 100)"
+                        class="bg-purple-100 hover:bg-purple-200 rounded-xl p-4 text-center font-medium transition-colors">
+                        <div class="text-2xl font-bold">51-100</div>
+                        <div class="text-sm">Advanced Counting</div>
+                    </button>
+                    <button onclick="selectNumberRange(1, 100)"
+                        class="bg-orange-100 hover:bg-orange-200 rounded-xl p-4 text-center font-medium transition-colors">
+                        <div class="text-2xl font-bold">1-100</div>
+                        <div class="text-sm">All Numbers</div>
                     </button>
                 </div>
-                <div id="comparison-result" class="text-lg font-medium mt-4 hidden"></div>
             </div>
-        </div>
 
-        <!-- Progress Tracker -->
-        <div class="bg-white rounded-2xl shadow-lg p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📊 Your Progress</h2>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
-                <div>
-                    <div class="text-3xl font-bold text-green-600 mb-2" id="numbers-counted">0</div>
-                    <div class="text-gray-600">Numbers Counted</div>
-                </div>
-                <div>
-                    <div class="text-3xl font-bold text-blue-600 mb-2" id="patterns-completed">0</div>
-                    <div class="text-gray-600">Patterns Completed</div>
-                </div>
-                <div>
-                    <div class="text-3xl font-bold text-purple-600 mb-2" id="comparisons-correct">0</div>
-                    <div class="text-gray-600">Correct Comparisons</div>
-                </div>
-                <div>
-                    <div class="text-3xl font-bold text-orange-600 mb-2" id="total-points">0</div>
-                    <div class="text-gray-600">Total Points</div>
+            <!-- Counting Practice -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">👆 Count the Objects</h2>
+                <div class="text-center">
+                    <div class="text-5xl font-bold text-emerald-600 mb-6 hidden" id="current-number">15</div>
+                    <div class="bg-gray-50 rounded-xl p-8 mb-6 min-h-48 flex items-center justify-center">
+                        <div class="flex flex-wrap justify-center gap-2" id="counting-objects">
+                            <!-- Objects will be generated here -->
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-2 max-w-md mx-auto mb-6" id="counting-options">
+                        <!-- Options will be dynamically generated -->
+                    </div>
+
+                    <div id="counting-result" class="text-lg font-medium hidden"></div>
                 </div>
             </div>
-        </div>
 
-        <!-- Back Button -->
-        <div class="text-center mt-8">
-            <a href="{{ url_for('grade_2_dashboard') }}" class="inline-block bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
-            </a>
+
+
+            <!-- Number Patterns -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🔄 Number Patterns</h2>
+                <div class="text-center">
+                    <h3 class="text-xl font-bold text-blue-600 mb-4" id="pattern-title">Counting by 2s</h3>
+                    <div class="text-2xl mb-4" id="pattern-sequence">2, 4, 6, __, 10</div>
+                    <div class="grid grid-cols-3 gap-2 mb-4" id="pattern-options">
+                        <!-- Pattern options will be dynamically generated -->
+                    </div>
+                </div>
+                <div id="pattern-result" class="text-center mt-4 text-lg font-medium hidden"></div>
+            </div>
+
+            <!-- Place Value -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🔢 Place Value</h2>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-orange-600 mb-6" id="place-value-number">47</div>
+                    <div class="flex justify-center items-center mb-6">
+                        <div class="text-center mx-4">
+                            <div class="text-3xl font-bold text-blue-600">4</div>
+                            <div class="text-sm text-gray-600">Tens</div>
+                            <div class="text-xl mt-2">🔟</div>
+                        </div>
+                        <div class="text-2xl mx-4">+</div>
+                        <div class="text-center mx-4">
+                            <div class="text-3xl font-bold text-green-600">7</div>
+                            <div class="text-sm text-gray-600">Ones</div>
+                            <div class="text-xl mt-2">1️⃣</div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-4 max-w-md mx-auto">
+                        <div class="text-lg">47 = 4 tens + 7 ones</div>
+                        <div class="text-sm text-gray-600 mt-2">Forty-seven</div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Greater Than / Less Than -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">⚖️ Greater Than / Less Than</h2>
+                <div class="text-center">
+                    <div class="flex justify-center items-center mb-6 text-3xl">
+                        <div class="mx-4">
+                            <div class="text-4xl font-bold text-blue-600" id="comparison-num1">25</div>
+                            <div class="text-sm text-gray-600" id="comparison-visual1">🍎🍎🍎... (25)</div>
+                        </div>
+                        <div class="mx-4 text-5xl font-bold text-gray-400">?</div>
+                        <div class="mx-4">
+                            <div class="text-4xl font-bold text-green-600" id="comparison-num2">18</div>
+                            <div class="text-sm text-gray-600" id="comparison-visual2">🍊🍊🍊... (18)</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 max-w-md mx-auto" id="comparison-options">
+                        <!-- Comparison options will be dynamically generated -->
+                    </div>
+                    <div id="comparison-result" class="text-lg font-medium mt-4 hidden"></div>
+                </div>
+            </div>
+
+            <!-- Progress Tracker -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📊 Your Progress</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+                    <div>
+                        <div class="text-3xl font-bold text-green-600 mb-2" id="numbers-counted">0</div>
+                        <div class="text-gray-600">Numbers Counted</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-blue-600 mb-2" id="patterns-completed">0</div>
+                        <div class="text-gray-600">Patterns Completed</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-purple-600 mb-2" id="comparisons-correct">0</div>
+                        <div class="text-gray-600">Correct Comparisons</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-orange-600 mb-2" id="total-points">0</div>
+                        <div class="text-gray-600">Total Points</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="text-center mt-8">
+                <a href="{{ url_for('grade_2_dashboard') }}"
+                    class="inline-block bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                </a>
+            </div>
         </div>
     </div>
-</div>
 </div>
 
 <script>
@@ -212,20 +170,58 @@
 
     function generateRandomNumber() {
         const randomNumber = Math.floor(Math.random() * (currentRange.end - currentRange.start + 1)) + currentRange.start;
+
+        // Don't display the number in the text field, keep it hidden
         document.getElementById('current-number').textContent = randomNumber;
-        
+
         // Generate visual objects
         const objectsContainer = document.getElementById('counting-objects');
         objectsContainer.innerHTML = '';
-        
-        const objects = ['🍎', '🍊', '🍇', '🍌', '🍒', '🍓', '🍑', '🍍'];
+
+        const objects = ['🍎', '🍊', '🍇', '🍌', '🍒', '🍓', '🍑', '🍍', '🥝', '🥥', '🥭', '🍐', '🍉', '🍋', '🍅'];
         const randomObject = objects[Math.floor(Math.random() * objects.length)];
-        
+
         for (let i = 0; i < randomNumber; i++) {
             objectsContainer.innerHTML += `<div class="text-2xl cursor-pointer hover:scale-110 transition-transform">${randomObject}</div>`;
         }
+
+        // Generate multiple choice options
+        const optionsContainer = document.getElementById('counting-options');
+        optionsContainer.innerHTML = '';
         
+        // Create 4 options: 1 correct answer and 3 incorrect answers
+        const options = [randomNumber]; // Correct answer
+        
+        // Generate 3 incorrect answers close to the correct answer
+        while (options.length < 4) {
+            let incorrect = randomNumber + Math.floor(Math.random() * 5) - 2; // Within ±2 of correct answer
+            // Ensure it's within range and not already in options
+            if (incorrect >= currentRange.start && incorrect <= currentRange.end && !options.includes(incorrect)) {
+                options.push(incorrect);
+            }
+        }
+        
+        // Shuffle the options
+        shuffleArray(options);
+        
+        // Add buttons for each option
+        options.forEach(option => {
+            const button = document.createElement('button');
+            button.className = 'bg-emerald-100 hover:bg-emerald-200 p-3 rounded-lg font-bold';
+            button.textContent = option;
+            button.onclick = () => checkCount(option);
+            optionsContainer.appendChild(button);
+        });
+
         window.currentNumber = randomNumber;
+    }
+
+    // Helper function to shuffle an array
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
     }
 
     function checkCount(selectedNumber) {
@@ -233,13 +229,13 @@
         totalPoints += 10;
         const resultDiv = document.getElementById('counting-result');
         resultDiv.classList.remove('hidden');
-        
+
         if (selectedNumber === window.currentNumber) {
-            resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! That\'s exactly ' + window.currentNumber + ' objects!</span>';
+            resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! Well done!</span>';
         } else {
             resultDiv.innerHTML = '<span class="text-red-600 font-bold">❌ Try again! Count carefully.</span>';
         }
-        
+
         updateProgress();
         setTimeout(() => {
             resultDiv.classList.add('hidden');
@@ -247,46 +243,173 @@
         }, 2000);
     }
 
-    function checkPattern(patternType, selectedAnswer) {
+    function selectNumberRange(start, end) {
+        currentRange = { start, end };
+        generateRandomNumber();
+    }
+
+
+
+    function generatePatternQuestion() {
+        // Randomly select a pattern type
+        const patternTypes = [
+            { type: '2s', title: 'Counting by 2s', base: 2, multiplier: 2 },
+            { type: '5s', title: 'Counting by 5s', base: 5, multiplier: 5 },
+            { type: '10s', title: 'Counting by 10s', base: 10, multiplier: 10 },
+            { type: '3s', title: 'Counting by 3s', base: 3, multiplier: 3 }
+        ];
+        
+        const selectedPattern = patternTypes[Math.floor(Math.random() * patternTypes.length)];
+        
+        // Generate a sequence with a missing number
+        const startIndex = Math.floor(Math.random() * 5) + 1; // Start from 1-5
+        const sequence = [];
+        
+        for (let i = 0; i < 5; i++) {
+            sequence.push((startIndex + i) * selectedPattern.base);
+        }
+        
+        // Select a position to hide (not first or last)
+        const hidePosition = Math.floor(Math.random() * 3) + 1; // Position 1, 2, or 3
+        const correctAnswer = sequence[hidePosition];
+        
+        // Create the sequence string with blank for the missing number
+        const sequenceStr = sequence.map((num, idx) => idx === hidePosition ? '__' : num).join(', ');
+        
+        // Update the UI
+        document.getElementById('pattern-title').textContent = selectedPattern.title;
+        document.getElementById('pattern-sequence').textContent = sequenceStr;
+        
+        // Generate options
+        const optionsContainer = document.getElementById('pattern-options');
+        optionsContainer.innerHTML = '';
+        
+        // Create 3 options: 1 correct answer and 2 incorrect answers
+        const options = [correctAnswer];
+        
+        while (options.length < 3) {
+            let incorrect = correctAnswer + Math.floor(Math.random() * 5) - 2; // Within ±2 of correct answer
+            if (incorrect > 0 && !options.includes(incorrect)) {
+                options.push(incorrect);
+            }
+        }
+        
+        // Shuffle the options
+        shuffleArray(options);
+        
+        // Add buttons for each option
+        options.forEach(option => {
+            const button = document.createElement('button');
+            button.className = 'bg-blue-100 hover:bg-blue-200 p-2 rounded';
+            button.textContent = option;
+            button.onclick = () => checkPattern(selectedPattern.type, option, correctAnswer);
+            optionsContainer.appendChild(button);
+        });
+        
+        window.currentPatternAnswer = correctAnswer;
+    }
+
+    function checkPattern(patternType, selectedAnswer, correctAnswer) {
         patternsCompleted++;
         totalPoints += 15;
         const resultDiv = document.getElementById('pattern-result');
         resultDiv.classList.remove('hidden');
-        
-        let correctAnswer = 0;
-        if (patternType === '2s') {
-            correctAnswer = 8; // 2, 4, 6, 8, 10
-        } else if (patternType === '5s') {
-            correctAnswer = 20; // 5, 10, 15, 20, 25
-        }
-        
+
         if (selectedAnswer === correctAnswer) {
             resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! Well done!</span>';
         } else {
             resultDiv.innerHTML = `<span class="text-red-600 font-bold">❌ Try again! The answer is ${correctAnswer}</span>`;
         }
-        
+
         updateProgress();
         setTimeout(() => {
             resultDiv.classList.add('hidden');
+            generatePatternQuestion(); // Generate a new pattern question
         }, 2000);
     }
 
-    function checkComparison(choice) {
+    function generateComparisonQuestion() {
+        // Generate two random numbers for comparison
+        const num1 = Math.floor(Math.random() * 50) + 10; // Numbers 10-60
+        const num2 = Math.floor(Math.random() * 50) + 10; // Numbers 10-60
+        
+        // Make sure they're different
+        if (num1 === num2) {
+            if (num2 < 60) {
+                num2 = num2 + 1;
+            } else {
+                num2 = num2 - 1;
+            }
+        }
+        
+        document.getElementById('comparison-num1').textContent = num1;
+        document.getElementById('comparison-num2').textContent = num2;
+        
+        // Generate visual representations
+        const objects1 = generateVisuals(num1, '🍎');
+        const objects2 = generateVisuals(num2, '🍊');
+        
+        document.getElementById('comparison-visual1').textContent = objects1;
+        document.getElementById('comparison-visual2').textContent = objects2;
+        
+        // Generate options
+        const optionsContainer = document.getElementById('comparison-options');
+        optionsContainer.innerHTML = '';
+        
+        // Create 2 options: greater than and less than
+        const greaterButton = document.createElement('button');
+        greaterButton.className = 'bg-blue-100 hover:bg-blue-200 p-4 rounded-lg font-bold text-xl';
+        greaterButton.innerHTML = '<div class="text-3xl mb-2">&gt;</div><div>Greater Than</div>';
+        greaterButton.onclick = () => checkComparison('greater', num1, num2);
+        optionsContainer.appendChild(greaterButton);
+        
+        const lessButton = document.createElement('button');
+        lessButton.className = 'bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl';
+        lessButton.innerHTML = '<div class="text-3xl mb-2">&lt;</div><div>Less Than</div>';
+        lessButton.onclick = () => checkComparison('less', num1, num2);
+        optionsContainer.appendChild(lessButton);
+        
+        window.currentComparison = { num1, num2 };
+    }
+
+    function generateVisuals(count, emoji) {
+        let visuals = '';
+        const maxDisplay = Math.min(count, 5); // Show max 5 emojis with a number indicator
+        
+        for (let i = 0; i < maxDisplay; i++) {
+            visuals += emoji;
+        }
+        
+        if (count > 5) {
+            visuals += `... (${count})`;
+        }
+        
+        return visuals;
+    }
+
+    function checkComparison(choice, num1, num2) {
         comparisonsCorrect++;
         totalPoints += 5;
         const resultDiv = document.getElementById('comparison-result');
         resultDiv.classList.remove('hidden');
-        
-        if (choice === 'greater') {
-            resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! 25 is greater than 18</span>';
-        } else {
-            resultDiv.innerHTML = '<span class="text-red-600 font-bold">❌ Try again! 25 is greater than 18</span>';
+
+        let correctChoice = '';
+        if (num1 > num2) {
+            correctChoice = 'greater';
+        } else if (num1 < num2) {
+            correctChoice = 'less';
         }
         
+        if (choice === correctChoice) {
+            resultDiv.innerHTML = `<span class="text-green-600 font-bold">🎉 Correct! ${num1} is ${correctChoice} than ${num2}</span>`;
+        } else {
+            resultDiv.innerHTML = `<span class="text-red-600 font-bold">❌ Try again! ${num1} is ${correctChoice} than ${num2}</span>`;
+        }
+
         updateProgress();
         setTimeout(() => {
             resultDiv.classList.add('hidden');
+            generateComparisonQuestion(); // Generate a new comparison question
         }, 2000);
     }
 
@@ -295,11 +418,27 @@
         document.getElementById('patterns-completed').textContent = patternsCompleted;
         document.getElementById('comparisons-correct').textContent = comparisonsCorrect;
         document.getElementById('total-points').textContent = totalPoints;
+
+        // Save to DB
+        saveProgress('numbers_module', 1);
+    }
+
+    // --- Save Progress ---
+    async function saveProgress(qid, pts) {
+        try {
+            await fetch('/api/submit_progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quiz_id: `g2_math_${qid}`, score: pts, total: 1 })
+            });
+        } catch (e) { }
     }
 
     // Initialize
-    document.addEventListener('DOMContentLoaded', function() {
-        generateRandomNumber();
+    document.addEventListener('DOMContentLoaded', function () {
+        generateRandomNumber(); // Initialize counting section
+        generatePatternQuestion(); // Initialize pattern section
+        generateComparisonQuestion(); // Initialize comparison section
     });
 </script>
 {% endblock %}

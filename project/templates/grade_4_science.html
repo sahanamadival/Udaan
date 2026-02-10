@@ -1,485 +1,790 @@
 {% extends "base.html" %}
 
-{% block title %}Science Explorer - Grade 4 - Udaan{% endblock %}
+{% block title %}Science Research Lab - Grade 4 - Udaan{% endblock %}
 
 {% block body_class %}min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 light-theme{% endblock %}
 
 {% block content %}
 <style>
-@keyframes scale-pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
+  @keyframes scale-pulse {
+    0% {
+      transform: scale(1);
+    }
 
-.animate-scale-pulse {
-  animation: scale-pulse 0.6s ease-in-out;
-}
+    50% {
+      transform: scale(1.05);
+    }
 
-.opacity-0 {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.transition-all {
-  transition-property: all;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-.duration-200 {
-  transition-duration: 200ms;
-}
-
-.duration-300 {
-  transition-duration: 300ms;
-}
-
-.transform {
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-
-.hover\:scale-105:hover {
-  --tw-scale-x: 1.05;
-  --tw-scale-y: 1.05;
-}
-
-.hover\:scale-110:hover {
-  --tw-scale-x: 1.1;
-  --tw-scale-y: 1.1;
-}
-
-.scale-110 {
-  --tw-scale-x: 1.1;
-  --tw-scale-y: 1.1;
-}
-
-.ring-4 {
-  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
-}
-
-.ring-yellow-400 {
-  --tw-ring-opacity: 1;
-  --tw-ring-color: rgb(250 204 21 / var(--tw-ring-opacity));
-}
-
-.opacity-50 {
-  opacity: 0.5;
-}
-
-.hover\:-translate-y-1:hover {
-  --tw-translate-y: -0.25rem;
-}
-
-/* Human Body Container Fixes */
-.container-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 620px;
-  max-height: 80vh;
-  overflow: hidden;
-  position: relative;
-  width: 100%;
-}
-
-.human-body-img {
-  max-height: 100%;
-  max-width: 100%;
-  object-fit: contain;
-  display: block;
-  margin: auto;
-}
-
-.organ-btn {
-  position: absolute;
-  border-radius: 50%;
-  cursor: pointer;
-  background: transparent;
-  transition: transform 0.2s ease;
-}
-
-.organ-btn:hover {
-  transform: scale(1.02);
-}
-
-.heart {
-  top: 38%;
-  left: 48%;
-  width: 6%;
-  height: 6%;
-}
-
-.lungs-left {
-  top: 32%;
-  left: 42%;
-  width: 14%;
-  height: 10%;
-}
-
-.lungs-right {
-  top: 32%;
-  left: 58%;
-  width: 14%;
-  height: 10%;
-}
-
-.stomach {
-  top: 48%;
-  left: 50%;
-  width: 10%;
-  height: 10%;
-}
-
-.intestine {
-  top: 62%;
-  left: 50%;
-  width: 18%;
-  height: 16%;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .container-body {
-    height: 480px;
+    100% {
+      transform: scale(1);
+    }
   }
-}
 
-@media (max-width: 480px) {
-  .container-body {
-    height: 360px;
+  .animate-scale-pulse {
+    animation: scale-pulse 0.6s ease-in-out;
   }
-  
-  .heart {
-    top: 38%;
-    left: 48%;
-    width: 8%;
-    height: 8%;
+
+  .opacity-0 {
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
-  
-  .lungs-left {
-    top: 32%;
-    left: 42%;
-    width: 16%;
-    height: 12%;
+
+  .transition-all {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
   }
-  
-  .lungs-right {
-    top: 32%;
-    left: 58%;
-    width: 16%;
-    height: 12%;
+
+  .duration-200 {
+    transition-duration: 200ms;
   }
-  
-  .stomach {
-    top: 48%;
-    left: 50%;
-    width: 12%;
-    height: 12%;
+
+  .duration-300 {
+    transition-duration: 300ms;
   }
-  
-  .intestine {
-    top: 62%;
-    left: 50%;
-    width: 20%;
-    height: 18%;
+
+  .transform {
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
   }
-}
+
+  .hover\:scale-105:hover {
+    --tw-scale-x: 1.05;
+    --tw-scale-y: 1.05;
+  }
+
+  .hover\:scale-110:hover {
+    --tw-scale-x: 1.1;
+    --tw-scale-y: 1.1;
+  }
+
+  .scale-110 {
+    --tw-scale-x: 1.1;
+    --tw-scale-y: 1.1;
+  }
+
+  .ring-4 {
+    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+  }
+
+  .ring-yellow-400 {
+    --tw-ring-opacity: 1;
+    --tw-ring-color: rgb(250 204 21 / var(--tw-ring-opacity));
+  }
+
+  .opacity-50 {
+    opacity: 0.5;
+  }
+
+  .hover\:-translate-y-1:hover {
+    --tw-translate-y: -0.25rem;
+  }
+
+  /* Lab Points & Game UI */
+  .lab-points-badge {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 9999px;
+    font-weight: 800;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .game-prompt {
+    background: #f0fdf4;
+    border: 2px solid #bbf7d0;
+    color: #166534;
+    padding: 1rem;
+    border-radius: 1rem;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-align: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Planet Cards */
+  .planet-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+    border: 2px solid #f3f4f6;
+    border-radius: 1.5rem;
+    padding: 1.25rem;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .planet-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    border-color: #10b981;
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1);
+  }
+
+  .planet-card.active-planet {
+    border-color: #10b981;
+    background: #f0fdf4;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+  }
+
+  .planet-icon {
+    font-size: 2.5rem;
+  }
+
+  .planet-name {
+    font-weight: 700;
+    color: #065f46;
+  }
+
+  /* Display Containers - Only show styles when NOT hidden */
+  .solar-system-display:not(.hidden),
+  #matterDisplay:not(.hidden),
+  #plantDisplay:not(.hidden) {
+    min-height: 180px;
+    background: white;
+    border: 2px dashed #e5e7eb;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .correct-flash {
+    animation: correct-pulse 0.5s ease-out;
+  }
+
+  @keyframes correct-pulse {
+    0% {
+      background: #fff;
+    }
+
+    50% {
+      background: #d1fae5;
+    }
+
+    100% {
+      background: #fff;
+    }
+  }
+
+  .wrong-flash {
+    animation: wrong-shake 0.4s ease-in-out;
+  }
+
+  .active-item {
+    border-color: #10b981 !important;
+    background-color: #ecfdf5 !important;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.3) !important;
+    transform: scale(1.05);
+  }
+
+  @keyframes wrong-shake {
+
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+
+    25% {
+      transform: translateX(-5px);
+    }
+
+    75% {
+      transform: translateX(5px);
+    }
+  }
 </style>
 <div class="container mx-auto px-4 py-8">
   <div class="max-w-4xl mx-auto">
     <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
-      <h1 class="text-3xl font-bold text-center text-emerald-700 mb-8">
-        Science Explorer: Human Body Mission
-      </h1>
-      
-      <div class="flex justify-center mb-8">
-        <div class="relative p-10 bg-white rounded-2xl shadow-lg">
-          <!-- REAL HUMAN BODY IMAGE START -->
-          <div class="container-body">
-            <img src="/static/images/human_body.png" alt="Human Body" class="human-body-img" loading="lazy">
-            
-            <!-- Clickable overlay areas -->
-            <div class="organ-btn heart" onclick="showOrgan('heart')" id="heart-organ"></div>
-            <div class="organ-btn lungs-left" onclick="showOrgan('lungs')" id="lungs-left-organ"></div>
-            <div class="organ-btn lungs-right" onclick="showOrgan('lungs')" id="lungs-right-organ"></div>
-            <div class="organ-btn stomach" onclick="showOrgan('stomach')" id="stomach-organ"></div>
-            <div class="organ-btn intestine" onclick="showOrgan('intestine')" id="intestine-organ"></div>
-          </div>
-          <!-- REAL HUMAN BODY IMAGE END -->
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+        <div>
+          <h1 class="text-3xl font-bold text-emerald-700">Science Research Lab</h1>
+          <p class="text-emerald-600 font-medium">Mission Status: <span class="text-emerald-800">Ready Researcher
+              👨‍🔬</span></p>
         </div>
-      </div>
-      
-      <div id="organInfo"
-           class="bg-white rounded-2xl shadow-lg p-6 text-center transition-all duration-300 transform">
-        <p class="text-gray-700 text-lg font-medium">Click an organ to learn about it!</p>
-      </div>
-      
-      <div id="organAudioFeedback" class="mt-4 text-center transition-all duration-300 transform hidden">
-        <div class="inline-flex items-center bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full">
-          <div class="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></div>
-          <span>🔊 Speaking...</span>
-        </div>
-      </div>
-    </div>
-    
-    <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
-      <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">
-        Mission: Help the Body Stay Healthy!
-      </h2>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div class="bg-gray-50 p-6 rounded-xl">
-          <h3 class="font-bold text-lg text-emerald-700 mb-4">Human Body Parts</h3>
-          <div class="space-y-3">
-            <div class="flex items-center">
-              <button onclick="showInfo('heart')" class="w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-700 py-3 px-4 rounded-lg text-left transition-all duration-200 transform hover:scale-105">
-                Heart
-              </button>
-            </div>
-            <div class="flex items-center">
-              <button onclick="showInfo('intestine')" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 py-3 px-4 rounded-lg text-left transition-all duration-200 transform hover:scale-105">
-                Intestine
-              </button>
-            </div>
-            <div class="flex items-center">
-              <button onclick="showInfo('lungs')" class="w-full bg-pink-100 hover:bg-pink-200 text-pink-700 py-3 px-4 rounded-lg text-left transition-all duration-200 transform hover:scale-105">
-                Lungs
-              </button>
-            </div>
-            <div class="flex items-center">
-              <button onclick="showInfo('stomach')" class="w-full bg-yellow-100 hover:bg-yellow-200 text-yellow-700 py-3 px-4 rounded-lg text-left transition-all duration-200 transform hover:scale-105">
-                Stomach
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <div class="bg-gray-50 p-6 rounded-xl">
-          <h3 class="font-bold text-lg text-emerald-700 mb-4">Body Systems</h3>
-          <div class="space-y-4">
-            <div class="bg-white p-4 rounded-lg border-l-4 border-emerald-500 shadow-sm hover:shadow-md transition-shadow duration-200">
-              <p class="font-medium text-gray-800">Circulatory System</p>
-              <p class="text-sm text-gray-600 mt-1">Transports blood and oxygen</p>
-            </div>
-            <div class="bg-white p-4 rounded-lg border-l-4 border-emerald-500 shadow-sm hover:shadow-md transition-shadow duration-200">
-              <p class="font-medium text-gray-800">Respiratory System</p>
-              <p class="text-sm text-gray-600 mt-1">Breathing and gas exchange</p>
-            </div>
-            <div class="bg-white p-4 rounded-lg border-l-4 border-emerald-500 shadow-sm hover:shadow-md transition-shadow duration-200">
-              <p class="font-medium text-gray-800">Digestive System</p>
-              <p class="text-sm text-gray-600 mt-1">Processes food and nutrients</p>
-            </div>
+        <div class="flex items-center gap-3">
+          <div class="lab-points-badge">
+            <span>🧪</span> Points: <span id="lab-points">0</span>
           </div>
         </div>
       </div>
-    </div>
-    
-    <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
-      <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">
-        Quick Quiz
-      </h2>
-      
-      <div class="text-center">
-        <p class="font-semibold text-lg mb-6 text-gray-700">Which organ pumps blood?</p>
 
-        <div class="flex justify-center space-x-4 mb-6">
-          <button onclick="checkAns('brain')" id="brain-btn" class="quiz-btn bg-blue-100 hover:bg-blue-200 text-blue-700 px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-105">Brain</button>
-          <button onclick="checkAns('heart')" id="heart-btn" class="quiz-btn bg-red-100 hover:bg-red-200 text-red-700 px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-105">Heart</button>
-          <button onclick="checkAns('lungs')" id="lungs-btn" class="quiz-btn bg-pink-100 hover:bg-pink-200 text-pink-700 px-6 py-3 rounded-xl transition-all duration-200 transform hover:scale-105">Lungs</button>
-        </div>
-        
-        <div id="quiz-feedback" class="text-center font-medium transition-all duration-300 transform hidden mt-4"></div>
-        <div id="mission-complete" class="mt-4 text-center hidden">
-          <div class="inline-flex items-center bg-green-100 text-green-700 px-4 py-2 rounded-full">
-            <span>🏆 Mission Complete!</span>
+      <!-- Navigation Tabs -->
+      <div class="flex flex-wrap justify-center gap-2 mb-8 border-b border-gray-100 pb-4">
+        <button onclick="switchMission('solar')" id="tab-solar"
+          class="mission-tab active px-6 py-2 rounded-full font-bold transition-all flex items-center gap-2 bg-emerald-500 text-white shadow-md">
+          <span>🚀</span> Solar System
+        </button>
+        <button onclick="switchMission('matter')" id="tab-matter"
+          class="mission-tab px-6 py-2 rounded-full font-bold transition-all flex items-center gap-2 bg-gray-100 text-gray-600 hover:bg-emerald-50">
+          <span>🧪</span> Matter Lab
+        </button>
+        <button onclick="switchMission('plants')" id="tab-plants"
+          class="mission-tab px-6 py-2 rounded-full font-bold transition-all flex items-center gap-2 bg-gray-100 text-gray-600 hover:bg-emerald-50">
+          <span>🌿</span> Plant Life
+        </button>
+      </div>
+
+      <div id="mission-solar" class="mission-section">
+        <div class="text-center mb-6">
+          <h2 class="text-2xl font-bold text-emerald-700 mb-2">Cosmic Clicker Game</h2>
+          <div id="solar-prompt" class="game-prompt animate-pulse">
+            "Loading Mission..."
           </div>
         </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div onclick="checkPlanet('mercury')" id="planet-mercury" class="planet-card">
+            <span class="planet-icon">🌑</span>
+            <span class="planet-name">Mercury</span>
+          </div>
+          <div onclick="checkPlanet('venus')" id="planet-venus" class="planet-card">
+            <span class="planet-icon">🌕</span>
+            <span class="planet-name">Venus</span>
+          </div>
+          <div onclick="checkPlanet('earth')" id="planet-earth" class="planet-card">
+            <span class="planet-icon">🌍</span>
+            <span class="planet-name">Earth</span>
+          </div>
+          <div onclick="checkPlanet('mars')" id="planet-mars" class="planet-card">
+            <span class="planet-icon">🔴</span>
+            <span class="planet-name">Mars</span>
+          </div>
+          <div onclick="checkPlanet('jupiter')" id="planet-jupiter" class="planet-card">
+            <span class="planet-icon">🪐</span>
+            <span class="planet-name">Jupiter</span>
+          </div>
+          <div onclick="checkPlanet('saturn')" id="planet-saturn" class="planet-card">
+            <span class="planet-icon">🪐</span>
+            <span class="planet-name">Saturn</span>
+          </div>
+          <div onclick="checkPlanet('uranus')" id="planet-uranus" class="planet-card">
+            <span class="planet-icon">🔵</span>
+            <span class="planet-name">Uranus</span>
+          </div>
+          <div onclick="checkPlanet('neptune')" id="planet-neptune" class="planet-card">
+            <span class="planet-icon">🔵</span>
+            <span class="planet-name">Neptune</span>
+          </div>
+        </div>
+
+        <div id="solarDisplay"
+          class="solar-system-display hidden text-center transition-all duration-300 transform scale-100">
+        </div>
       </div>
-    </div>
-    
-    <div class="text-center">
-      <a href="{{ url_for('grade_4_dashboard') }}" class="inline-block bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white font-bold py-3 px-8 rounded-xl transition-all duration-300 transform hover:-translate-y-1 shadow-lg">
-        Back to Dashboard
-      </a>
+
+      <!-- MATTER LAB MISSION START -->
+      <div id="mission-matter" class="mission-section hidden">
+        <div class="text-center mb-6">
+          <h2 class="text-2xl font-bold text-emerald-700 mb-2">Matter Sorter Challenge</h2>
+          <div id="matter-prompt" class="game-prompt">
+            "Sort the items correctly to earn points!"
+          </div>
+        </div>
+
+        <div id="matter-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <!-- Items will be injected here dynamically -->
+        </div>
+
+        <div id="matterDisplay" class="solar-system-display hidden">
+        </div>
+      </div>
+      <!-- MATTER LAB MISSION END -->
+
+      <!-- PLANT LIFE MISSION START -->
+      <div id="mission-plants" class="mission-section hidden">
+        <div class="text-center mb-6">
+          <h2 class="text-2xl font-bold text-emerald-700 mb-2">Nature Scout Mission</h2>
+          <div id="plant-prompt" class="game-prompt">
+            "Investigation starting..."
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div id="plant-Roots" onclick="checkPlant('Roots')"
+            class="p-6 bg-amber-50 rounded-2xl border-2 border-amber-200 cursor-pointer hover:bg-amber-100 transition-all text-center">
+            <div class="text-4xl mb-2">🌱</div>
+            <h3 class="font-bold text-amber-900">Roots</h3>
+          </div>
+          <div id="plant-Leaves" onclick="checkPlant('Leaves')"
+            class="p-6 bg-green-50 rounded-2xl border-2 border-green-200 cursor-pointer hover:bg-green-100 transition-all text-center">
+            <div class="text-4xl mb-2">🍃</div>
+            <h3 class="font-bold text-green-900">Leaves</h3>
+          </div>
+          <div id="plant-Flower" onclick="checkPlant('Flower')"
+            class="p-6 bg-pink-50 rounded-2xl border-2 border-pink-200 cursor-pointer hover:bg-pink-100 transition-all text-center">
+            <div class="text-4xl mb-2">🌸</div>
+            <h3 class="font-bold text-pink-900">Flower</h3>
+          </div>
+          <div id="plant-Stem" onclick="checkPlant('Stem')"
+            class="p-6 bg-yellow-50 rounded-2xl border-2 border-yellow-200 cursor-pointer hover:bg-yellow-100 transition-all text-center">
+            <div class="text-4xl mb-2">🎋</div>
+            <h3 class="font-bold text-yellow-900">Stem</h3>
+          </div>
+        </div>
+
+        <div id="plantDisplay" class="solar-system-display hidden">
+        </div>
+      </div>
+      <!-- PLANT LIFE MISSION END -->
+
+
+
+
+
+      <div class="text-center">
+        <a href="{{ url_for('grade_4_dashboard') }}"
+          class="inline-block bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white font-bold py-3 px-8 rounded-xl transition-all duration-300 transform hover:-translate-y-1 shadow-lg">
+          Back to Dashboard
+        </a>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
-let currentUtterance = null;
-let activeOrgan = null;
+  <script>
+    let labPoints = 0;
+    let currentMissionTarget = null;
+    let currentUtterance = null;
 
-const organData = {
-  heart: {
-    text: "The heart pumps blood throughout the body. It beats fast when we exercise.",
-  },
-  lungs: {
-    text: "The lungs help us breathe air. They bring oxygen to our body.",
-  },
-  stomach: {
-    text: "The stomach digests food we eat. It breaks food into nutrients.",
-  },
-  intestine: {
-    text: "The intestine absorbs nutrients from food. It helps our body grow.",
-  }
-};
-
-function highlightOrgan(name) {
-  // Remove previous highlight
-  if (activeOrgan) {
-    const prevOrgans = document.querySelectorAll(`#${activeOrgan}-organ`);
-    prevOrgans.forEach(organ => {
-      organ.classList.remove("ring-4", "ring-yellow-400", "scale-110");
-    });
-  }
-  
-  // Add highlight to new organ
-  const organs = document.querySelectorAll(`#${name}-organ`);
-  organs.forEach(organ => {
-    organ.classList.add("ring-4", "ring-yellow-400", "scale-110");
-  });
-  
-  activeOrgan = name;
-}
-
-function showOrgan(name) {
-  const info = organData[name];
-  const infoPanel = document.getElementById("organInfo");
-  const audioFeedback = document.getElementById("organAudioFeedback");
-  
-  // Highlight the organ
-  highlightOrgan(name);
-  
-  // Fade out current text
-  infoPanel.classList.add("opacity-0");
-  
-  setTimeout(() => {
-    // Update text
-    infoPanel.innerHTML = `<p class="text-gray-700 text-lg font-medium">${info.text}</p>`;
-    
-    // Fade in new text
-    infoPanel.classList.remove("opacity-0");
-    
-    // Scroll into view on mobile
-    infoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }, 150);
-  
-  // Cancel any previous speech
-  if (currentUtterance) {
-    speechSynthesis.cancel();
-    currentUtterance = null;
-  }
-  
-  // Create new utterance
-  const utterance = new SpeechSynthesisUtterance(info.text);
-  
-  // Configure speech settings
-  utterance.rate = 0.9;
-  utterance.pitch = 1.0;
-  utterance.volume = 1.0;
-  
-  // Find a female-like voice if available
-  const voices = speechSynthesis.getVoices();
-  const femaleVoice = voices.find(voice => 
-    voice.name.includes('Female') || 
-    voice.name.includes('female') || 
-    voice.name.includes('Google US English') ||
-    voice.name.includes('Microsoft')
-  );
-  
-  if (femaleVoice) {
-    utterance.voice = femaleVoice;
-  }
-  
-  // Event when speech starts
-  utterance.onstart = function() {
-    currentUtterance = utterance;
-    audioFeedback.classList.remove("hidden");
-  };
-  
-  // Event when speech ends
-  utterance.onend = function() {
-    currentUtterance = null;
-    audioFeedback.classList.add("hidden");
-    
-    // Remove highlight
-    if (activeOrgan === name) {
-      const organs = document.querySelectorAll(`#${name}-organ`);
-      organs.forEach(organ => {
-        organ.classList.remove("ring-4", "ring-yellow-400", "scale-110");
-      });
-      activeOrgan = null;
-    }
-  };
-  
-  // Event when speech error occurs
-  utterance.onerror = function() {
-    currentUtterance = null;
-    audioFeedback.classList.add("hidden");
-  };
-  
-  // Speak the text
-  speechSynthesis.speak(utterance);
-}
-
-function showInfo(part) {
-  // Map brain to intestine since brain was removed
-  if (part === 'brain') {
-    part = 'intestine';
-  }
-  showOrgan(part);
-}
-
-function checkAns(ans) {
-  const feedback = document.getElementById("quiz-feedback");
-  const missionComplete = document.getElementById("mission-complete");
-  const brainBtn = document.getElementById("brain-btn");
-  const heartBtn = document.getElementById("heart-btn");
-  const lungsBtn = document.getElementById("lungs-btn");
-  
-  if (ans === "heart") {
-    // Correct answer
-    feedback.innerHTML = '<div class="inline-flex items-center bg-green-100 text-green-700 px-4 py-2 rounded-full animate-scale-pulse"><span>🎉 Correct! The heart pumps blood.</span></div>';
-    feedback.classList.remove("hidden");
-    
-    // Show mission complete
-    missionComplete.classList.remove("hidden");
-    
-    // Disable buttons
-    brainBtn.disabled = true;
-    heartBtn.disabled = true;
-    lungsBtn.disabled = true;
-    
-    brainBtn.classList.add("opacity-50");
-    heartBtn.classList.add("opacity-50");
-    lungsBtn.classList.add("opacity-50");
-  } else {
-    // Wrong answer
-    feedback.innerHTML = '<div class="inline-flex items-center bg-red-100 text-red-700 px-4 py-2 rounded-full"><span>Try again 😊</span></div>';
-    feedback.classList.remove("hidden");
-    
-    // Auto fade after 2 seconds
-    setTimeout(() => {
-      feedback.classList.add("opacity-0");
-      setTimeout(() => {
-        feedback.classList.add("hidden");
-        feedback.classList.remove("opacity-0");
-      }, 300);
-    }, 2000);
-  }
-}
-
-// Load voices when speech synthesis is ready
-window.addEventListener('load', () => {
-  // Wait for voices to be loaded
-  if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = function() {
-      // Voices are loaded
+    const gameMissions = {
+      solar: {
+        promptId: 'solar-prompt',
+        targets: [
+          { id: 'mars', hint: 'Find the "Red Planet"!' },
+          { id: 'jupiter', hint: 'Where is the largest planet?' },
+          { id: 'saturn', hint: 'Find the planet with beautiful icy rings!' },
+          { id: 'earth', hint: 'Click on our home planet!' },
+          { id: 'mercury', hint: 'Where is the planet closest to the Sun?' },
+          { id: 'venus', hint: 'Find the hottest planet in the solar system!' },
+          { id: 'neptune', hint: 'Where is the windiest and farthest planet?' },
+          { id: 'uranus', hint: 'Click on the planet that spins on its side!' }
+        ]
+      },
+      matter: {
+        promptId: 'matter-prompt',
+        targets: [
+          { id: 'Solid', hint: 'Investigate a Solid (something with a fixed shape).' },
+          { id: 'Liquid', hint: 'Find a Liquid (something that flows).' },
+          { id: 'Gas', hint: 'Locate a Gas (something that fills its container).' }
+        ]
+      },
+      plants: {
+        promptId: 'plant-prompt',
+        targets: [
+          { id: 'Roots', hint: 'Find the part that drinks water from the soil!' },
+          { id: 'Leaves', hint: 'Locate the "Plant Kitchen" where food is made!' },
+          { id: 'Flower', hint: 'Find the part that makes seeds for new plants!' },
+          { id: 'Stem', hint: 'Find the part that holds the plant up and carries water!' }
+        ]
+      }
     };
-  }
-});
-</script>
-{% endblock %}
+
+
+
+    // Load points if saved
+    window.addEventListener('load', () => {
+      const saved = localStorage.getItem('labPoints');
+      if (saved) {
+        labPoints = parseInt(saved);
+        document.getElementById('lab-points').textContent = labPoints;
+      }
+    });
+
+    function startMissionGame(missionId) {
+      console.log("Starting mission:", missionId);
+      const mission = gameMissions[missionId];
+      if (!mission) return;
+
+      const randomIndex = Math.floor(Math.random() * mission.targets.length);
+      currentMissionTarget = mission.targets[randomIndex];
+      console.log("New target:", currentMissionTarget.id);
+
+      const promptEl = document.getElementById(mission.promptId);
+      if (promptEl) {
+        promptEl.textContent = currentMissionTarget.hint;
+        promptEl.classList.remove('bg-red-50', 'border-red-200', 'text-red-700');
+        promptEl.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-700');
+      }
+
+      speakText(currentMissionTarget.hint);
+    }
+
+    function addPoints(pts) {
+      labPoints += pts;
+      document.getElementById('lab-points').textContent = labPoints;
+      localStorage.setItem('labPoints', labPoints);
+      // Tiny animation for points
+      const badge = document.querySelector('.lab-points-badge');
+      badge.classList.add('scale-110');
+      setTimeout(() => badge.classList.remove('scale-110'), 300);
+    }
+
+    function switchMission(missionId) {
+      // Hide all missions
+      document.querySelectorAll('.mission-section').forEach(section => {
+        section.classList.add('hidden');
+      });
+
+      // Reset tabs
+      document.querySelectorAll('.mission-tab').forEach(tab => {
+        tab.classList.remove('bg-emerald-500', 'text-white', 'shadow-md');
+        tab.classList.add('bg-gray-100', 'text-gray-600');
+      });
+
+      // Show selected mission
+      const missionContainer = document.getElementById(`mission-${missionId}`);
+      if (missionContainer) missionContainer.classList.remove('hidden');
+
+      // Add active tab styles
+      const activeTab = document.getElementById(`tab-${missionId}`);
+      if (activeTab) {
+        activeTab.classList.remove('bg-gray-100', 'text-gray-600');
+        activeTab.classList.add('bg-emerald-500', 'text-white', 'shadow-md');
+      }
+
+      // Start gamified prompt
+      startMissionGame(missionId);
+
+      if (missionId === 'matter') refreshMatterGrid();
+
+      // Hide all discovery cards on switch
+      document.querySelectorAll('.solar-system-display, #matterDisplay, #plantDisplay').forEach(card => {
+        card.classList.add('hidden');
+        card.innerHTML = '';
+      });
+
+      // Clear highlights
+      document.querySelectorAll('.planet-card, .matter-item, .mission-section .p-6').forEach(el => {
+        el.classList.remove('active-item', 'active-planet', 'ring-4', 'ring-emerald-400');
+      });
+
+      // Reset feedback
+      speechSynthesis.cancel();
+    }
+
+    function handleGameFeedback(missionId, isCorrect, clickedId) {
+      const promptEl = document.getElementById(gameMissions[missionId].promptId);
+      if (!promptEl) return;
+
+      // Reset states
+      promptEl.classList.remove('bg-red-50', 'border-red-200', 'text-red-700', 'wrong-flash', 'bg-green-100', 'border-green-300', 'text-emerald-700');
+
+      if (isCorrect) {
+        addPoints(10);
+
+        let data;
+        if (missionId === 'solar') {
+          data = planetData[clickedId];
+          showPlanet(clickedId);
+        } else if (missionId === 'matter') {
+          data = matterData[clickedId];
+          showMatterDetail(clickedId);
+        } else if (missionId === 'plants') {
+          data = plantData[clickedId];
+          showPlantDetail(clickedId);
+        }
+
+        promptEl.innerHTML = `🌟 <b>Correct!</b> That is a ${data.type || 'target'}!`;
+        promptEl.classList.add('bg-green-100', 'border-green-300', 'text-emerald-700');
+
+        speakText("Correct!", () => {
+          // Get next mission target after delay AFTER speech ends
+          setTimeout(() => {
+            if (missionId === 'matter') refreshMatterGrid();
+            startMissionGame(missionId);
+          }, 1000);
+        });
+      } else {
+        promptEl.innerHTML = `❌ <b>Keep looking!</b> Try to find a ${currentMissionTarget.id}.`;
+        promptEl.classList.add('bg-red-50', 'border-red-200', 'text-red-700', 'wrong-flash');
+        setTimeout(() => promptEl.classList.remove('wrong-flash'), 400);
+        speakText("Not quite! Keep looking for a " + currentMissionTarget.id);
+      }
+    }
+
+    function checkPlanet(id) {
+      const isCorrect = (id === currentMissionTarget.id);
+      handleGameFeedback('solar', isCorrect, id);
+    }
+
+    function checkMatter(itemId) {
+      const data = matterData[itemId];
+      const isCorrect = (data.type === currentMissionTarget.id);
+      handleGameFeedback('matter', isCorrect, itemId);
+    }
+
+    function checkPlant(part) {
+      const isCorrect = (part === currentMissionTarget.id);
+      handleGameFeedback('plants', isCorrect, part);
+    }
+
+    function speakText(text, callback) {
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      if (callback) {
+        utterance.onend = callback;
+      }
+      speechSynthesis.speak(utterance);
+    }
+
+    const planetData = {
+      mercury: {
+        name: "Mercury",
+        icon: "🌑",
+        fact: "Mercury is the smallest planet and the closest to the Sun! It has no moons.",
+        intel: "Mercury orbits the Sun in just 88 days."
+      },
+      venus: {
+        name: "Venus",
+        icon: "🌕",
+        fact: "Venus is the hottest planet in our solar system because of its thick clouds! 🌡️",
+        intel: "Venus spins slowly in the opposite direction of most planets."
+      },
+      earth: {
+        name: "Earth",
+        icon: "🌍",
+        fact: "Earth is our home! It is the only planet known to have life and liquid water.",
+        intel: "Earth takes 365 days to orbit the Sun."
+      },
+      mars: {
+        name: "Mars",
+        icon: "🔴",
+        fact: "Mars is known as the 'Red Planet' because of its rusty soil! It has two small moons.",
+        intel: "Mars has the largest volcano in the solar system, Olympus Mons!"
+      },
+      jupiter: {
+        name: "Jupiter",
+        icon: "🪐",
+        fact: "Jupiter is the largest planet in the solar system! It is a gas giant.",
+        intel: "Jupiter has a 'Great Red Spot' which is a massive storm!"
+      },
+      saturn: {
+        name: "Saturn",
+        icon: "🪐",
+        fact: "Saturn is famous for its beautiful rings made of ice and rock! 🧊",
+        intel: "Saturn is the second largest planet in our solar system."
+      },
+      uranus: {
+        name: "Uranus",
+        icon: "🔵",
+        fact: "Uranus is an 'ice giant' and spins on its side! It looks blue because of methane gas.",
+        intel: "Uranus was the first planet discovered with a telescope!"
+      },
+      neptune: {
+        name: "Neptune",
+        icon: "🔵",
+        fact: "Neptune is the farthest planet from the Sun. It is very cold and has fast winds!",
+        intel: "A year on Neptune lasts about 165 Earth years!"
+      }
+    };
+
+    const matterData = {
+      'ice': {
+        name: "Ice Cube",
+        type: "Solid",
+        icon: "🧊",
+        desc: "Ice is a solid. Its particles are locked together and it holds its shape!",
+        intel: "Ice melts into liquid water when it gets warm."
+      },
+      'juice': {
+        name: "Fruit Juice",
+        type: "Liquid",
+        icon: "🥤",
+        desc: "Juice is a liquid. It flows and takes the shape of the container it's in!",
+        intel: "Juice takes the shape of whatever cup you pour it into!"
+      },
+      'gas': {
+        name: "Steam/Air",
+        type: "Gas",
+        icon: "🎈",
+        desc: "Gases like air spread out to fill up all the space in their container!",
+        intel: "Air is all around us, even if we can't see it!"
+      },
+      'rock': {
+        name: "Hard Rock",
+        type: "Solid",
+        icon: "🪨",
+        desc: "Rocks are solids. They are very hard and do not change shape easily!",
+        intel: "Rocks are made of minerals from the Earth's crust."
+      },
+      'milk': {
+        name: "Cold Milk",
+        type: "Liquid",
+        icon: "🥛",
+        desc: "Milk is a liquid. It is wet and flows just like water!",
+        intel: "Milk is white and contains calcium for strong bones."
+      },
+      'cloud': {
+        name: "Water Vapor",
+        type: "Gas",
+        icon: "☁️",
+        desc: "Water vapor is a gas form of water. It is what makes up clouds!",
+        intel: "When water boils, it turns into steam, which is a gas."
+      },
+      'wood': {
+        name: "Wood Log",
+        type: "Solid",
+        icon: "🪵",
+        desc: "Wood is a solid. It is strong and used to build many things!",
+        intel: "Wood comes from the trunks of trees."
+      },
+      'oil': {
+        name: "Cooking Oil",
+        type: "Liquid",
+        icon: "🧪",
+        desc: "Oil is a liquid. It is slippery and poured into pans for cooking!",
+        intel: "Oil and water don't mix—the oil will float on top!"
+      },
+      'smoke': {
+        name: "Campfire Smoke",
+        type: "Gas",
+        icon: "💨",
+        desc: "Smoke is a mixture of gases and tiny particles that rise into the air!",
+        intel: "Smoke always moves upwards because hot air is lighter."
+      }
+    };
+
+    const plantData = {
+      'Roots': {
+        name: "Roots",
+        type: "Plant Part",
+        icon: "🌱",
+        desc: "Roots anchor the plant in the ground and soak up water and minerals from the soil.",
+        intel: "Some roots, like carrots, also store food for the plant!"
+      },
+      'Leaves': {
+        name: "Leaves",
+        type: "Plant Part",
+        icon: "🍃",
+        desc: "Leaves use sunlight, water, and air to make food for the plant (Photosynthesis!).",
+        intel: "Leaves have tiny pores called stomata to let the plant breathe."
+      },
+      'Flower': {
+        name: "Flower",
+        type: "Plant Part",
+        icon: "🌸",
+        desc: "Flowers attract pollinators and produce seeds so new plants can grow.",
+        intel: "Flowers turn into fruits once they are pollinated!"
+      },
+      'Stem': {
+        name: "Stem",
+        type: "Plant Part",
+        icon: "🎋",
+        desc: "The stem supports the plant and carries water and food between the roots and leaves.",
+        intel: "Stems can be soft like a grass or hard like a tree trunk!"
+      }
+    };
+
+    function showPlanet(id) {
+      const data = planetData[id];
+      const display = document.getElementById('solarDisplay');
+      updateDisplayCard(display, data);
+
+      // Highlight card
+      document.querySelectorAll('.planet-card').forEach(card => card.classList.remove('active-planet', 'ring-4', 'ring-emerald-400'));
+      const activeCard = document.getElementById(`planet-${id}`);
+      if (activeCard) activeCard.classList.add('active-planet', 'ring-4', 'ring-emerald-400');
+    }
+
+    function showMatterDetail(id) {
+      const data = matterData[id];
+      const display = document.getElementById('matterDisplay');
+      updateDisplayCard(display, data);
+
+      // Highlight item
+      document.querySelectorAll('.matter-item').forEach(card => card.classList.remove('active-item'));
+      const activeCard = document.getElementById(`matter-${id}`);
+      if (activeCard) activeCard.classList.add('active-item');
+    }
+
+    function showPlantDetail(id) {
+      const data = plantData[id];
+      const display = document.getElementById('plantDisplay');
+      updateDisplayCard(display, data);
+
+      // Highlight item
+      document.querySelectorAll('#mission-plants .p-6').forEach(card => card.classList.remove('active-item'));
+      const activeCard = document.getElementById(`plant-${id}`);
+      if (activeCard) activeCard.classList.add('active-item');
+    }
+
+    function updateDisplayCard(display, data) {
+      if (!display || !data) return;
+      display.classList.remove('hidden');
+      display.innerHTML = `
+        <div class="animate-scale-pulse flex flex-col items-center">
+          <div class="text-6xl mb-4">${data.icon}</div>
+          <h3 class="text-3xl font-bold text-emerald-700 mb-2">${data.name}</h3>
+          <p class="text-gray-700 text-lg max-w-md mb-4 text-center">${data.fact || data.desc}</p>
+          <div class="bg-emerald-100 text-emerald-700 px-6 py-3 rounded-2xl border border-emerald-200 shadow-sm text-center">
+            <span class="font-bold">Mission Intel:</span> ${data.intel}
+          </div>
+        </div>
+      `;
+      // Speak the discovery
+      speakText(`${data.name}. ${data.fact || data.desc}. ${data.intel}`);
+    }
+
+    function showInfo(topic) {
+      // Handle old calls if any
+      if (planetData[topic]) showPlanet(topic);
+    }
+
+
+
+    // Initial Load
+    window.addEventListener('load', () => {
+      switchMission('solar');
+    });
+
+    function refreshMatterGrid() {
+      const grid = document.getElementById('matter-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      // Pick one random item for each state
+      const states = ['Solid', 'Liquid', 'Gas'];
+      const borderColors = { Solid: 'blue', Liquid: 'orange', Gas: 'red' };
+
+      states.forEach(state => {
+        const pool = Object.keys(matterData).filter(key => matterData[key].type === state);
+        const randomKey = pool[Math.floor(Math.random() * pool.length)];
+        const data = matterData[randomKey];
+
+        const itemDiv = document.createElement('div');
+        itemDiv.id = `matter-${randomKey}`;
+        itemDiv.className = `matter-item p-6 bg-white border-2 border-${borderColors[state]}-200 rounded-2xl cursor-pointer hover:scale-105 transition-all text-center`;
+        itemDiv.onclick = () => checkMatter(randomKey);
+        itemDiv.innerHTML = `
+          <div class="text-4xl mb-2">${data.icon}</div>
+          <span class="font-bold text-${borderColors[state]}-700">${data.name}</span>
+        `;
+        grid.appendChild(itemDiv);
+      });
+    }
+
+    // Load voices when speech synthesis is ready
+    window.addEventListener('load', () => {
+      // Wait for voices to be loaded
+      if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = function () {
+          // Voices are loaded
+        };
+      }
+    });
+  </script>
+  {% endblock %}

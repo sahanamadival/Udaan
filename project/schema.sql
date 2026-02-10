@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS students (
     password_hash TEXT,
     created_at TEXT,
     reset_token TEXT,
-    reset_token_expires TEXT
+    reset_token_expires TEXT,
+    google_id TEXT
 );
 
 
@@ -135,3 +136,11 @@ CREATE TABLE IF NOT EXISTS vocab_notebook (
     created_at TEXT,
     FOREIGN KEY(student_id) REFERENCES students(id)
 );
+-- Teachers table
+CREATE TABLE IF NOT EXISTS teachers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    password_hash TEXT,
+    created_at TEXT

@@ -5,6 +5,8 @@
 {% block body_class %}min-h-screen flex items-center justify-center p-4 light-theme{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <style>
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
@@ -70,13 +72,21 @@
       <p class="text-gray-600">Fill in the missing details</p>
     </div>
     
+    <!-- Flash Messages -->
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <div class="mb-6">
-          {% for msg in messages %}
-            <div class="bg-red-100 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm">
-              {{ msg }}
-            </div>
+          {% for message in messages %}
+            {% if 'password' in message.lower()
+               or 'not found' in message.lower()
+               or 'log in' in message.lower() %}
+               
+                <!-- show styled login error message -->
+                <div class="login-error bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center">
+                  {{ message }}
+                </div>
+
+            {% endif %}
           {% endfor %}
         </div>
       {% endif %}
@@ -126,9 +136,10 @@
       
       <div class="flex justify-between items-center">
         <label class="flex items-center text-gray-700 text-sm">
-          <input type="checkbox" class="mr-2 rounded border-gray-300" required>
-          I agree to the terms and conditions
+          <input type="checkbox" class="mr-2 rounded border-gray-300">
+          Remember me
         </label>
+        <a href="#" class="text-sm text-blue-600 hover:text-blue-700">Forgot password?</a>
       </div>
       
       <button 

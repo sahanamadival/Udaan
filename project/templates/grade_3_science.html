@@ -347,11 +347,19 @@
             scores[type]++;
             scoreEl.textContent = scores[type];
             await saveProgress(`g3_science_${type}`, 1);
+
+            // Fetch more if low
+            let list = (type === 'rooms' || type === 'homes') ? data.shelter[type] : data.nature[type];
+            const remaining = (list?.length || 0) - indices[type];
+            if (remaining <= 2) {
+                if (type === 'rooms' || type === 'homes') fetchShelter();
+                else fetchNature();
+            }
+
             setTimeout(() => {
                 feedbackEl.textContent = "";
                 indices[type]++;
-                // Route to correct list
-                let list = (type === 'rooms' || type === 'homes') ? data.shelter[type] : data.nature[type];
+                // Refresh list reference after potential fetch (though it's async)
                 renderMCQ(type, list);
             }, 500);
         } else {

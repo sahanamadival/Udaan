@@ -10,7 +10,6 @@ from openai import OpenAI
 from deep_translator import GoogleTranslator
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
-# from googletrans import Translator
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase.ttfonts import TTFont
@@ -19,6 +18,12 @@ from PyPDF2 import PdfReader
 import fitz 
 import pytesseract
 from PIL import Image
+import secrets
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from dotenv import load_dotenv
+load_dotenv()  # Load environment variables from .env file
 import json
 import re
 from pdf2image import convert_from_path
@@ -369,12 +374,27 @@ def update_progress(student_id, field):
     cur = conn.cursor()
 
     try:
+        # Legacy update
         cur.execute(f"""
             UPDATE student_progress
             SET {field} = {field} + 1,
                 last_updated = CURRENT_TIMESTAMP
             WHERE student_id=? AND grade=4
         """, (student_id,))
+        
+        # New unified system update (record in quiz_attempts)
+        # Map fields to unified prefixes
+        quiz_id = f"g4_{field.replace('_solved', '').replace('_done', '').replace('_analyzed', 'read')}"
+        if 'math' in field: quiz_id = "g4_math_practice"
+        elif 'science' in field: quiz_id = "g4_science_activity"
+        elif 'creative' in field: quiz_id = "g4_logic_writing"
+        elif 'books' in field: quiz_id = "g4_reading_master"
+        
+        cur.execute("""
+            INSERT INTO quiz_attempts (student_id, quiz_id, score, total, attempted_at)
+            VALUES (?, ?, ?, ?, ?)
+        """, (student_id, quiz_id, 1, 1, datetime.now(timezone.utc).isoformat()))
+
         conn.commit()
         conn.close()
     except sqlite3.OperationalError as e:
@@ -384,17 +404,7 @@ def update_progress(student_id, field):
             conn.close()
             migrate_student_progress_table()
             # Retry the operation
-            conn = sqlite3.connect("database.db")
-            cur = conn.cursor()
-            
-            cur.execute(f"""
-                UPDATE student_progress
-                SET {field} = {field} + 1,
-                    last_updated = CURRENT_TIMESTAMP
-                WHERE student_id=? AND grade=4
-            """, (student_id,))
-            conn.commit()
-            conn.close()
+            update_progress(student_id, field)
         else:
             raise e
 
@@ -472,6 +482,13 @@ def migrate_database():
             cur.execute("ALTER TABLE student_progress ADD COLUMN streak_count INTEGER DEFAULT 0")
             print("Added streak_count column to student_progress table")
         
+        # Check teachers table for missing columns
+        cur.execute("PRAGMA table_info(teachers)")
+        teacher_columns = [row[1] for row in cur.fetchall()]
+        if "grade" not in teacher_columns:
+            cur.execute("ALTER TABLE teachers ADD COLUMN grade TEXT")
+            print("Added grade column to teachers table")
+
         # Create grade_activities table if it doesn't exist
         cur.execute("""CREATE TABLE IF NOT EXISTS grade_activities (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -499,6 +516,14 @@ def migrate_database():
             # Column might already exist, ignore error
             pass
         
+        # Add google_id column for Google OAuth support
+        try:
+            cur.execute("ALTER TABLE students ADD COLUMN google_id TEXT")
+            print("Added google_id column to students table")
+        except sqlite3.OperationalError:
+            # Column might already exist, ignore error
+            pass
+        
         conn.commit()
         print("Database migration completed successfully")
         
@@ -509,53 +534,36 @@ def migrate_database():
     finally:
         conn.close()
 
-
-def migrate_google_auth():
-    """Migrate database to add Google Auth support with unique emails and google_auth column."""
+def create_default_teachers():
+    """Ensure 5 default teacher accounts exist, one for each grade."""
     conn = sqlite3.connect("database.db")
     cur = conn.cursor()
     
     try:
-        # Check if google_auth column exists in students table
-        cur.execute("PRAGMA table_info(students)")
-        students_columns = [column[1] for column in cur.fetchall()]
+        # Check if we already have the standard teachers
+        cur.execute("SELECT COUNT(*) FROM teachers")
+        count = cur.fetchone()[0]
         
-        if "google_auth" not in students_columns:
-            cur.execute("ALTER TABLE students ADD COLUMN google_auth INTEGER DEFAULT 0")
-            print("Added google_auth column to students table")
-        
-        # Update existing records that have 'google_oauth' as password to NULL
-        cur.execute("UPDATE students SET password_hash = NULL WHERE password_hash = 'google_oauth'")
-        
-        # Create unique indexes for emails (SQLite doesn't have ALTER TABLE ADD CONSTRAINT)
-        # We'll create indexes that enforce uniqueness where email is not null
-        try:
-            cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_students_email ON students(email) WHERE email IS NOT NULL")
-        except sqlite3.IntegrityError as e:
-            print(f"Warning: Duplicate emails found in students table. {e}")
-            # Remove duplicates by keeping the first occurrence
-            cur.execute("""
-                DELETE FROM students 
-                WHERE rowid NOT IN (
-                    SELECT MIN(rowid) 
-                    FROM students 
-                    WHERE email IS NOT NULL 
-                    GROUP BY email
-                )
-            """)
-            # Try creating the index again
-            cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_students_email ON students(email) WHERE email IS NOT NULL")
-        except sqlite3.OperationalError:
-            # Index might already exist, ignore error
-            pass
-        
+        # We only auto-create if there are fewer than 5 teachers (assuming fresh setup or migration)
+        # Or more robustly, we check for each grade.
+        for grade in range(1, 6):
+            grade_str = str(grade)
+            teacher_name = f"Teacher_Grade{grade_str}"
+            cur.execute("SELECT id FROM teachers WHERE grade = ?", (grade_str,))
+            if not cur.fetchone():
+                # Create default account
+                # Password is "udaan123" for all by default, can be changed later
+                password_hash = generate_password_hash("udaan123")
+                email = f"teacher{grade_str}@udaan.com"
+                cur.execute("""
+                    INSERT INTO teachers (name, email, password_hash, grade, created_at)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (teacher_name, email, password_hash, grade_str, datetime.now(timezone.utc).isoformat()))
+                print(f"Created default teacher account for Grade {grade_str}")
+                
         conn.commit()
-        print("Google Auth database migration completed successfully")
-        
     except Exception as e:
-        print(f"Error during Google Auth database migration: {e}")
-        conn.rollback()
-        raise
+        print(f"Error creating default teachers: {e}")
     finally:
         conn.close()
 
@@ -729,6 +737,9 @@ def login_required(role=None):
     return decorator
 
 def redirect_to_dashboard(user):
+    if not user:
+        flash("Please log in first.")
+        return redirect(url_for("index"))
     grade = user.get("grade")
     if grade in ["1", "2", "3", "4", "5"]:
         return redirect(url_for(f"grade_{grade}_dashboard"))
@@ -744,13 +755,31 @@ def get_student_progress(student_id):
     cur.execute("SELECT COUNT(*) FROM uploads WHERE student_id = ?", (student_id,))
     books_read = cur.fetchone()[0]
     
-    # Count quizzes taken
-    cur.execute("SELECT COUNT(*) FROM quiz_attempts WHERE student_id = ?", (student_id,))
+    # Count general quizzes taken (from textbooks)
+    # Most general quizzes don't have a specific grade prefix g1_, g2_, etc.
+    cur.execute("SELECT COUNT(*) FROM quiz_attempts WHERE student_id = ? AND quiz_id NOT LIKE 'g%_%'", (student_id,))
     quizzes_taken = cur.fetchone()[0]
     
     # Count flashcards sets created
     cur.execute("SELECT COUNT(*) FROM flashcards WHERE student_id = ?", (student_id,))
     flashcards_created = cur.fetchone()[0]
+
+    # Dynamic Subject Points (Captured across all grades g1-g5)
+    # Math Points
+    cur.execute("SELECT SUM(score) FROM quiz_attempts WHERE student_id = ? AND quiz_id LIKE 'g%_math_%'", (student_id,))
+    math_points = cur.fetchone()[0] or 0
+
+    # Science/World Explorer Points
+    cur.execute("SELECT SUM(score) FROM quiz_attempts WHERE student_id = ? AND (quiz_id LIKE 'g%_science_%' OR quiz_id LIKE 'g%_transport%' OR quiz_id LIKE 'g%_food%')", (student_id,))
+    science_points = cur.fetchone()[0] or 0
+
+    # Grammar/English Hub Points
+    cur.execute("SELECT SUM(score) FROM quiz_attempts WHERE student_id = ? AND (quiz_id LIKE 'g%_grammar_%' OR quiz_id LIKE 'g%_sentences%' OR quiz_id LIKE 'g%_alphabets%' OR quiz_id LIKE 'g%_reading%')", (student_id,))
+    grammar_points = cur.fetchone()[0] or 0
+
+    # Logic/Brain Gym & Creative Points
+    cur.execute("SELECT SUM(score) FROM quiz_attempts WHERE student_id = ? AND (quiz_id LIKE 'g%_logic_%' OR quiz_id LIKE 'g%_art%')", (student_id,))
+    logic_points = cur.fetchone()[0] or 0
     
     conn.close()
     
@@ -758,10 +787,10 @@ def get_student_progress(student_id):
         "books_read": books_read,
         "quizzes_taken": quizzes_taken,
         "flashcards_created": flashcards_created,
-        # Placeholder for other stats until we have tables for them
-        "math_solved": quizzes_taken * 5, # Estimate
-        "science_projects": 0,
-        "stories_written": 0
+        "math_solved": math_points,
+        "science_done": science_points,
+        "grammar_done": grammar_points,
+        "logic_done": logic_points
     }
 
 @app.route("/")
@@ -775,7 +804,7 @@ def student_portal():
 @app.route("/role/<role>")
 def role_page(role):
     role = role.lower()
-    if role != "student":
+    if role not in ["student", "teacher"]:
         flash("Invalid role selected.")
         return redirect(url_for("index"))
     return render_template("auth_options.html", role=role)
@@ -784,137 +813,121 @@ def role_page(role):
 @app.route("/signup/student", methods=["GET", "POST"])
 def signup_student():
     if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        age = request.form.get("age") or None
-        grade = request.form.get("grade") or None
-        accessibility = request.form.get("accessibility") or None
-        email = request.form.get("email") or None
-        phone = request.form.get("phone") or None
-        password = request.form.get("password") or None
+        try:
+            name = request.form.get("name", "").strip()
+            age = request.form.get("age") or None
+            grade = request.form.get("grade") or None
+            accessibility = request.form.get("accessibility") or None
+            email = request.form.get("email") or None
+            phone = request.form.get("phone") or None
+            password = request.form.get("password") or None
 
-        if not name:
-            flash("Name is required.")
-            return redirect(request.url)
+            if not name:
+                flash("Name is required.")
+                return redirect(request.url)
 
-        conn = get_db()
-        cur = conn.cursor()
-        
-        # Check for duplicate name
-        cur.execute("SELECT id FROM students WHERE name = ?", (name,))
-        if cur.fetchone():
-            flash("A student with that name already exists.")
-            conn.close()
-            return redirect(url_for("index"))
-        
-        # Check for duplicate email
-        if email:
-            cur.execute("SELECT id FROM students WHERE email = ?", (email,))
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT id FROM students WHERE name = ?", (name,))
             if cur.fetchone():
-                flash("A student with that email already exists. Please use a different email or login instead.")
+                flash("A student with that name already exists.")
                 conn.close()
-                return redirect(url_for("signup_student"))
+                return redirect(url_for("index"))
 
-        if not password:
-            flash("Password is required.")
+            if not password:
+                flash("Password is required.")
+                conn.close()
+                return redirect(request.url)
+
+            password_hash = generate_password_hash(password)
+            cur.execute("""
+                INSERT INTO students (name, age, grade, accessibility, email, phone, password_hash, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (name, age, grade, accessibility, email, phone, password_hash, datetime.now(timezone.utc).isoformat()))
+            conn.commit()
             conn.close()
+            flash("Student signed up successfully. Please login.")
+            return redirect(url_for("index"))
+        except Exception as e:
+            flash(f"An error occurred during signup: {str(e)}")
             return redirect(request.url)
-
-        password_hash = generate_password_hash(password)
-        cur.execute("""
-            INSERT INTO students (name, age, grade, accessibility, email, phone, password_hash, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (name, age, grade, accessibility, email, phone, password_hash, datetime.now(timezone.utc).isoformat()))
-        conn.commit()
-        conn.close()
-        flash("Student signed up successfully. Please login.")
-        return redirect(url_for("index"))
     return render_template("signup_student.html")
 
 @app.route("/login/student", methods=["GET", "POST"])
 def login_student():
     if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        password = request.form.get("password", "")
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM students WHERE name = ?", (name,))
-        user = cur.fetchone()
-        conn.close()
+        try:
+            name = request.form.get("name", "").strip()
+            password = request.form.get("password", "")
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM students WHERE name = ?", (name,))
+            user = cur.fetchone()
+            conn.close()
 
-        if not user:
-            flash("Student not found. Please sign up.")
-            return redirect(request.url)
+            if not user:
+                flash("Student not found. Please sign up.")
+                return redirect(request.url)
 
-        if user["password_hash"] and check_password_hash(user["password_hash"], password):
-            session["user"] = {
-                "id": user["id"], 
-                "role": "student",
-                "name": user["name"],
-                "grade": user["grade"]
-            }
-            # Apply same logic as Google login
-            if user["grade"] is None:
-                # If grade is NULL → redirect to profile completion
-                return redirect(url_for("complete_profile_student"))
-            else:
-                # Else → redirect to grade dashboard
+            if user["password_hash"] and check_password_hash(user["password_hash"], password):
+                session.clear()  # Clear any previous session data
+                session["user"] = {"role": "student", "id": user["id"], "name": user["name"], "grade": user["grade"]}
+                # Redirect to grade-specific dashboard for all grades
                 if user["grade"] and user["grade"] in ["1", "2", "3", "4", "5"]:
                     return redirect(url_for(f"grade_{user['grade']}_dashboard"))
                 else:
-                    return redirect(url_for("grade_1_dashboard"))
-        else:
-            flash("Incorrect password.")
+                    # For grades outside 1-5, redirect to general dashboard if needed
+                    # Since we removed the general dashboard, redirect to grade 1 as default
+                    return redirect_to_dashboard(session.get("user"))
+            else:
+                flash("Incorrect password.")
+                return redirect(request.url)
+        except Exception as e:
+            flash(f"An error occurred during login: {str(e)}")
             return redirect(request.url)
     return render_template("login_student.html")
 
 
-
-# Google OAuth routes
 @app.route('/google/login/student')
 def google_login_student():
-    """Initiate Google OAuth login for students"""
-    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
-        flash("Google authentication is not configured properly. Please contact admin.")
+    if not (GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET):
+        flash("Google login is not configured by the administrator.")
         return redirect(url_for('login_student'))
     
-    state = get_google_auth_state_token()
-    session['oauth_state'] = state
-    
-    # Create OAuth2Session directly with correct redirect URI
+    # Create OAuth2 session
     google = OAuth2Session(
         client_id=GOOGLE_CLIENT_ID,
-        scope=["openid", "email", "profile"],
-        redirect_uri="http://127.0.0.1:5000/google/callback/student",
-        state=state
+        scope=GOOGLE_SCOPES,
+        redirect_uri=url_for('google_callback_student', _external=True)
     )
-    authorization_url, _ = google.authorization_url(
+    
+    # Generate authorization URL
+    authorization_url, state = google.authorization_url(
         AUTHORIZATION_BASE_URL,
-        access_type="online",
+        access_type="offline",
         prompt="select_account"
     )
     
+    # Store state in session for security
+    session['oauth_state'] = state
+    
     return redirect(authorization_url)
+
 
 @app.route('/google/callback/student')
 def google_callback_student():
-    """Handle Google OAuth callback for students"""
-    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
-        flash("Google authentication is not configured properly. Please contact admin.")
+    if not (GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET):
+        flash("Google login is not configured by the administrator.")
         return redirect(url_for('login_student'))
-    
-    # Verify state parameter
-    if request.args.get('state') != session.get('oauth_state'):
-        flash("Invalid state parameter.")
-        return redirect(url_for('login_student'))
-    
-    # Create OAuth2Session with same redirect URI used in login
-    google = OAuth2Session(
-        client_id=GOOGLE_CLIENT_ID,
-        state=session['oauth_state'],
-        redirect_uri="http://127.0.0.1:5000/google/callback/student"
-    )
     
     try:
+        # Create OAuth2 session with state for security
+        google = OAuth2Session(
+            client_id=GOOGLE_CLIENT_ID,
+            state=session.get('oauth_state'),
+            redirect_uri=url_for('google_callback_student', _external=True)
+        )
+        
         # Fetch token
         token = google.fetch_token(
             TOKEN_URL,
@@ -922,263 +935,123 @@ def google_callback_student():
             client_secret=GOOGLE_CLIENT_SECRET
         )
         
-        # Get user info from Google
+        # Get user info
         user_info = google.get(USER_INFO_URL).json()
         
-        # Extract email and name
-        email = user_info.get('email')
-        name = user_info.get('name', email.split('@')[0])  # Use email prefix as name if no name provided
+        # Extract user details
+        email = user_info.get('email', '')
+        name = user_info.get('name', user_info.get('given_name', 'Unknown'))
+        google_id = user_info.get('id')
+        picture_url = user_info.get('picture')
         
-        if not email:
-            flash("Could not retrieve email from Google account.")
-            return redirect(url_for('login_student'))
-        
-        # Get or create student account
         conn = get_db()
-        cur = conn.cursor()
+        c = conn.cursor()
         
-        # Check if student email exists in DB
-        cur.execute("SELECT * FROM students WHERE email = ?", (email,))
-        existing_student = cur.fetchone()
+        # Check if user exists
+        c.execute("SELECT * FROM students WHERE email = ?", (email,))
+        user = c.fetchone()
         
-        if not existing_student:
-            # Student DOES NOT exist - INSERT new student
-            cur.execute(
-                "INSERT INTO students (name, email, created_at, grade, age) VALUES (?, ?, ?, NULL, NULL)",
-                (name, email, datetime.now(timezone.utc).isoformat())
-            )
-            student_id = cur.lastrowid
-            conn.commit()
+        if user:
+            # Update Google ID if not already set and column exists
+            c.execute("PRAGMA table_info(students)")
+            columns = [col[1] for col in c.fetchall()]
             
-            # Store NEW student id
-            cur.execute("SELECT * FROM students WHERE id = ?", (student_id,))
-            user = cur.fetchone()
-            print(f"DEBUG: New user created - ID: {student_id}, Grade: {user['grade'] if user else 'None'}")
-        else:
-            # Student exists, use existing record
-            user = existing_student
-            student_id = user["id"]
-            print(f"DEBUG: Existing user found - ID: {student_id}, Grade: {user['grade'] if user else 'None'}")
-        
-        conn.close()
-        
-        # Set session with user info and explicitly save it
-        session["user"] = {
-            "id": student_id,
-            "role": "student",
-            "name": user["name"],
-            "grade": user["grade"]
-        }
-        session.permanent = True  # Make session persistent
-        session.modified = True   # Mark session as modified
-        
-        print(f"DEBUG: Set session user = {session.get('user')}")
-        print(f"DEBUG: User grade = {user['grade']}")
-        print(f"DEBUG: User grade is None = {user['grade'] is None}")
-        print(f"DEBUG: Session keys = {list(session.keys())}")
-        
-        # IMPORTANT REDIRECT LOGIC
-        print(f"DEBUG: About to make redirect decision...")
-        print(f"DEBUG: user['grade'] = {repr(user['grade'])}")
-        print(f"DEBUG: user['grade'] is None = {user['grade'] is None}")
-        
-        if user["grade"] is None:
-            # If grade is NULL → redirect to profile completion
-            print("DEBUG: DECISION: Redirecting to profile completion")
-            response = redirect(url_for("complete_profile_student"))
-            print(f"DEBUG: Response created: {response}")
-            return response
-        else:
-            # Else → redirect to grade dashboard
-            # Use existing redirect logic but with simplified session
-            if user["grade"] and user["grade"] in ["1", "2", "3", "4", "5"]:
-                print(f"DEBUG: DECISION: Redirecting to grade {user['grade']} dashboard")
-                response = redirect(url_for(f"grade_{user['grade']}_dashboard"))
-                print(f"DEBUG: Response created: {response}")
-                return response
+            if 'google_id' in columns and not user['google_id']:
+                c.execute("UPDATE students SET google_id = ? WHERE id = ?", (google_id, user['id']))
+                conn.commit()
+            
+            # Clear any existing session data to prevent conflicts
+            session.clear()
+            
+            # Set new user session
+            session['user'] = {
+                'role': 'student', 
+                'id': user['id'], 
+                'name': user['name'], 
+                'grade': user['grade']
+            }
+            conn.close()
+            
+            # Redirect to appropriate grade dashboard
+            if user['grade'] and user['grade'] in ["1", "2", "3", "4", "5"]:
+                return redirect(url_for(f"grade_{user['grade']}_dashboard"))
             else:
-                print("DEBUG: DECISION: Redirecting to grade 1 dashboard (default)")
-                response = redirect(url_for("grade_1_dashboard"))
-                print(f"DEBUG: Response created: {response}")
-                return response
-            
-    except Exception as e:
-        print(f"Google OAuth error: {e}")
-        flash("Google authentication failed. Please try again.")
-        return redirect(url_for('login_student'))
-
-
-
-
-# Password Reset Helper Functions
-
-def generate_reset_token():
-    """Generate a secure token for password reset."""
-    return secrets.token_urlsafe(32)
-
-def send_reset_email(email, token, user_type):
-    """Send password reset email to user."""
-    # Get email settings from environment variables
-    smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
-    smtp_port = int(os.getenv('SMTP_PORT', '587'))
-    sender_email = os.getenv('EMAIL_ADDRESS')
-    sender_password = os.getenv('EMAIL_PASSWORD')
-    base_url = os.getenv('BASE_URL', 'http://127.0.0.1:5000')
-    
-    if not sender_email or not sender_password:
-        print("Warning: Email settings not configured. Cannot send password reset email.")
-        return False
-    
-    try:
-        # Create reset link - only student type is supported after teacher removal
-        reset_link = f"{base_url}/reset-password/student/{token}"
-        
-        # Create message
-        msg = MIMEMultipart()
-        msg['Subject'] = 'Password Reset Request - Udaan'
-        msg['From'] = sender_email
-        msg['To'] = email
-        
-        body = f"""Dear Udaan User,
-
-We received a request to reset your password. Click the link below to reset your password:
-
-{reset_link}
-
-If you did not request this, please ignore this email.
-
-Best regards,
-The Udaan Team
-"""
-        
-        msg.attach(MIMEText(body, 'plain'))
-        
-        # Connect to server and send email
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.send_message(msg)
-        server.quit()
-        
-        return True
-    except Exception as e:
-        print(f"Error sending reset email: {e}")
-        return False
-
-def store_reset_token(email, token, user_type):
-    """Store the reset token in the database with expiration time."""
-    conn = get_db()
-    cur = conn.cursor()
-    
-    # Set expiration time (1 hour from now)
-    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
-    
-    # Delete any existing tokens for this email - only students table after teacher removal
-    cur.execute("DELETE FROM students WHERE email = ? AND reset_token IS NOT NULL", (email,))
-    
-    # Store the new token
-    cur.execute("UPDATE students SET reset_token = ?, reset_token_expires = ? WHERE email = ?",
-                (token, expires_at.isoformat(), email))
-    
-    conn.commit()
-    conn.close()
-
-@app.route('/forgot-password/student', methods=['GET', 'POST'])
-def forgot_password_student():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        
-        if not email:
-            flash('Please enter your email address.')
-            return redirect(url_for('forgot_password_student'))
-        
-        # Check if email exists in students table
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute("SELECT id, name, email FROM students WHERE email = ?", (email,))
-        user = cur.fetchone()
-        conn.close()
-        
-        if not user:
-            flash('No account found with that email address.')
-            return redirect(url_for('forgot_password_student'))
-        
-        # Generate and store reset token
-        token = generate_reset_token()
-        store_reset_token(email, token, 'student')
-        
-        # Send reset email
-        if send_reset_email(email, token, 'student'):
-            flash('Password reset instructions have been sent to your email address.')
-            return redirect(url_for('forgot_password_student'))
+                return redirect_to_dashboard(session.get('user'))
         else:
-            flash('There was an error sending the reset email. Please try again later.')
-            return redirect(url_for('forgot_password_student'))
-    
-    return render_template('forgot_password_student.html')
-
-
-
-@app.route('/reset-password/<user_type>/<token>', methods=['GET', 'POST'])
-def reset_password(user_type, token):
-    # Only accept 'student' user type now that teacher functionality is removed
-    if user_type != 'student':
-        flash('Invalid user type for password reset.')
-        return redirect(url_for('index'))
-    
-    if request.method == 'POST':
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
-        
-        if not password or not confirm_password:
-            flash('Please enter both password fields.')
-            return redirect(request.url)
-        
-        if password != confirm_password:
-            flash('Passwords do not match.')
-            return redirect(request.url)
-        
-        if len(password) < 6:
-            flash('Password must be at least 6 characters long.')
-            return redirect(request.url)
-        
-        # Validate token and get user
-        conn = get_db()
-        cur = conn.cursor()
-        
-        # Only check students table since teacher functionality is removed
-        cur.execute("SELECT email, reset_token, reset_token_expires FROM students WHERE reset_token = ?", (token,))
-        user = cur.fetchone()
-        
-        if not user:
-            flash('Invalid or expired reset token.')
+            # Clear any existing session data to prevent conflicts
+            session.clear()
+            
+            # User doesn't exist, redirect to complete profile
+            session['pending_google_signup'] = {
+                'email': email,
+                'name': name,
+                'google_id': google_id,
+                'picture_url': picture_url
+            }
             conn.close()
-            return redirect(url_for('index'))
-        
-        # Check if token has expired
-        expires_at = datetime.fromisoformat(user['reset_token_expires'])
-        if datetime.now(timezone.utc) > expires_at:
-            flash('Reset token has expired. Please request a new one.')
-            # Clear the expired token
-            cur.execute("UPDATE students SET reset_token = NULL, reset_token_expires = NULL WHERE reset_token = ?", (token,))
-            conn.commit()
-            conn.close()
-            return redirect(url_for('index'))
-        
-        # Update password
-        email = user['email']
-        password_hash = generate_password_hash(password)
-        cur.execute("UPDATE students SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE email = ?",
-                    (password_hash, email))
-        
-        conn.commit()
-        conn.close()
-        
-        flash('Your password has been reset successfully. You can now log in with your new password.')
-        # Always redirect to student login since teacher functionality is removed
+            return redirect(url_for('complete_profile_student'))
+    
+    except Exception as e:
+        print(f"Google OAuth error: {str(e)}")
+        flash("Google login failed. Please try again.")
         return redirect(url_for('login_student'))
+
+
+@app.route('/google/login/teacher')
+def google_login_teacher():
+    # For now, redirect to regular teacher login
+    # Google login for teachers can be implemented similarly if needed
+    flash("Please use your teacher credentials to log in.")
+    return redirect(url_for('login_teacher'))
+
+
+@app.route('/google/callback/teacher')
+def google_callback_teacher():
+    # Placeholder for teacher Google callback
+    flash("Teacher Google login is not yet configured.")
+    return redirect(url_for('login_teacher'))
+
+
+# Teacher signup/login
+@app.route("/signup/teacher", methods=["GET", "POST"])
+def signup_teacher():
+    # Disabled to prevent unauthorized access. Using pre-defined accounts instead.
+    flash("Teacher signup is currently disabled. Please use your assigned credentials.")
+    return redirect(url_for("index"))
     
-    return render_template('reset_password.html')
+   
+@app.route("/login/teacher", methods=["GET", "POST"])
+def login_teacher():
+    if request.method == "POST":
+        try:
+            name = request.form.get("name", "").strip()
+            password = request.form.get("password", "")
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM teachers WHERE name = ?", (name,))
+            user = cur.fetchone()
+            conn.close()
+
+            if not user:
+                flash("Teacher/Parent not found. Please sign up.")
+                return redirect(request.url)
+
+            if user["password_hash"] and check_password_hash(user["password_hash"], password):
+                session.clear()  # Clear any previous session data
+                session["user"] = {
+                    "role": "teacher", 
+                    "id": user["id"], 
+                    "name": user["name"],
+                    "grade": user["grade"] # Store teacher's grade
+                }
+                return redirect(url_for("teacher_dashboard"))
+            else:
+                flash("Incorrect password.")
+                return redirect(request.url)
+        except Exception as e:
+            flash(f"An error occurred during login: {str(e)}")
+            return redirect(request.url)
+    return render_template("login_teacher.html")
 
 @app.route("/complete-profile/student", methods=["GET","POST"])
 def complete_profile_student():
@@ -1192,27 +1065,67 @@ def complete_profile_student():
         age = request.form.get("age")
         grade = request.form.get("grade")
         
-        # Get user id from session
-        user_id = session.get("user", {}).get("id")
-        if not user_id:
-            flash("Session expired. Please login again.")
-            return redirect(url_for("login_student"))
+        # Check if this is a Google signup (new user)
+        pending_signup = session.get("pending_google_signup")
         
-        # UPDATE students table
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute(
-            "UPDATE students SET name = ?, age = ?, grade = ? WHERE id = ?",
-            (username, age, grade, user_id)
-        )
-        conn.commit()
-        conn.close()
-        
-        # Update session with grade info
-        session["user"]["grade"] = grade
-        
-        # Redirect to correct grade dashboard dynamically
-        return redirect(url_for(f"grade_{grade}_dashboard"))
+        if pending_signup:
+            # This is a new user completing profile after Google signup
+            conn = get_db()
+            cur = conn.cursor()
+            
+            # Check if google_id column exists
+            cur.execute("PRAGMA table_info(students)")
+            columns = [col[1] for col in cur.fetchall()]
+            
+            if 'google_id' in columns:
+                # Insert new student with google_id
+                cur.execute(
+                    "INSERT INTO students (name, age, grade, email, google_id, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                    (username, age, grade, pending_signup['email'], pending_signup['google_id'], datetime.now(timezone.utc).isoformat())
+                )
+            else:
+                # Insert new student without google_id (for backward compatibility)
+                cur.execute(
+                    "INSERT INTO students (name, age, grade, email, created_at) VALUES (?, ?, ?, ?, ?)",
+                    (username, age, grade, pending_signup['email'], datetime.now(timezone.utc).isoformat())
+                )
+            new_user_id = cur.lastrowid
+            conn.commit()
+            conn.close()
+            
+            # Clear the pending signup and set user session
+            session.pop('pending_google_signup', None)
+            session['user'] = {
+                'role': 'student',
+                'id': new_user_id,
+                'name': username,
+                'grade': grade
+            }
+            
+            # Redirect to correct grade dashboard
+            return redirect(url_for(f"grade_{grade}_dashboard"))
+        else:
+            # Existing user updating profile
+            user_id = session.get("user", {}).get("id")
+            if not user_id:
+                flash("Session expired. Please login again.")
+                return redirect(url_for("login_student"))
+            
+            # UPDATE students table
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(
+                "UPDATE students SET name = ?, age = ?, grade = ? WHERE id = ?",
+                (username, age, grade, user_id)
+            )
+            conn.commit()
+            conn.close()
+            
+            # Update session with grade info
+            session["user"]["grade"] = grade
+            
+            # Redirect to correct grade dashboard dynamically
+            return redirect(url_for(f"grade_{grade}_dashboard"))
     
     # GET request - render template
     print("DEBUG: Rendering profile completion template")
@@ -1227,73 +1140,104 @@ def complete_profile_student():
 @login_required(role="student")
 def grade_1_dashboard():
     user = session.get("user")
-    if user.get("grade") != "1":
-        flash("Access denied. This dashboard is for Grade 1 students only.")
-        # Redirect user to their actual grade dashboard
-        if user.get("grade") and user["grade"] in ["1", "2", "3", "4", "5"]:
-            return redirect(url_for(f"grade_{user['grade']}_dashboard"))
-        else:
-            return redirect_to_dashboard(session.get("user"))
+    if not user:
+        flash("Please log in first.")
+        return redirect(url_for("index"))
     
     ai_summary = session.get("summary")
     audio_file = session.get("audio_file")
+    progress = get_student_progress(user["id"])
     return render_template(
         "grade_1_dashboard.html",
         user=user,
         ai_summary=ai_summary,
         audio_file=audio_file,
-        hindi_file=session.get("hindi_file")
+        hindi_file=session.get("hindi_file"),
+        progress=progress
     )
+
+
+@app.route("/static/alphabet_images/<filename>")
+def serve_alphabet_image(filename):
+    """Serve alphabet images, with fallback to SVG if PNG not found"""
+    import os
+    from flask import send_file, abort
+    
+    # Try PNG first
+    png_path = os.path.join(app.root_path, "static", "alphabet_images", filename)
+    if os.path.exists(png_path):
+        return send_file(png_path)
+    
+    # Try SVG fallback
+    svg_filename = filename.replace(".png", ".svg")
+    svg_path = os.path.join(app.root_path, "static", "alphabet_images", svg_filename)
+    if os.path.exists(svg_path):
+        return send_file(svg_path, mimetype="image/svg+xml")
+    
+    # Default fallback image
+    default_path = os.path.join(app.root_path, "static", "alphabet_images", "default.svg")
+    return send_file(default_path, mimetype="image/svg+xml")
+
+
+@app.route("/grade/1/creative_corner")
+@login_required(role="student")
+def creative_corner():
+    return render_template("creative_corner.html")
 
 
 @app.route("/grade/1/alphabets")
 @login_required(role="student")
 def grade_1_alphabets():
-    user = session.get("user")
-    if user.get("grade") != "1":
-        flash("Access denied. This content is for Grade 1 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_1_alphabets.html", user=user)
+    try:
+        user = session.get("user")
+        return render_template("grade_1_alphabets_new.html", user=user)
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}")
+        return redirect(url_for("index"))
 
 
 @app.route("/grade/1/math")
 @login_required(role="student")
 def grade_1_math():
-    user = session.get("user")
-    if user.get("grade") != "1":
-        flash("Access denied. This content is for Grade 1 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_1_math.html", user=user)
+    try:
+        user = session.get("user")
+        return render_template("grade_1_math_new.html", user=user)
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}")
+        return redirect(url_for("index"))
 
 
 @app.route("/grade/1/flashcards")
 @login_required(role="student")
 def grade_1_flashcards():
-    user = session.get("user")
-    if user.get("grade") != "1":
-        flash("Access denied. This content is for Grade 1 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_1_flashcards.html", user=user)
+    try:
+        user = session.get("user")
+        return render_template("grade_1_flashcards.html", user=user)
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}")
+        return redirect(url_for("index"))
 
 
 @app.route("/grade/1/shapes")
 @login_required(role="student")
 def grade_1_shapes():
-    user = session.get("user")
-    if user.get("grade") != "1":
-        flash("Access denied. This content is for Grade 1 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_1_shapes.html", user=user)
+    try:
+        user = session.get("user")
+        return render_template("grade_1_shapes.html", user=user)
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}")
+        return redirect(url_for("index"))
 
 
 @app.route("/grade/1/quiz")
 @login_required(role="student")
 def grade_1_quiz():
-    user = session.get("user")
-    if user.get("grade") != "1":
-        flash("Access denied. This content is for Grade 1 students only.")
-        return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_1_quiz.html", user=user)
+    try:
+        user = session.get("user")
+        return render_template("grade_1_quiz.html", user=user)
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}")
+        return redirect(url_for("index"))
 
 # Grade-2 Subject Routes
 @app.route("/grade/2/math")
@@ -1330,7 +1274,7 @@ def grade_2_plants():
     if user.get("grade") != "2":
         flash("Access denied. This content is for Grade 2 students only.")
         return redirect_to_dashboard(session.get("user"))
-    return render_template("grade_2_plants.html", user=user)
+    return render_template("grade_2_nature.html", user=user)
 
 @app.route("/grade/2/reading")
 @login_required(role="student")
@@ -1586,6 +1530,15 @@ def save_writing_progress():
     except Exception as e:
         return {'error': str(e)}, 500
 
+@app.route("/grade/4/phonics")
+@login_required(role="student")
+def grade_4_phonics():
+    user = session.get("user")
+    if user.get("grade") != "4":
+        flash("Access denied. This content is for Grade 4 students only.")
+        return redirect(url_for("grade_4_dashboard"))
+    return render_template("grade_4_phonics.html", user=user)
+
 @app.route("/grade/4/reading")
 @login_required(role="student")
 def grade_4_reading():
@@ -1619,11 +1572,11 @@ def get_alphabet_info():
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a helpful educational assistant for teaching children. Provide simple, engaging content for alphabet learning."
+                    "content": "You are a helpful educational assistant for teaching Grade 1 children. Provide simple, engaging content for alphabet learning. Always suggest age-appropriate words that children know."
                 },
                 {
                     "role": "user",
-                    "content": f"Create educational content for the letter '{letter}' in the following JSON format: {{'word_example': 'a simple word starting with this letter', 'description': 'a short description of the letter sound', 'fun_fact': 'an interesting fact about this letter for children'}}"
+                    "content": f"Create educational content for the letter '{letter}' in the following JSON format: {{'word_example': 'a simple Grade 1 appropriate word starting with {letter} (like Apple, Ball, Cat, etc.)', 'description': 'a short description of the letter sound', 'fun_fact': 'an interesting fact about this letter for children'}}"
                 }
             ],
             temperature=0.7,
@@ -1637,9 +1590,16 @@ def get_alphabet_info():
             import json
             alphabet_info = json.loads(content)
         except:
-            # Manual parsing fallback
+            # Manual parsing fallback - ensure proper word for each letter
+            word_examples = {
+                "A": "Apple", "B": "Ball", "C": "Cat", "D": "Dog", "E": "Elephant",
+                "F": "Fish", "G": "Giraffe", "H": "House", "I": "Ice Cream", "J": "Jump",
+                "K": "Kite", "L": "Lion", "M": "Monkey", "N": "Nest", "O": "Orange",
+                "P": "Pig", "Q": "Queen", "R": "Rabbit", "S": "Sun", "T": "Tiger",
+                "U": "Umbrella", "V": "Van", "W": "Window", "X": "Xylophone", "Y": "Yellow", "Z": "Zebra"
+            }
             alphabet_info = {
-                "word_example": f"{letter}pple" if letter == "A" else f"{letter}all" if letter == "B" else f"{letter}at",
+                "word_example": word_examples.get(letter, f"{letter}pple"),
                 "description": f"The letter {letter} makes a '{letter.lower()}uh' sound",
                 "fun_fact": f"The letter {letter} is number {ord(letter) - ord('A') + 1} in the alphabet!"
             }
@@ -1648,9 +1608,16 @@ def get_alphabet_info():
         
     except Exception as e:
         print(f"Error getting alphabet info: {e}")
-        # Return fallback content
+        # Return fallback content with proper word mapping
+        word_examples = {
+            "A": "Apple", "B": "Ball", "C": "Cat", "D": "Dog", "E": "Elephant",
+            "F": "Fish", "G": "Giraffe", "H": "House", "I": "Ice Cream", "J": "Jump",
+            "K": "Kite", "L": "Lion", "M": "Monkey", "N": "Nest", "O": "Orange",
+            "P": "Pig", "Q": "Queen", "R": "Rabbit", "S": "Sun", "T": "Tiger",
+            "U": "Umbrella", "V": "Van", "W": "Window", "X": "Xylophone", "Y": "Yellow", "Z": "Zebra"
+        }
         return {
-            "word_example": f"{letter}pple" if letter == "A" else f"{letter}all" if letter == "B" else f"{letter}at",
+            "word_example": word_examples.get(letter, f"{letter}pple"),
             "description": f"The letter {letter} makes a '{letter.lower()}uh' sound",
             "fun_fact": f"The letter {letter} is number {ord(letter) - ord('A') + 1} in the alphabet!"
         }
@@ -1726,12 +1693,14 @@ def grade_2_dashboard():
     
     ai_summary = session.get("summary")
     audio_file = session.get("audio_file")
+    progress = get_student_progress(user["id"])
     return render_template(
         "grade_2_dashboard.html",
         user=user,
         ai_summary=ai_summary,
         audio_file=audio_file,
-        hindi_file=session.get("hindi_file")
+        hindi_file=session.get("hindi_file"),
+        progress=progress
     )
 
 
@@ -1819,30 +1788,41 @@ def generate_grade3_grammar():
 
 def get_math_questions_logic():
     try:
-        # Optimized for speed, but ensuring coverage
+        # Improved for higher variety and specific Grade 3 constraints
         prompt = """
-        Generate 2 questions FOR EACH of the 4 categories below for Grade 3 Math.
-        IMPORTANT: Randomize numbers/questions. Return valid JSON only.
+        Generate 5 unique, fun questions FOR EACH category for Grade 3 Math.
+        IMPORTANT: Randomize all numbers and items (names, objects). 
+        Return ONLY valid JSON.
         
-        Structure:
+        Categories:
+        1. "time": Matching daily activities to AM/PM hours.
+           JSON: {"activity": "string", "icon": "emoji", "correct": "H:00 AM/PM", "options": ["H:00 AM/PM", "H:00 AM/PM"]}
+           Example: {"activity": "Breakfast Time", "icon": "🥣", "correct": "8:00 AM", "options": ["8:00 AM", "8:00 PM"]}
+        2. "shapes": Identifying basic 2D shapes (Circle, Square, Triangle, Star).
+           JSON: {"clue": "Which one is a [Shape]?", "correct": "ShapeName", "options": ["Shape1", "Shape2", "Shape3"]}
+        3. "fractions": Basic recognition (Half 1/2, Third 1/3, Quarter 1/4).
+           JSON: {"clue": "Which fraction means half?", "correct": "1/2", "options": ["1/2", "1/4", "1/3"]}
+        4. "word_problems": Very simple addition/subtraction under 20.
+           JSON: {"text": "I have 5 apples and get 3 more. How many?", "correct": "8", "options": ["7", "8", "9"]}
+        
+        Return JSON structure:
         {
-            "time": [ {"time_str": "Half past three", "correct": "3:30", "options": ["3:30", "4:30", "2:30"]} ],
-            "shapes": [ {"clue": "I have 3 sides.", "correct": "Triangle", "options": ["Square", "Triangle", "Circle"]} ],
-            "fractions": [ {"clue": "1 part of 2", "correct": "1/2", "options": ["1/2", "1/4", "3/4"]} ],
-            "word_problems": [ {"text": "Sam has 5 apples...", "correct": "10", "options": ["10", "15", "5"]} ]
+            "time": [...],
+            "shapes": [...],
+            "fractions": [...],
+            "word_problems": [...]
         }
         """
         
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.9,
-            max_tokens=1500  # Increased to prevent JSON truncation
+            temperature=1.0, # Higher temperature for more variety
+            max_tokens=2000
         )
         
         content = response.choices[0].message.content
-        import json
-        import re
+        import json, re
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if json_match:
             return json.loads(json_match.group())
@@ -1930,21 +1910,26 @@ def grade_3_food():
 def get_shelter_questions_logic():
     try:
         prompt = """
-        Generate 2 questions FOR EACH category for Grade 3 Shelter.
-        1. Category "rooms": Given a household item, identify the room it belongs in. (e.g., Bed -> Bedroom, Stove -> Kitchen).
-        2. Category "animal_human": Identify if a home is for an Animal or a Human. (e.g., Nest -> Animal, Apartment -> Human).
+        Generate 5 unique questions FOR EACH category for Grade 3 Shelter/Homes.
+        IMPORTANT: Use a wide variety of household items and home types. Randomize every time.
+        
+        Categories:
+        1. "rooms": Identify the room for a specific object (e.g., Mirror, Toaster, Sofa, Shower, Lawn mower).
+           JSON: {"clue": "string", "correct": "string", "options": ["string", "string", "string"]}
+        2. "homes": Identify if a home is for an Animal or a Human (e.g., Igloo, Kennel, Caravan, Burrow, Lighthouse).
+           JSON: {"clue": "string", "correct": "string", "options": ["string", "string", "string"]}
         
         Return JSON:
         {
-            "rooms": [ {"clue": "Where do you sleep?", "correct": "Bedroom", "options": ["Bedroom", "Kitchen", "Bathroom"]} ],
-            "homes": [ {"clue": "Bird lives in a...", "correct": "Nest", "options": ["Nest", "Den", "House"]} ]
+            "rooms": [...],
+            "homes": [...]
         }
         """
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.9,
-            max_tokens=1000
+            temperature=1.0, # High variety
+            max_tokens=1500
         )
         content = response.choices[0].message.content
         import json, re
@@ -1986,24 +1971,24 @@ def get_logic_questions_logic():
 def get_transport_questions_logic():
     try:
         prompt = """
-        Generate a list of 10 mixed transport items for a Drag-and-Drop sorting game for Grade 3.
+        Generate a list of 5 unique, fun transport items for a Drag-and-Drop sorting game for Grade 3.
+        IMPORTANT: Use a mix of common and interesting vehicles. 
         Categories: "Land", "Water", "Air".
-        Items should be simple nouns (e.g., Car, Boat, Rocket, Bicycle, Submarine).
         
-        Return JSON items only:
+        Return JSON:
         {
             "items": [
-                {"name": "Car", "category": "Land", "emoji": "🚗"},
-                {"name": "Boat", "category": "Water", "emoji": "🛥️"},
-                {"name": "Plane", "category": "Air", "emoji": "✈️"}
+                {"name": "Kayak", "category": "Water", "emoji": "🛶"},
+                {"name": "Scooter", "category": "Land", "emoji": "🛴"},
+                {"name": "Glider", "category": "Air", "emoji": "🛩️"}
             ]
         }
         """
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.9,
-            max_tokens=1000
+            temperature=1.0,
+            max_tokens=1500
         )
         content = response.choices[0].message.content
         import json, re
@@ -2016,21 +2001,26 @@ def get_transport_questions_logic():
 def get_science_questions_logic():
     try:
         prompt = """
-        Generate 2 questions FOR EACH category for Grade 3 Science/Nature.
-        1. Category "sink_float": Will this object sink or float in water? (e.g., Stone -> Sink, Feather -> Float).
-        2. Category "senses": Which sense organ do you use? (e.g., To smell a flower -> Nose).
+        Generate 5 unique questions FOR EACH category for Grade 3 Science/Nature.
+        IMPORTANT: Use interesting and diverse objects. Randomize every time.
+        
+        Categories:
+        1. "sink_float": Sink or Float? (e.g., Pinecone, Lego brick, Silver spoon, Cork, Watermelon).
+           JSON: {"clue": "string", "correct": "string", "options": ["Sink", "Float", "Both?"]}
+        2. "senses": Which sense do you use to detect this property? (e.g., Heat of a fire, Roughness of sandpaper, Scent of vanilla).
+           JSON: {"clue": "string", "correct": "string", "options": ["Eyes", "Ears", "Nose", "Tongue", "Skin/Touch"]}
         
         Return JSON:
         {
-            "sink_float": [ {"clue": "A heavy stone will...", "correct": "Sink", "options": ["Sink", "Float", "Fly"]} ],
-            "senses": [ {"clue": "I use this to see stars", "correct": "Eyes", "options": ["Eyes", "Ears", "Nose"]} ]
+            "sink_float": [...],
+            "senses": [...]
         }
         """
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.9,
-            max_tokens=1000
+            temperature=1.0,
+            max_tokens=1500
         )
         content = response.choices[0].message.content
         import json, re
@@ -2124,26 +2114,19 @@ def grade_4_dashboard():
             return redirect_to_dashboard(session.get("user"))
     
     # Get real progress data for the student
-    student_id = user["id"] if user else None
-    if student_id:
-        books, math, science, creative = get_grade4_progress(student_id)
-    else:
-        # Default values if no user
-        books, math, science, creative = 0, 0, 0, 0
+    progress = get_student_progress(user["id"])
     
     ai_summary = session.get("summary")
     audio_file = session.get("audio_file")
     return render_template(
         "grade_4_dashboard.html",
         user=user,
-        books=books,
-        math=math,
-        science=science,
-        creative=creative,
+        progress=progress,
         ai_summary=ai_summary,
         audio_file=audio_file,
         hindi_file=session.get("hindi_file")
     )
+
 
 @app.route("/dashboard/grade/5")
 @login_required(role="student")
@@ -2161,48 +2144,15 @@ def grade_5_dashboard():
     audio_file = session.pop("audio_file", None)
 
     # Fetch Progress Data
-    student_id = user["id"]
-    conn = get_db()
-    c = conn.cursor()
-
-    # 1. Books Mastered (Uploads)
-    c.execute("SELECT COUNT(*) FROM uploads WHERE student_id = ?", (student_id,))
-    books_count = c.fetchone()[0]
-
-    # Helper to get count from student_progress (using new schema)
-    def get_count_local(subject_field):
-        # First ensure the migration has run
-        migrate_student_progress_table()
-        
-        try:
-            c.execute(f"SELECT {subject_field} FROM student_progress WHERE student_id = ? AND grade = 5", (student_id,))
-            row = c.fetchone()
-            if row and row[0] is not None:
-                return row[0]
-            return 0
-        except sqlite3.OperationalError as e:
-            if "no such column" in str(e):
-                # Column doesn't exist, return 0
-                return 0
-            else:
-                raise e
-
-    # Map old activity types to new column names
-    math_count = get_count_local("math_solved")
-    science_count = get_count_local("science_done")
-    leadership_count = get_count_local("creative_done")
+    progress = get_student_progress(user["id"])
     
-    conn.close()
     return render_template(
         "grade_5_dashboard.html",
         user=user,
         ai_summary=ai_summary,
         audio_file=audio_file,
         hindi_file=session.pop("hindi_file", None),
-        books_count=books_count,
-        math_count=math_count,
-        science_count=science_count,
-        leadership_count=leadership_count
+        progress=progress
     )
 
 
@@ -2211,46 +2161,45 @@ def update_grade5_progress(student_id, activity_type):
     # First ensure the migration has run
     migrate_student_progress_table()
     
+    # Unified recording for dynamic dashboard
+    q_map = {
+        "grade_5_math": "g5_math_problems",
+        "grade_5_location": "g5_science_innovation", 
+        "grade_5_paragraph": "g5_logic_leadership"
+    }
+    
     try:
         conn = get_db()
         c = conn.cursor()
         
-        # Map old activity types to new column names
+        # Unified system record
+        quiz_id = q_map.get(activity_type, f"g5_{activity_type}")
+        c.execute("""
+            INSERT INTO quiz_attempts (student_id, quiz_id, score, total, attempted_at)
+            VALUES (?, ?, ?, ?, ?)
+        """, (student_id, quiz_id, 1, 1, datetime.now(timezone.utc).isoformat()))
+
+        # Legacy update
         field_mapping = {
             "grade_5_math": "math_solved",
             "grade_5_location": "science_done", 
             "grade_5_paragraph": "creative_done"
         }
         
-        subject_field = field_mapping.get(activity_type, "creative_done")  # default to creative_done
+        subject_field = field_mapping.get(activity_type, "creative_done")
         
-        # Check if exists
         c.execute(f"SELECT {subject_field} FROM student_progress WHERE student_id = ? AND grade = 5", (student_id,))
         row = c.fetchone()
         
-        count = 0
-        if row and row[0] is not None:
-            count = row[0]
-        
-        count += 1
-        
         if row:
-            # Update existing record
-            c.execute(f"UPDATE student_progress SET {subject_field} = ?, last_updated = CURRENT_TIMESTAMP WHERE student_id = ? AND grade = 5", (count, student_id))
+            c.execute(f"UPDATE student_progress SET {subject_field} = {subject_field} + 1, last_updated = CURRENT_TIMESTAMP WHERE student_id = ? AND grade = 5", (student_id,))
         else:
-            # Insert new record
-            c.execute(f"INSERT INTO student_progress (student_id, grade, {subject_field}) VALUES (?, 5, ?)", (student_id, count))
+            c.execute(f"INSERT INTO student_progress (student_id, grade, {subject_field}) VALUES (?, 5, 1)", (student_id,))
             
         conn.commit()
         conn.close()
-    except sqlite3.OperationalError as e:
-        if "no such column" in str(e):
-            # Column doesn't exist, migration should handle this
-            print(f"Column error for {activity_type}, migration needed")
-        else:
-            print(f"Error updating progress: {e}")
     except Exception as e:
-        print(f"Error updating progress: {e}")
+        print(f"Error updating grade 5 progress: {e}")
 
 
 # Grade 5 Feature Routes
@@ -2478,6 +2427,8 @@ def get_vocab_word():
         import re
         json_match = re.search(r'\{.*\}', content, re.DOTALL)
         if json_match:
+            # Update Progress
+            update_grade5_progress(session["user"]["id"], "grade_5_vocab")
             return json.loads(json_match.group())
         else:
             return {"error": "Failed to generate word"}
@@ -3279,7 +3230,196 @@ def submit_quiz():
     user = session.get("user")
     return render_template("quiz_results.html", score=score, total=len(quiz), results=results, user=user)
 
+# ---------- Teacher Dashboard ----------
+@app.route("/dashboard/teacher")
+@login_required(role="teacher")
+def teacher_dashboard():
+    user = session.get("user")
+    teacher_grade = user.get("grade")
+    conn = get_db()
+    cur = conn.cursor()
 
+    if teacher_grade:
+        cur.execute("SELECT * FROM students WHERE grade = ? ORDER BY datetime(created_at) DESC", (teacher_grade,))
+    else:
+        # Fallback for old teachers without a grade assigned (though new system enforces it)
+        cur.execute("SELECT * FROM students ORDER BY datetime(created_at) DESC")
+        
+    students = cur.fetchall()
+
+    recent_students = []
+    total_uploads = 0
+    total_flashcards = 0
+    total_quizzes = 0
+    total_scores = 0
+
+    for student in students:
+        sid = student["id"]
+        cur.execute("SELECT COUNT(*) FROM uploads WHERE student_id = ?", (sid,))
+        uploads_count = cur.fetchone()[0]
+        total_uploads += uploads_count
+
+        cur.execute("SELECT COALESCE(SUM(num_flashcards), 0) FROM flashcards WHERE student_id = ?", (sid,))
+        fc_sum = cur.fetchone()[0] or 0
+        total_flashcards += fc_sum
+
+        cur.execute("SELECT score, total FROM quiz_attempts WHERE student_id = ?", (sid,))
+        quizzes = cur.fetchall()
+        q_count = len(quizzes)
+        total_quizzes += q_count
+        if q_count:
+            total_scores += sum(q["score"] for q in quizzes) / sum(q["total"] for q in quizzes) if sum(q["total"] for q in quizzes) else 0
+
+        avg_score_pct = 0
+        if q_count and sum(q["total"] for q in quizzes):
+            avg_score_pct = round((sum(q["score"] for q in quizzes) / sum(q["total"] for q in quizzes)) * 100, 1)
+
+        activity_score = uploads_count + fc_sum + q_count
+        recent_students.append({
+            "id": sid,
+            "name": student["name"],
+            "grade": student["grade"] or "-",
+            "uploads": uploads_count,
+            "flashcards": fc_sum,
+            "avg_score_pct": avg_score_pct,
+            "activity": activity_score,
+        })
+
+    # Sort by activity descending and keep all students for the dashboard list
+    recent_students.sort(key=lambda s: s["activity"], reverse=True)
+    
+    num_students = len(students)
+    class_avg_pct = 0
+    if num_students and total_quizzes:
+        class_avg_pct = round((total_scores / num_students) * 100, 1)
+
+    # Calculate real class performance data over time
+    class_performance_data = []
+    if teacher_grade:
+        cur.execute("""
+            SELECT qa.score, qa.total, qa.attempted_at 
+            FROM quiz_attempts qa
+            JOIN students s ON qa.student_id = s.id
+            WHERE s.grade = ?
+            ORDER BY qa.attempted_at ASC
+        """, (teacher_grade,))
+        all_quizzes = cur.fetchall()
+        
+        # Group by date and calculate daily average
+        daily_scores = {}
+        for q in all_quizzes:
+            try:
+                date_str = q["attempted_at"].split("T")[0]
+                if date_str not in daily_scores:
+                    daily_scores[date_str] = []
+                # Individual quiz percentage
+                pct = (q["score"] / q["total"]) * 100 if q["total"] > 0 else 0
+                daily_scores[date_str].append(pct)
+            except (ValueError, KeyError, IndexError):
+                continue
+        
+        # Sort dates and get last 10 points
+        sorted_dates = sorted(daily_scores.keys())
+        for d in sorted_dates:
+            avg_daily = sum(daily_scores[d]) / len(daily_scores[d])
+            class_performance_data.append(round(avg_daily, 1))
+        
+        # Limit to last 10 data points for the trend
+        class_performance_data = class_performance_data[-10:]
+
+    conn.close()
+
+    return render_template(
+        "teacher_dashboard.html",
+        name=user.get("name"),
+        recent_students=recent_students,
+        num_students=num_students,
+        total_uploads=total_uploads,
+        total_flashcards=total_flashcards,
+        total_quizzes=total_quizzes,
+        class_avg_pct=class_avg_pct,
+        class_performance_data=class_performance_data,
+    )
+
+
+@app.route("/upload_books", methods=["GET", "POST"])
+@login_required(role="teacher")
+def upload_books():
+    if request.method == "POST":
+        if "book" not in request.files:
+            flash("No file selected")
+            return redirect(request.url)
+        file = request.files["book"]
+        if file.filename.endswith(".pdf"):
+            filepath = os.path.join(BOOKS_FOLDER, file.filename)
+            file.save(filepath)
+            flash("Book uploaded successfully!")
+            return redirect(url_for("upload_books"))
+        else:
+            flash("Only PDF files allowed!")
+            return redirect(request.url)
+
+    all_books = sorted(
+        [f for f in os.listdir(BOOKS_FOLDER) if f.lower().endswith(".pdf")],
+        key=lambda x: os.path.getmtime(os.path.join(BOOKS_FOLDER, x)),
+        reverse=True
+    )
+    return render_template("upload_books.html", books=all_books)
+
+
+@app.route("/student_progress")
+@login_required(role="teacher")
+def student_progress():
+    user = session.get("user")
+    teacher_grade = user.get("grade")
+    conn = get_db()
+    cur = conn.cursor()
+    
+    filter_id = request.args.get("student_id")
+    if filter_id:
+        cur.execute("SELECT * FROM students WHERE id = ?", (filter_id,))
+    elif teacher_grade:
+        cur.execute("SELECT * FROM students WHERE grade = ?", (teacher_grade,))
+    else:
+        cur.execute("SELECT * FROM students")
+    students = cur.fetchall()
+
+    progress_data = []
+    for student in students:
+        student_id = student["id"]
+
+        cur.execute("SELECT * FROM uploads WHERE student_id = ?", (student_id,))
+        uploads = cur.fetchall()
+        total_uploads = len(uploads)
+
+        cur.execute("SELECT * FROM flashcards WHERE student_id = ?", (student_id,))
+        flashcards = cur.fetchall()
+        total_flashcards = sum(f['num_flashcards'] for f in flashcards)
+
+        cur.execute("SELECT * FROM quiz_attempts WHERE student_id = ?", (student_id,))
+        quizzes = cur.fetchall()
+        total_quizzes = len(quizzes)
+        avg_score = round(sum(q['score'] for q in quizzes) / total_quizzes, 2) if total_quizzes else 0
+        completion_rate = f"{total_quizzes}/{total_uploads}" if total_uploads else "0/0"
+
+        num_audiobooks = len([u for u in uploads if u['filename'].endswith('.mp3')])
+
+        progress_data.append({
+            "student": student,
+            "uploads": uploads,
+            "total_uploads": total_uploads,
+            "flashcards": flashcards,
+            "total_flashcards": total_flashcards,
+            "quizzes": quizzes,
+            "total_quizzes": total_quizzes,
+            "avg_score": avg_score,
+            "completion_rate": completion_rate,
+            "num_audiobooks": num_audiobooks
+        })
+
+    conn.close()
+
+    return render_template("student_progress.html", progress_data=progress_data, filter_id=filter_id)
 
 # ---------- Logout ----------
 @app.route("/logout")
@@ -4144,7 +4284,7 @@ def load_progress(activity_type):
         import json
         return jsonify({"success": True, "data": json.loads(row["data_json"])})
     else:
-        return jsonify({"success": True, "data": None})  # No progress yet
+        return jsonify({"success": True, "data": None})
 
 
 # ---------- Run ----------
@@ -4184,13 +4324,178 @@ def submit_progress():
 
 
 
+def send_reset_email(email, name, reset_link):
+    """Send password reset email to the user"""
+    try:
+        # Get email settings from environment variables
+        smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_port = int(os.getenv('SMTP_PORT', '587'))
+        email_user = os.getenv('EMAIL_ADDRESS') or os.getenv('EMAIL_USER')
+        email_password = os.getenv('EMAIL_PASSWORD')
+        
+        if not email_user or not email_password:
+            print("Warning: EMAIL_USER or EMAIL_PASSWORD not configured in .env file")
+            print(f"Password reset link: {reset_link}")
+            return False
+        
+        # Create message
+        msg = MIMEMultipart()
+        msg['From'] = email_user
+        msg['To'] = email
+        msg['Subject'] = "Password Reset Request - Udaan Learning Platform"
+        
+        # Email body
+        body = f"""
+Dear {name},
+
+You have requested to reset your password for your Udaan Learning Platform account.
+
+Click the link below to reset your password:
+{reset_link}
+
+This link will expire in 1 hour.
+
+If you did not request this password reset, please ignore this email.
+
+Best regards,
+The Udaan Team
+        """
+        
+        msg.attach(MIMEText(body, 'plain'))
+        
+        # Connect to server and send email
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()  # Enable encryption
+        server.login(email_user, email_password)
+        text = msg.as_string()
+        server.sendmail(email_user, email, text)
+        server.quit()
+        
+        print(f"Password reset email sent successfully to {email}")
+        return True
+        
+    except Exception as e:
+        print(f"Failed to send email: {str(e)}")
+        # Fallback: print the link to console
+        print(f"Password reset link: {reset_link}")
+        return False
+
+
+@app.route('/forgot-password/student', methods=["GET", "POST"])
+def forgot_password_student():
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        
+        if not email:
+            flash("Please enter your email address.")
+            return redirect(url_for('forgot_password_student'))
+        
+        conn = get_db()
+        c = conn.cursor()
+        
+        # Find student by email
+        c.execute("SELECT id, name, email FROM students WHERE email = ?", (email,))
+        student = c.fetchone()
+        
+        if not student:
+            # Don't reveal if email exists to prevent enumeration attacks
+            # But still render the success page to not leak information
+            conn.close()
+            return render_template('forgot_password_student.html', request_method='POST')
+        
+        # Generate secure token
+        reset_token = secrets.token_urlsafe(32)
+        expires_at = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+        
+        # Store token in database
+        c.execute("UPDATE students SET reset_token = ?, reset_token_expires = ? WHERE id = ?",
+                 (reset_token, expires_at, student['id']))
+        conn.commit()
+        conn.close()
+        
+        # Generate the reset link
+        reset_link = url_for('reset_password', token=reset_token, _external=True)
+        
+        # Send the reset email
+        email_sent = send_reset_email(student['email'], student['name'], reset_link)
+        
+        if email_sent:
+            flash(f"Password reset instructions have been sent to {student['email']}. Please check your inbox.")
+        else:
+            # Fallback: show the link directly to the user in development
+            flash(f"Password reset link generated. For development: {reset_link}")
+        
+        return render_template('forgot_password_student.html', request_method='POST')
+    
+    return render_template('forgot_password_student.html', request_method='GET')
+
+
+@app.route('/reset-password/<token>', methods=["GET", "POST"])
+def reset_password(token):
+    if request.method == "POST":
+        password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+        
+        if not password or not confirm_password:
+            flash("Please enter both password fields.")
+            return redirect(url_for('reset_password', token=token))
+        
+        if password != confirm_password:
+            flash("Passwords do not match.")
+            return redirect(url_for('reset_password', token=token))
+        
+        if len(password) < 6:
+            flash("Password must be at least 6 characters long.")
+            return redirect(url_for('reset_password', token=token))
+        
+        conn = get_db()
+        c = conn.cursor()
+        
+        # Check if token exists and hasn't expired
+        c.execute("SELECT id FROM students WHERE reset_token = ? AND reset_token_expires > ?",
+                 (token, datetime.now(timezone.utc).isoformat()))
+        student = c.fetchone()
+        
+        if not student:
+            flash("Invalid or expired reset token.")
+            conn.close()
+            return redirect(url_for('forgot_password_student'))
+        
+        # Hash the new password
+        password_hash = generate_password_hash(password)
+        
+        # Update password and clear the reset token
+        c.execute("UPDATE students SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE reset_token = ?",
+                 (password_hash, token))
+        conn.commit()
+        conn.close()
+        
+        flash("Your password has been reset successfully. You can now log in.")
+        return redirect(url_for('login_student'))
+    
+    # Check if token is valid for GET request
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT id FROM students WHERE reset_token = ? AND reset_token_expires > ?",
+             (token, datetime.now(timezone.utc).isoformat()))
+    student = c.fetchone()
+    conn.close()
+    
+    if not student:
+        flash("Invalid or expired reset token.")
+        return redirect(url_for('forgot_password_student'))
+    
+    return render_template('reset_password.html')
+
+
 if __name__ == "__main__":
+
     init_db()
     # Run migration to handle existing databases that may not have all columns
     migrate_student_progress_table()
     # Run additional database migration to ensure schema matches production
     migrate_database()
-    # Run Google Auth database migration
-    migrate_google_auth()
+    # Create default teacher accounts for each grade
+    create_default_teachers()
     port = int(os.environ.get("PORT", 5000))  
     app.run(host='0.0.0.0', port=port, debug=True)

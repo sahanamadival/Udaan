@@ -1,422 +1,352 @@
 {% extends "base.html" %}
 
-{% block title %}Math Learning - Grade 1{% endblock %}
+{% block title %}Math Adventure - Grade 1{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-6xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-indigo-800 mb-2">🧮 Math Magic Adventure 🧮</h1>
-            <p class="text-xl text-indigo-600">Learn numbers, counting, and math with fun activities!</p>
-        </div>
-
-        <!-- Number Learning Section -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🔢 Learn Numbers 1-20</h2>
-            <div class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-10 gap-2 mb-6">
-                {% for num in range(1, 21) %}
-                <div class="number-card bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-2 text-center hover:shadow-lg transition-all cursor-pointer border-2 border-transparent hover:border-indigo-300" 
-                     onclick="showNumberDetails({{ num }})">
-                    <div class="text-2xl font-bold text-indigo-600">{{ num }}</div>
-                </div>
-                {% endfor %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-12">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-indigo-800 mb-2">🔢 Math Adventure 🔢</h1>
+                <p class="text-xl text-indigo-600">Have fun with numbers and basic math!</p>
             </div>
-            
-            <!-- Number Details Display -->
-            <div id="number-details" class="bg-indigo-50 rounded-xl p-6 hidden">
-                <div class="text-center">
-                    <div class="text-6xl font-bold text-indigo-600 mb-4" id="current-number">1</div>
-                    <div class="text-xl text-gray-700 mb-4" id="number-word">One</div>
-                    <div class="flex justify-center space-x-2 mb-4" id="number-objects">
-                        <!-- Objects will be generated here -->
+
+            <!-- Numbers Learning Section -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800">🔢 Learn Numbers 1-20</h2>
+                    <div class="text-5xl">📚</div>
+                </div>
+
+                <div class="bg-indigo-50 rounded-2xl p-8 mb-8">
+                    <div class="flex flex-wrap justify-center gap-4 mb-8">
+                        {% for i in range(1, 21) %}
+                        <div class="w-16 h-16 bg-indigo-100 rounded-xl flex items-center justify-center text-2xl font-bold text-indigo-600 cursor-pointer hover:bg-indigo-200 transition-colors shadow-md" onclick="showNumberInfo({{ i }})">
+                            {{ i }}
+                        </div>
+                        {% endfor %}
                     </div>
-                    <div class="mb-4">
-                        <button onclick="speakNumber()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium mr-2">
+
+                    <div id="number-info" class="text-center hidden">
+                        <div class="text-6xl font-bold text-indigo-600 mb-4" id="current-number">1</div>
+                        <div class="text-xl text-gray-700 mb-6" id="number-word">One</div>
+                        <div id="number-objects" class="flex justify-center flex-wrap gap-2 mb-6"></div>
+                        <button onclick="speakNumber()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium mr-3">
                             <i class="fas fa-volume-up mr-2"></i>Hear Number
                         </button>
-                        <button onclick="countObjects()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium">
-                            <i class="fas fa-calculator mr-2"></i>Count Objects
+                        <button onclick="countObjects()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium">
+                            <i class="fas fa-play-circle mr-2"></i>Count Objects
                         </button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Addition Practice -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">➕ Addition Fun</h2>
-            <div class="text-center">
-                <div class="text-3xl font-bold text-indigo-600 mb-6" id="addition-problem">3 + 2 = ?</div>
-                <div class="flex justify-center items-center space-x-4 mb-6">
-                    <div class="flex space-x-2" id="addition-objects-1">
-                        <!-- First number objects -->
-                    </div>
-                    <div class="text-2xl font-bold text-gray-600">+</div>
-                    <div class="flex space-x-2" id="addition-objects-2">
-                        <!-- Second number objects -->
-                    </div>
-                    <div class="text-2xl font-bold text-gray-600">=</div>
-                    <div class="flex space-x-2" id="result-objects">
-                        <!-- Result objects -->
+            <!-- Addition Section -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800">➕ Fantastic Addition</h2>
+                    <div class="text-5xl">🎒</div>
+                </div>
+
+                <div class="bg-blue-50 rounded-2xl p-8 mb-8">
+                    <div class="flex flex-col items-center justify-center space-y-6">
+                        <div id="addition-problem" class="text-6xl font-bold text-indigo-600 tracking-wider">
+                            <!-- Problem will be generated here -->
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div id="addition-objects-1" class="flex flex-wrap gap-2 justify-center max-w-md"></div>
+                            <div class="text-4xl font-bold text-gray-400">+</div>
+                            <div id="addition-objects-2" class="flex flex-wrap gap-2 justify-center max-w-md"></div>
+                        </div>
                     </div>
                 </div>
+
                 <div class="flex justify-center space-x-3">
-                    <input type="number" id="addition-answer" class="border-2 border-indigo-300 rounded-lg p-3 w-24 text-center text-xl font-bold" min="0" max="20">
-                    <button onclick="checkAddition()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium">
-                        <i class="fas fa-check mr-2"></i>Check Answer
+                    <input type="number" id="addition-answer"
+                        class="border-4 border-indigo-200 rounded-xl p-4 w-32 text-center text-3xl font-bold focus:border-indigo-500 outline-none transition-all"
+                        placeholder="?" min="0" max="20">
+                    <button onclick="checkAddition()"
+                        class="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-lg hover:shadow-xl transition-all active:scale-95">
+                        Check!
                     </button>
-                    <button onclick="newAdditionProblem()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium">
-                        <i class="fas fa-sync mr-2"></i>New Problem
-                    </button>
+                    <!-- Removed next problem button since it auto-advances after correct answer -->
                 </div>
-                <div id="addition-result" class="mt-4 text-lg font-medium hidden"></div>
+                <div id="addition-result" class="mt-8 text-2xl font-bold text-center hidden"></div>
             </div>
-        </div>
 
-        <!-- Subtraction Practice -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">➖ Subtraction Challenge</h2>
-            <div class="text-center">
-                <div class="text-3xl font-bold text-indigo-600 mb-6" id="subtraction-problem">5 - 2 = ?</div>
-                <div class="flex justify-center items-center space-x-4 mb-6">
-                    <div class="flex space-x-2" id="subtraction-objects">
-                        <!-- Total objects -->
-                    </div>
-                    <div class="text-2xl font-bold text-gray-600">-</div>
-                    <div class="flex space-x-2" id="subtracted-objects">
-                        <!-- Objects to subtract -->
-                    </div>
-                    <div class="text-2xl font-bold text-gray-600">=</div>
-                    <div class="flex space-x-2" id="subtraction-result-objects">
-                        <!-- Result objects -->
+            <!-- Subtraction Section -->
+            <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800">➖ Super Subtraction</h2>
+                    <div class="text-5xl">🖍️</div>
+                </div>
+
+                <div class="bg-red-50 rounded-2xl p-8 mb-8">
+                    <div class="flex flex-col items-center justify-center space-y-6">
+                        <div id="subtraction-problem" class="text-6xl font-bold text-red-600 tracking-wider">
+                            <!-- Problem will be generated here -->
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div id="subtraction-objects-1" class="flex flex-wrap gap-2 justify-center max-w-md"></div>
+                            <div class="text-4xl font-bold text-gray-400">-</div>
+                            <div id="subtraction-objects-2" class="flex flex-wrap gap-2 justify-center max-w-md"></div>
+                        </div>
                     </div>
                 </div>
+
                 <div class="flex justify-center space-x-3">
-                    <input type="number" id="subtraction-answer" class="border-2 border-indigo-300 rounded-lg p-3 w-24 text-center text-xl font-bold" min="0" max="20">
-                    <button onclick="checkSubtraction()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium">
-                        <i class="fas fa-check mr-2"></i>Check Answer
+                    <input type="number" id="subtraction-answer"
+                        class="border-4 border-red-200 rounded-xl p-4 w-32 text-center text-3xl font-bold focus:border-red-500 outline-none transition-all"
+                        placeholder="?" min="0" max="20">
+                    <button onclick="checkSubtraction()"
+                        class="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-lg hover:shadow-xl transition-all active:scale-95">
+                        Check!
                     </button>
-                    <button onclick="newSubtractionProblem()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium">
-                        <i class="fas fa-sync mr-2"></i>New Problem
-                    </button>
+                    <!-- Removed next problem button since it auto-advances after correct answer -->
                 </div>
-                <div id="subtraction-result" class="mt-4 text-lg font-medium hidden"></div>
+                <div id="subtraction-result" class="mt-8 text-2xl font-bold text-center hidden"></div>
             </div>
-        </div>
 
-        <!-- Shapes Learning -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🔷 Learn Shapes</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {% set shapes = [
-                    {'name': 'Circle', 'symbol': '⭕', 'color': 'bg-red-100'},
-                    {'name': 'Square', 'symbol': '⬜', 'color': 'bg-blue-100'},
-                    {'name': 'Triangle', 'symbol': '🔺', 'color': 'bg-green-100'},
-                    {'name': 'Rectangle', 'symbol': '▭', 'color': 'bg-yellow-100'},
-                    {'name': 'Star', 'symbol': '⭐', 'color': 'bg-purple-100'},
-                    {'name': 'Heart', 'symbol': '❤️', 'color': 'bg-pink-100'},
-                    {'name': 'Diamond', 'symbol': '💎', 'color': 'bg-indigo-100'},
-                    {'name': 'Oval', 'symbol': '🪪', 'color': 'bg-teal-100'}
-                ] %}
-                {% for shape in shapes %}
-                <div class="shape-card bg-white rounded-xl shadow-md p-4 text-center hover:shadow-lg transition-all cursor-pointer border-2 border-transparent hover:border-indigo-300" 
-                     onclick="showShapeInfo('{{ shape.name }}')">
-                    <div class="text-4xl mb-2">{{ shape.symbol }}</div>
-                    <div class="text-lg font-bold text-indigo-600">{{ shape.name }}</div>
-                </div>
-                {% endfor %}
-            </div>
-            
-            <!-- Shape Details -->
-            <div id="shape-details" class="mt-6 bg-indigo-50 rounded-xl p-6 hidden">
-                <div class="text-center">
-                    <div class="text-5xl mb-4" id="shape-symbol">⭕</div>
-                    <div class="text-2xl font-bold text-indigo-600 mb-2" id="shape-name">Circle</div>
-                    <div class="text-lg text-gray-700 mb-4" id="shape-description">A round shape with no corners</div>
-                    <button onclick="speakShape()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium">
-                        <i class="fas fa-volume-up mr-2"></i>Hear Shape Name
-                    </button>
+            <!-- Progress Tracker -->
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-8 text-center">📊 Your Math Progress</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-blue-50 rounded-2xl p-6 text-center shadow-sm">
+                        <div class="text-gray-600 font-medium mb-1 uppercase tracking-wider text-sm">Numbers Learned
+                        </div>
+                        <div class="text-4xl font-black text-blue-600" id="numbers-learned">0</div>
+                    </div>
+                    <div class="bg-green-50 rounded-2xl p-6 text-center shadow-sm">
+                        <div class="text-gray-600 font-medium mb-1 uppercase tracking-wider text-sm">Problems Solved
+                        </div>
+                        <div class="text-4xl font-black text-green-600" id="problems-solved">0</div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Colors Learning -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🎨 Learn Colors</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {% set colors = [
-                    {'name': 'Red', 'hex': '#FF0000'},
-                    {'name': 'Blue', 'hex': '#0000FF'},
-                    {'name': 'Green', 'hex': '#00FF00'},
-                    {'name': 'Yellow', 'hex': '#FFFF00'},
-                    {'name': 'Orange', 'hex': '#FFA500'},
-                    {'name': 'Purple', 'hex': '#800080'},
-                    {'name': 'Pink', 'hex': '#FFC0CB'},
-                    {'name': 'Brown', 'hex': '#A52A2A'}
-                ] %}
-                {% for color in colors %}
-                <div class="color-card text-center hover:scale-105 transition-transform cursor-pointer" 
-                     onclick="showColorInfo('{{ color.name }}', '{{ color.hex }}')">
-                    <div class="w-20 h-20 rounded-full mx-auto mb-2 border-4 border-gray-300" style="background-color: {{ color.hex }}"></div>
-                    <div class="font-bold text-indigo-600">{{ color.name }}</div>
-                </div>
-                {% endfor %}
+            <!-- Back Button -->
+            <div class="text-center mt-12">
+                <a href="{{ url_for('grade_1_dashboard') }}"
+                    class="inline-flex items-center bg-white text-indigo-600 border-2 border-indigo-600 hover:bg-indigo-600 hover:text-white px-8 py-4 rounded-xl font-bold text-lg shadow-md transition-all active:scale-95">
+                    <i class="fas fa-arrow-left mr-3"></i> Back to Dashboard
+                </a>
             </div>
-            
-            <!-- Color Details -->
-            <div id="color-details" class="mt-6 bg-indigo-50 rounded-xl p-6 hidden">
-                <div class="text-center">
-                    <div class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-gray-300" id="color-sample"></div>
-                    <div class="text-2xl font-bold text-indigo-600 mb-2" id="color-name">Red</div>
-                    <div class="text-lg text-gray-700 mb-4" id="color-description">The color of apples and roses</div>
-                    <button onclick="speakColor()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium">
-                        <i class="fas fa-volume-up mr-2"></i>Hear Color Name
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Progress Section -->
-        <div class="bg-white rounded-2xl shadow-lg p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🏆 Your Math Progress</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                <div class="bg-blue-50 rounded-xl p-4">
-                    <div class="text-3xl font-bold text-blue-600 mb-2" id="numbers-learned">0</div>
-                    <div class="text-gray-600">Numbers Learned</div>
-                </div>
-                <div class="bg-green-50 rounded-xl p-4">
-                    <div class="text-3xl font-bold text-green-600 mb-2" id="problems-solved">0</div>
-                    <div class="text-gray-600">Problems Solved</div>
-                </div>
-                <div class="bg-purple-50 rounded-xl p-4">
-                    <div class="text-3xl font-bold text-purple-600 mb-2" id="shapes-colors">0</div>
-                    <div class="text-gray-600">Shapes & Colors</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Back Button -->
-        <div class="text-center mt-8">
-            <a href="{{ url_for('grade_1_dashboard') }}" class="inline-block bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
-            </a>
         </div>
     </div>
 </div>
-</div>
 
 <script>
-    let currentNumber = 1;
-    let currentShape = 'Circle';
-    let currentColor = 'Red';
-    let currentColorHex = '#FF0000';
     let numbersLearned = new Set();
     let problemsSolved = 0;
-    let shapesColorsLearned = new Set();
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', function() {
-        updateProgress();
-        generateAdditionProblem();
-        generateSubtractionProblem();
-    });
-
-    // Number functions
-    function showNumberDetails(num) {
-        currentNumber = num;
-        document.getElementById('current-number').textContent = num;
-        document.getElementById('number-word').textContent = numberToWords(num);
-        document.getElementById('number-details').classList.remove('hidden');
-        
-        // Generate objects
-        const objectsContainer = document.getElementById('number-objects');
-        objectsContainer.innerHTML = '';
-        for (let i = 0; i < num; i++) {
-            const obj = document.createElement('div');
-            obj.className = 'w-6 h-6 bg-blue-500 rounded-full';
-            objectsContainer.appendChild(obj);
-        }
-        
-        numbersLearned.add(num);
-        updateProgress();
-    }
-
-    function numberToWords(num) {
-        const words = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
-                      'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen', 'Twenty'];
-        return words[num] || num.toString();
-    }
-
-    function speakNumber() {
-        const msg = new SpeechSynthesisUtterance(currentNumber.toString());
-        msg.rate = 0.8;
-        msg.pitch = 1.2;
-        window.speechSynthesis.speak(msg);
-    }
-
-    function countObjects() {
-        const count = document.querySelectorAll('#number-objects div').length;
-        alert(`There are ${count} objects! Great counting!`);
-    }
+    let currentAdditionProblem = {};
+    let currentSubtractionProblem = {};
 
     // Addition functions
     function generateAdditionProblem() {
         const num1 = Math.floor(Math.random() * 10) + 1;
         const num2 = Math.floor(Math.random() * (10 - num1)) + 1;
         const answer = num1 + num2;
-        
+
+        currentAdditionProblem = { num1, num2, answer };
+
         document.getElementById('addition-problem').textContent = `${num1} + ${num2} = ?`;
         document.getElementById('addition-answer').value = '';
         document.getElementById('addition-result').classList.add('hidden');
-        
+
         // Generate objects
         generateObjects('addition-objects-1', num1, 'bg-green-500');
         generateObjects('addition-objects-2', num2, 'bg-red-500');
-        generateObjects('result-objects', answer, 'bg-blue-500');
     }
 
     function checkAddition() {
-        const userAnswer = parseInt(document.getElementById('addition-answer').value);
-        const problemText = document.getElementById('addition-problem').textContent;
-        const [num1, num2] = problemText.split(' + ').map(n => parseInt(n));
-        const correctAnswer = num1 + num2;
-        
+        const input = document.getElementById('addition-answer');
+        const userAnswer = parseInt(input.value);
         const resultDiv = document.getElementById('addition-result');
-        resultDiv.classList.remove('hidden');
-        
-        if (userAnswer === correctAnswer) {
-            resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! Excellent math skills!</span>';
-            problemsSolved++;
-            updateProgress();
-        } else {
-            resultDiv.innerHTML = `<span class="text-red-600 font-bold">🤔 Try again! ${num1} + ${num2} = ${correctAnswer}</span>`;
-        }
-    }
 
-    function newAdditionProblem() {
-        generateAdditionProblem();
+        resultDiv.classList.remove('hidden');
+
+        if (userAnswer === currentAdditionProblem.answer) {
+            resultDiv.innerHTML = '<span class="text-green-600">🎉 Correct! Great job!</span>';
+            problemsSolved++;
+            saveProgress('addition', 1);
+            updateProgress();
+
+            // Auto-advance
+            setTimeout(() => {
+                generateAdditionProblem();
+                resultDiv.classList.add('hidden');
+            }, 1500);
+        } else {
+            resultDiv.innerHTML = '<span class="text-red-500">🤔 Try again! You can do it!</span>';
+            input.focus();
+            input.select();
+        }
     }
 
     // Subtraction functions
     function generateSubtractionProblem() {
-        const num1 = Math.floor(Math.random() * 15) + 6; // Larger number
-        const num2 = Math.floor(Math.random() * (num1 - 1)) + 1; // Smaller number
+        const num1 = Math.floor(Math.random() * 10) + 5;
+        const num2 = Math.floor(Math.random() * num1) + 1;
         const answer = num1 - num2;
-        
+
+        currentSubtractionProblem = { num1, num2, answer };
+
         document.getElementById('subtraction-problem').textContent = `${num1} - ${num2} = ?`;
         document.getElementById('subtraction-answer').value = '';
         document.getElementById('subtraction-result').classList.add('hidden');
-        
+
         // Generate objects
-        generateObjects('subtraction-objects', num1, 'bg-blue-500');
-        generateObjects('subtracted-objects', num2, 'bg-red-500');
-        generateObjects('subtraction-result-objects', answer, 'bg-green-500');
+        generateObjects('subtraction-objects-1', num1, 'bg-blue-500');
+        generateObjects('subtraction-objects-2', num2, 'bg-orange-500');
     }
 
     function checkSubtraction() {
-        const userAnswer = parseInt(document.getElementById('subtraction-answer').value);
-        const problemText = document.getElementById('subtraction-problem').textContent;
-        const [num1, num2] = problemText.split(' - ').map(n => parseInt(n));
-        const correctAnswer = num1 - num2;
-        
+        const input = document.getElementById('subtraction-answer');
+        const userAnswer = parseInt(input.value);
         const resultDiv = document.getElementById('subtraction-result');
+
         resultDiv.classList.remove('hidden');
-        
-        if (userAnswer === correctAnswer) {
-            resultDiv.innerHTML = '<span class="text-green-600 font-bold">🎉 Correct! Amazing subtraction!</span>';
+
+        if (userAnswer === currentSubtractionProblem.answer) {
+            resultDiv.innerHTML = '<span class="text-green-600">🎉 Correct! Fantastic!</span>';
             problemsSolved++;
+            saveProgress('subtraction', 1);
             updateProgress();
+
+            // Auto-advance
+            setTimeout(() => {
+                generateSubtractionProblem();
+                resultDiv.classList.add('hidden');
+            }, 1500);
         } else {
-            resultDiv.innerHTML = `<span class="text-red-600 font-bold">🤔 Try again! ${num1} - ${num2} = ${correctAnswer}</span>`;
+            resultDiv.innerHTML = '<span class="text-red-500">🤔 Try again! Use the dots to help.</span>';
+            input.focus();
+            input.select();
         }
     }
 
-    function newSubtractionProblem() {
-        generateSubtractionProblem();
-    }
-
-    // Helper function to generate objects
+    // Helper to generate objects
     function generateObjects(containerId, count, colorClass) {
         const container = document.getElementById(containerId);
         container.innerHTML = '';
         for (let i = 0; i < count; i++) {
             const obj = document.createElement('div');
-            obj.className = `w-6 h-6 ${colorClass} rounded-full`;
+            obj.className = `w-10 h-10 ${colorClass} rounded-full shadow-sm flex items-center justify-center text-white text-xs font-bold`;
+            obj.textContent = i + 1;
             container.appendChild(obj);
         }
     }
 
-    // Shape functions
-    function showShapeInfo(shapeName) {
-        const shapes = {
-            'Circle': {symbol: '⭕', description: 'A perfectly round shape with no corners or edges'},
-            'Square': {symbol: '⬜', description: 'A shape with 4 equal sides and 4 right angles'},
-            'Triangle': {symbol: '🔺', description: 'A shape with 3 sides and 3 angles'},
-            'Rectangle': {symbol: '▭', description: 'A shape with 4 sides, 2 long and 2 short'},
-            'Star': {symbol: '⭐', description: 'A shape with pointed ends, usually 5 or more points'},
-            'Heart': {symbol: '❤️', description: 'A shape that looks like the symbol of love'},
-            'Diamond': {symbol: '💎', description: 'A shape with 4 equal sides, like a tilted square'},
-            'Oval': {symbol: '🪪', description: 'A stretched circle, like an egg shape'}
-        };
+    // Number learning functions
+    function showNumberInfo(number) {
+        const numberWords = [
+            '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+            'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen', 'Twenty'
+        ];
         
-        const shape = shapes[shapeName];
-        if (shape) {
-            currentShape = shapeName;
-            document.getElementById('shape-symbol').textContent = shape.symbol;
-            document.getElementById('shape-name').textContent = shapeName;
-            document.getElementById('shape-description').textContent = shape.description;
-            document.getElementById('shape-details').classList.remove('hidden');
-            
-            shapesColorsLearned.add(shapeName);
-            updateProgress();
+        document.getElementById('current-number').textContent = number;
+        document.getElementById('number-word').textContent = numberWords[number];
+        
+        // Generate objects for the selected number
+        const numberObjectsContainer = document.getElementById('number-objects');
+        numberObjectsContainer.innerHTML = '';
+        
+        for (let i = 0; i < number; i++) {
+            const obj = document.createElement('div');
+            obj.className = 'w-12 h-12 bg-blue-500 rounded-full shadow-sm flex items-center justify-center text-white text-lg font-bold';
+            obj.textContent = i + 1;
+            numberObjectsContainer.appendChild(obj);
         }
+        
+        // Show the number info section
+        document.getElementById('number-info').classList.remove('hidden');
+        
+        // Scroll to the number info section
+        document.getElementById('number-info').scrollIntoView({behavior: 'smooth'});
     }
 
-    function speakShape() {
-        const msg = new SpeechSynthesisUtterance(currentShape);
+    function speakNumber() {
+        const number = document.getElementById('current-number').textContent;
+        const msg = new SpeechSynthesisUtterance(number);
         msg.rate = 0.8;
         msg.pitch = 1.2;
         window.speechSynthesis.speak(msg);
     }
 
-    // Color functions
-    function showColorInfo(colorName, colorHex) {
-        const colorDescriptions = {
-            'Red': 'The color of apples, roses, and fire trucks',
-            'Blue': 'The color of the sky, ocean, and blueberries',
-            'Green': 'The color of grass, leaves, and frogs',
-            'Yellow': 'The color of the sun, bananas, and lemons',
-            'Orange': 'The color of oranges, pumpkins, and sunsets',
-            'Purple': 'The color of grapes, eggplants, and lavender',
-            'Pink': 'The color of flowers, cotton candy, and flamingos',
-            'Brown': 'The color of chocolate, tree trunks, and soil'
-        };
+    function countObjects() {
+        const number = parseInt(document.getElementById('current-number').textContent);
+        const objects = document.querySelectorAll('#number-objects div');
         
-        currentColor = colorName;
-        currentColorHex = colorHex;
-        document.getElementById('color-sample').style.backgroundColor = colorHex;
-        document.getElementById('color-name').textContent = colorName;
-        document.getElementById('color-description').textContent = colorDescriptions[colorName] || `The color ${colorName}`;
-        document.getElementById('color-details').classList.remove('hidden');
+        if (objects.length === 0) {
+            alert('No objects to count!');
+            return;
+        }
         
-        shapesColorsLearned.add(colorName);
-        updateProgress();
-    }
-
-    function speakColor() {
-        const msg = new SpeechSynthesisUtterance(currentColor);
+        // Speak the count
+        const msg = new SpeechSynthesisUtterance(`Let's count to ${number}: `);
         msg.rate = 0.8;
         msg.pitch = 1.2;
         window.speechSynthesis.speak(msg);
+        
+        // Create a promise-based delay function
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // Function to highlight one object
+        async function highlightObject(index) {
+            if (index >= objects.length) return;
+            
+            const obj = objects[index];
+            
+            // Highlight the current object
+            obj.style.backgroundColor = '#fbbf24'; // Yellow for highlighting
+            obj.style.transform = 'scale(1.3)';
+            obj.style.transition = 'all 0.3s ease';
+            
+            // Speak the number
+            const numberMsg = new SpeechSynthesisUtterance((index + 1).toString());
+            numberMsg.rate = 0.8;
+            numberMsg.pitch = 1.2;
+            window.speechSynthesis.speak(numberMsg);
+            
+            // Wait for the speech to finish before resetting
+            await delay(1000);
+            
+            // Reset the object
+            obj.style.backgroundColor = '#3b82f6'; // Blue (original)
+            obj.style.transform = 'scale(1)';
+            
+            // Continue to next object
+            await delay(300);
+            await highlightObject(index + 1);
+        }
+        
+        // Start the synchronous counting
+        highlightObject(0);
     }
 
-    // Progress tracking
     function updateProgress() {
-        document.getElementById('numbers-learned').textContent = numbersLearned.size;
+        document.getElementById('numbers-learned').textContent = numbersLearned.size || Math.floor(problemsSolved / 2);
         document.getElementById('problems-solved').textContent = problemsSolved;
-        document.getElementById('shapes-colors').textContent = shapesColorsLearned.size;
     }
+
+    // --- Save Progress ---
+    async function saveProgress(qid, pts) {
+        try {
+            await fetch('/api/submit_progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quiz_id: `g1_math_${qid}`, score: pts, total: 1 })
+            });
+        } catch (e) { }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        generateAdditionProblem();
+        generateSubtractionProblem();
+    });
 </script>
 {% endblock %}

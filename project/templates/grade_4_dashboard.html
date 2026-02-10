@@ -55,15 +55,17 @@
         <!-- Learning Modules -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Advanced Literature -->
+            <!-- Word Wizard (Phonics) -->
             <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
                 <div class="text-center">
-                    <div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-crown text-2xl text-rose-600"></i>
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-spell-check text-2xl text-indigo-600"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-2">Literature Master</h3>
-                    <p class="text-gray-600 mb-4">Classic stories and literary analysis</p>
-                    <a href="{{ url_for('grade_4_reading') }}" class="bg-rose-500 hover:bg-rose-600 text-white px-6 py-2 rounded-lg transition-colors inline-block">
-                        Reading Journey
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Word Wizard</h3>
+                    <p class="text-gray-600 mb-4">Master spelling, phonics, and tricky words</p>
+                    <a href="{{ url_for('grade_4_phonics') }}"
+                        class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg transition-colors inline-block">
+                        Start Spell-Casting
                     </a>
                 </div>
             </div>
@@ -76,7 +78,8 @@
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Math Expert</h3>
                     <p class="text-gray-600 mb-4">Decimals, geometry, and problem solving</p>
-                    <a href="{{ url_for('grade_4_math') }}" class="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-lg transition-colors inline-block">
+                    <a href="{{ url_for('grade_4_math') }}"
+                        class="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-lg transition-colors inline-block">
                         Math Adventure
                     </a>
                 </div>
@@ -90,7 +93,8 @@
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Science Research</h3>
                     <p class="text-gray-600 mb-4">Scientific method and experiments</p>
-                    <a href="{{ url_for('grade_4_science') }}" class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg transition-colors inline-block">
+                    <a href="{{ url_for('grade_4_science') }}"
+                        class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg transition-colors inline-block">
                         Science Explorer
                     </a>
                 </div>
@@ -104,7 +108,8 @@
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Creative Expression</h3>
                     <p class="text-gray-600 mb-4">Drama, poetry, and creative projects</p>
-                    <a href="{{ url_for('grade_4_writing') }}" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg transition-colors inline-block">
+                    <a href="{{ url_for('grade_4_writing') }}"
+                        class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg transition-colors inline-block">
                         Writing Lab
                     </a>
                 </div>
@@ -116,21 +121,25 @@
             <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Your Progress</h2>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-rose-600 mb-2">{{ books }}</div>
+                    <div class="text-3xl font-bold text-rose-600 mb-2">{{ progress.books_read }}</div>
                     <div class="text-gray-600">Books Analyzed</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-cyan-600 mb-2">{{ math }}</div>
+                    <div class="text-3xl font-bold text-cyan-600 mb-2">{{ progress.math_solved }}</div>
                     <div class="text-gray-600">Math Problems Solved</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-emerald-600 mb-2">{{ science }}</div>
+                    <div class="text-3xl font-bold text-emerald-600 mb-2">{{ progress.science_done }}</div>
                     <div class="text-gray-600">Science Experiments</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-3xl font-bold text-amber-600 mb-2">{{ creative }}</div>
+                    <div class="text-3xl font-bold text-amber-600 mb-2">{{ progress.logic_done }}</div>
                     <div class="text-gray-600">Creative Projects</div>
                 </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-100 flex justify-center gap-8 text-sm text-gray-500">
+                <span>🎴 Flashcard Sets: {{ progress.flashcards_created }}</span>
+                <span>📝 Textbook Quizzes: {{ progress.quizzes_taken }}</span>
             </div>
         </div>
 
