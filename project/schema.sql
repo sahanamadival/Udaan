@@ -11,18 +11,12 @@ CREATE TABLE IF NOT EXISTS students (
     email TEXT,
     phone TEXT,
     password_hash TEXT,
-    created_at TEXT
+    created_at TEXT,
+    reset_token TEXT,
+    reset_token_expires TEXT
 );
 
--- Teachers table
-CREATE TABLE IF NOT EXISTS teachers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT,
-    phone TEXT,
-    password_hash TEXT,
-    created_at TEXT
-);
+
 
 -- File uploads table
 CREATE TABLE IF NOT EXISTS uploads (
