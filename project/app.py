@@ -4046,7 +4046,7 @@ def load_progress(activity_type):
         import json
         return jsonify({"success": True, "data": json.loads(row["data_json"])})
     else:
-        return jsonify({"success": True, "data": None})  # No progress yet
+        return jsonify({"success": True, "data": None})
 
 
 # ---------- Run ----------
