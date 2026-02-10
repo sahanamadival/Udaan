@@ -1557,14 +1557,15 @@ def get_math_questions_logic():
         Return ONLY valid JSON.
         
         Categories:
-        1. "time": Reading analog clocks (half-past, quarter-past, etc.). 
-           JSON: {"time_str": "string", "correct": "H:MM", "options": ["H:MM", "H:MM", "H:MM"]}
-        2. "shapes": Properties of 2D/3D shapes (vertices, sides, names).
-           JSON: {"clue": "string", "correct": "string", "options": ["string", "string", "string"]}
-        3. "fractions": Simple visual fractions (1/2, 1/4, 2/3, etc. as text clues).
-           JSON: {"clue": "string", "correct": "string", "options": ["string", "string", "string"]}
-        4. "word_problems": Single-step addition, subtraction, or simple multiplication story problems.
-           JSON: {"text": "string", "correct": "string", "options": ["string", "string", "string"]}
+        1. "time": Matching daily activities to AM/PM hours.
+           JSON: {"activity": "string", "icon": "emoji", "correct": "H:00 AM/PM", "options": ["H:00 AM/PM", "H:00 AM/PM"]}
+           Example: {"activity": "Breakfast Time", "icon": "🥣", "correct": "8:00 AM", "options": ["8:00 AM", "8:00 PM"]}
+        2. "shapes": Identifying basic 2D shapes (Circle, Square, Triangle, Star).
+           JSON: {"clue": "Which one is a [Shape]?", "correct": "ShapeName", "options": ["Shape1", "Shape2", "Shape3"]}
+        3. "fractions": Basic recognition (Half 1/2, Third 1/3, Quarter 1/4).
+           JSON: {"clue": "Which fraction means half?", "correct": "1/2", "options": ["1/2", "1/4", "1/3"]}
+        4. "word_problems": Very simple addition/subtraction under 20.
+           JSON: {"text": "I have 5 apples and get 3 more. How many?", "correct": "8", "options": ["7", "8", "9"]}
         
         Return JSON structure:
         {

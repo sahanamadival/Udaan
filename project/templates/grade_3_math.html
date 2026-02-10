@@ -252,23 +252,26 @@
         const container = document.getElementById('time-container');
 
         if (!q) {
-            container.innerHTML = `<div class="text-center py-4 text-gray-500 animate-pulse">Loading more clocks...</div>`;
+            container.innerHTML = `<div class="text-center py-4 text-gray-500 animate-pulse">Loading daily activities...</div>`;
             return;
         }
 
         let html = `
-            <div class="text-center mb-4">
-                <div class="text-2xl font-bold bg-white inline-block px-4 py-2 border-2 border-blue-200 rounded mb-2">
-                    "${q.time_str}"
+            <div class="text-center mb-6">
+                <div class="text-7xl mb-4 transform transition-transform hover:scale-110 cursor-default">
+                    ${q.icon}
                 </div>
-                <p class="text-xl">Which clock shows this?</p>
-                <button class="speak-btn" onclick="speak('${q.time_str}')">🔊</button>
+                <div class="text-2xl font-bold text-blue-800 bg-blue-50 inline-block px-6 py-3 rounded-2xl border-2 border-blue-200 shadow-sm mb-2">
+                    "${q.activity}"
+                </div>
+                <p class="text-xl text-gray-600">What time is this?</p>
+                <button class="speak-btn" onclick="speak('${q.activity}')">🔊</button>
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-4">
         `;
 
         q.options.forEach(opt => {
-            html += `<button onclick="checkAnswer('time', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-theme transition-colors bg-blue-500 border-blue-700">${opt}</button>`;
+            html += `<button onclick="checkAnswer('time', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-theme transition-all bg-blue-500 border-blue-700 shadow-lg py-4 text-2xl">${opt}</button>`;
         });
         html += `</div>`;
         container.innerHTML = html;
