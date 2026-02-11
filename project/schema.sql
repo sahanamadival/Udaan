@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS uploads (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER,
     filename TEXT,
+    grade TEXT,
     uploaded_at TEXT,
     FOREIGN KEY(student_id) REFERENCES students(id)
 );

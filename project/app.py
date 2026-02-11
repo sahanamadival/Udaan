@@ -458,7 +458,7 @@ def migrate_student_progress_table():
 
 def migrate_database():
     """Safely migrate database to match production schema without losing data."""
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(DB)
     cur = conn.cursor()
     
     try:
@@ -488,6 +488,13 @@ def migrate_database():
         if "reset_otp_expires" not in student_columns:
             cur.execute("ALTER TABLE students ADD COLUMN reset_otp_expires TEXT")
             print("Added reset_otp_expires column to students table")
+            
+        # Add grade column to uploads table if it doesn't exist
+        cur.execute("PRAGMA table_info(uploads)")
+        uploads_columns = [row[1] for row in cur.fetchall()]
+        if "grade" not in uploads_columns:
+            cur.execute("ALTER TABLE uploads ADD COLUMN grade TEXT")
+            print("Added grade column to uploads table")
         
         if "streak_count" not in columns:
             cur.execute("ALTER TABLE student_progress ADD COLUMN streak_count INTEGER DEFAULT 0")
@@ -547,7 +554,7 @@ def migrate_database():
 
 def create_default_teachers():
     """Ensure 5 default teacher accounts exist, one for each grade."""
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(DB)
     cur = conn.cursor()
     
     try:
@@ -572,6 +579,17 @@ def create_default_teachers():
                 """, (teacher_name, email, password_hash, grade_str, datetime.now(timezone.utc).isoformat()))
                 print(f"Created default teacher account for Grade {grade_str}")
                 
+        # Ensure Admin account exists
+        cur.execute("SELECT id FROM teachers WHERE grade = 'Admin'")
+        if not cur.fetchone():
+            password_hash = generate_password_hash("Admin@123")
+            email = "admin@udaan.com"
+            cur.execute("""
+                INSERT INTO teachers (name, email, password_hash, grade, created_at)
+                VALUES (?, ?, ?, ?, ?)
+            """, ("Admin", email, password_hash, "Admin", datetime.now(timezone.utc).isoformat()))
+            print("Created default Admin account")
+
         conn.commit()
     except Exception as e:
         print(f"Error creating default teachers: {e}")
@@ -2618,17 +2636,27 @@ def upload_textbook():
 @app.route("/library")
 @login_required(role="student")
 def library():
+    user = session.get("user")
+    student_grade = user.get("grade")
+    
+    # Fetch books assigned to this student's grade
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT filename FROM uploads WHERE grade = ? ORDER BY uploaded_at DESC", (str(student_grade),))
+    db_books = [row['filename'] for row in c.fetchall()]
+    conn.close()
+
     books_folder = os.path.join(app.static_folder, "books")
     if not os.path.exists(books_folder):
         os.makedirs(books_folder)
 
+    # Only show books that are registered for this student's grade
     books = sorted(
-        os.listdir(books_folder),
+        [f for f in os.listdir(books_folder) if f in db_books],
         key=lambda x: os.path.getmtime(os.path.join(books_folder, x)),
         reverse=True
     )
 
-    user = session.get("user")
     return render_template("library.html", books=books, user=user)
 
 
@@ -3249,10 +3277,12 @@ def teacher_dashboard():
     conn = get_db()
     cur = conn.cursor()
 
-    if teacher_grade:
+    if teacher_grade == "Admin":
+        cur.execute("SELECT * FROM students ORDER BY datetime(created_at) DESC")
+    elif teacher_grade:
         cur.execute("SELECT * FROM students WHERE grade = ? ORDER BY datetime(created_at) DESC", (teacher_grade,))
     else:
-        # Fallback for old teachers without a grade assigned (though new system enforces it)
+        # Fallback for old teachers without a grade assigned
         cur.execute("SELECT * FROM students ORDER BY datetime(created_at) DESC")
         
     students = cur.fetchall()
@@ -3355,22 +3385,50 @@ def teacher_dashboard():
 @app.route("/upload_books", methods=["GET", "POST"])
 @login_required(role="teacher")
 def upload_books():
+    user = session.get("user")
+    teacher_grade = user.get("grade")
+    
     if request.method == "POST":
         if "book" not in request.files:
             flash("No file selected")
             return redirect(request.url)
         file = request.files["book"]
         if file.filename.endswith(".pdf"):
-            filepath = os.path.join(BOOKS_FOLDER, file.filename)
+            filename = file.filename
+            filepath = os.path.join(BOOKS_FOLDER, filename)
             file.save(filepath)
+            
+            # Register in database with grade
+            try:
+                conn = get_db()
+                c = conn.cursor()
+                # Check if file already recorded for this grade to avoid duplicates
+                c.execute("SELECT id FROM uploads WHERE filename = ? AND grade = ?", (filename, teacher_grade))
+                if not c.fetchone():
+                    from datetime import datetime
+                    c.execute("INSERT INTO uploads (filename, grade, uploaded_at) VALUES (?, ?, ?)",
+                             (filename, teacher_grade, datetime.now().isoformat()))
+                    conn.commit()
+                conn.close()
+            except Exception as e:
+                print(f"Error registering upload in DB: {e}")
+                
             flash("Book uploaded successfully!")
             return redirect(url_for("upload_books"))
         else:
             flash("Only PDF files allowed!")
             return redirect(request.url)
 
+    # Fetch books assigned to this teacher's grade
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT filename FROM uploads WHERE grade = ? ORDER BY uploaded_at DESC", (teacher_grade,))
+    db_books = [row['filename'] for row in c.fetchall()]
+    conn.close()
+    
+    # Filter physical files to only those registered for this grade
     all_books = sorted(
-        [f for f in os.listdir(BOOKS_FOLDER) if f.lower().endswith(".pdf")],
+        [f for f in os.listdir(BOOKS_FOLDER) if f.lower().endswith(".pdf") and f in db_books],
         key=lambda x: os.path.getmtime(os.path.join(BOOKS_FOLDER, x)),
         reverse=True
     )
@@ -3388,6 +3446,8 @@ def student_progress():
     filter_id = request.args.get("student_id")
     if filter_id:
         cur.execute("SELECT * FROM students WHERE id = ?", (filter_id,))
+    elif teacher_grade == "Admin":
+        cur.execute("SELECT * FROM students")
     elif teacher_grade:
         cur.execute("SELECT * FROM students WHERE grade = ?", (teacher_grade,))
     else:
