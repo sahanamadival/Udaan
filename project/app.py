@@ -1268,6 +1268,42 @@ def grade_2_reading():
         return redirect_to_dashboard(session.get("user"))
     return render_template("grade_2_reading.html", user=user)
 
+@app.route("/grade/2/reading_comprehension")
+@login_required(role="student")
+def grade_2_reading_comprehension():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_reading_comprehension.html", user=user)
+
+@app.route("/grade/2/vocabulary_builder")
+@login_required(role="student")
+def grade_2_vocabulary_builder():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_vocabulary_builder.html", user=user)
+
+@app.route("/grade/2/phonics_practice")
+@login_required(role="student")
+def grade_2_phonics_practice():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_phonics_practice.html", user=user)
+
+@app.route("/grade/2/story_time")
+@login_required(role="student")
+def grade_2_story_time():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_story_time.html", user=user)
+
 @app.route("/grade/2/science")
 @login_required(role="student")
 def grade_2_science():
@@ -1276,6 +1312,52 @@ def grade_2_science():
         flash("Access denied. This content is for Grade 2 students only.")
         return redirect_to_dashboard(session.get("user"))
     return render_template("grade_2_science.html", user=user)
+
+# Grade 2 Science Topic Routes
+@app.route("/grade/2/science/living_things")
+@login_required(role="student")
+def grade_2_living_things():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_living_things.html", user=user)
+
+@app.route("/grade/2/science/weather")
+@login_required(role="student")
+def grade_2_weather():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_weather.html", user=user)
+
+@app.route("/grade/2/science/matter")
+@login_required(role="student")
+def grade_2_matter():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_matter.html", user=user)
+
+@app.route("/grade/2/science/simple_machines")
+@login_required(role="student")
+def grade_2_simple_machines():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_simple_machines.html", user=user)
+
+@app.route("/grade/2/science/experiments")
+@login_required(role="student")
+def grade_2_science_experiments():
+    user = session.get("user")
+    if user.get("grade") != "2":
+        flash("Access denied. This content is for Grade 2 students only.")
+        return redirect_to_dashboard(session.get("user"))
+    return render_template("grade_2_science_experiments.html", user=user)
 
 # Grade-4 Subject Routes
 @app.route("/grade/4/literature")

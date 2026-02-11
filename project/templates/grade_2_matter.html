@@ -1,0 +1,421 @@
+{% extends "base.html" %}
+
+{% block title %}Matter & Materials - Grade 2 Science{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-yellow-50 to-amber-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-yellow-800 mb-2">🧊 Matter & Materials</h1>
+                <p class="text-xl text-yellow-600">Explore solids, liquids, and gases around us</p>
+            </div>
+
+            <!-- Three States of Matter -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">🔍 Three States of Matter</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center bg-red-50 p-4 rounded-xl">
+                        <div class="text-5xl mb-3">🧊</div>
+                        <h3 class="font-bold text-red-700 mb-2">Solids</h3>
+                        <ul class="text-gray-600 text-sm space-y-1">
+                            <li>🔹 Keep their shape</li>
+                            <li>🔹 Hard to squeeze</li>
+                            <li>🔹 Examples: Ice, wood, metal</li>
+                        </ul>
+                    </div>
+                    <div class="text-center bg-blue-50 p-4 rounded-xl">
+                        <div class="text-5xl mb-3">💧</div>
+                        <h3 class="font-bold text-blue-700 mb-2">Liquids</h3>
+                        <ul class="text-gray-600 text-sm space-y-1">
+                            <li>🔹 Take container shape</li>
+                            <li>🔹 Can be poured</li>
+                            <li>🔹 Examples: Water, milk, juice</li>
+                        </ul>
+                    </div>
+                    <div class="text-center bg-purple-50 p-4 rounded-xl">
+                        <div class="text-5xl mb-3">💨</div>
+                        <h3 class="font-bold text-purple-700 mb-2">Gases</h3>
+                        <ul class="text-gray-600 text-sm space-y-1">
+                            <li>🔹 No definite shape</li>
+                            <li>🔹 Fill any space</li>
+                            <li>🔹 Examples: Air, oxygen</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Material Properties -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">🎨 Properties of Materials</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-orange-50 p-4 rounded-xl">
+                        <h3 class="font-bold text-orange-700 mb-3">Material Properties</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-2">📏</span>
+                                <span><strong>Hard/Soft</strong> - How firm something feels</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-2">🔥</span>
+                                <span><strong>Heavy/Light</strong> - How much it weighs</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-2">✨</span>
+                                <span><strong>Shiny/Dull</strong> - How it reflects light</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-2">🔄</span>
+                                <span><strong>Flexible/Stiff</strong> - How easily it bends</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-xl">
+                        <h3 class="font-bold text-green-700 mb-3">Common Materials</h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-2">🪵</span>
+                                <span><strong>Wood</strong> - From trees, used for furniture</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-2">⛓️</span>
+                                <span><strong>Metal</strong> - Strong and shiny, conducts heat</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-2">🧱</span>
+                                <span><strong>Plastic</strong> - Light and can be molded</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-2">🧵</span>
+                                <span><strong>Fabric</strong> - Soft material for clothes</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Changes in Matter -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">🔄 Changes in Matter</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-cyan-50 p-4 rounded-xl">
+                        <h3 class="font-bold text-cyan-700 mb-3"> reversible Changes</h3>
+                        <ul class="text-gray-600 space-y-2">
+                            <li>✅ Ice melting into water</li>
+                            <li>✅ Water freezing into ice</li>
+                            <li>✅ Paper being folded</li>
+                            <li>✅ Clay being reshaped</li>
+                            <li class="text-sm mt-2"><em>Can be changed back!</em></li>
+                        </ul>
+                    </div>
+                    <div class="bg-pink-50 p-4 rounded-xl">
+                        <h3 class="font-bold text-pink-700 mb-3">Irreversible Changes</h3>
+                        <ul class="text-gray-600 space-y-2">
+                            <li>❌ Burning paper</li>
+                            <li>❌ Cooking an egg</li>
+                            <li>❌ Rusting metal</li>
+                            <li>❌ Baking a cake</li>
+                            <li class="text-sm mt-2"><em>Cannot be changed back!</em></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Activities -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">🎯 Matter Activities</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-teal-50 p-4 rounded-xl">
+                        <h3 class="font-bold text-teal-700 mb-3">🧊 State of Matter Simulator</h3>
+                        <p class="text-gray-600 text-sm mb-3">Change temperature to see matter states transform</p>
+                        <div class="text-center mb-3">
+                            <div id="matter-display" class="text-6xl mb-2">🧊</div>
+                            <div id="state-name" class="font-bold text-teal-700">Solid (Ice)</div>
+                            <div id="temperature-display" class="text-lg font-mono mt-2">0°C</div>
+                        </div>
+                        <div class="flex justify-center gap-2 mb-3">
+                            <button onclick="changeTemperature(-10)" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">❄️ Cooler</button>
+                            <button onclick="changeTemperature(10)" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">🔥 Warmer</button>
+                        </div>
+                        <div class="text-xs text-gray-600 text-center">
+                            Current: <span id="current-temp">0</span>°C
+                        </div>
+                    </div>
+                    <div class="bg-rose-50 p-4 rounded-xl">
+                        <h3 class="font-bold text-rose-700 mb-3">🔄 Change Type Explorer</h3>
+                        <p class="text-gray-600 text-sm mb-3">Identify reversible vs irreversible changes</p>
+                        <div id="change-display" class="text-center mb-3">
+                            <div class="text-4xl mb-2">🧊➡️💧</div>
+                            <div id="change-description" class="text-sm">Ice melting into water</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <button onclick="selectChangeType('reversible')" class="bg-cyan-500 hover:bg-cyan-600 text-white px-3 py-2 rounded text-sm">🔄 Reversible</button>
+                            <button onclick="selectChangeType('irreversible')" class="bg-pink-500 hover:bg-pink-600 text-white px-3 py-2 rounded text-sm">❌ Irreversible</button>
+                        </div>
+                        <div id="change-result" class="text-sm font-medium text-center mb-2"></div>
+                        <button onclick="nextChange()" class="bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg text-sm">
+                            Next Change
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Quiz -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">🧠 Matter Quiz</h2>
+                <div id="quiz-container">
+                    <!-- Dynamic questions will be generated here -->
+                </div>
+                <div class="text-center mt-4">
+                    <button onclick="generateNewQuiz()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg">
+                        <i class="fas fa-sync-alt mr-2"></i>New Quiz Questions
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Tracker -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Your Matter Learning</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <div>
+                        <div class="text-3xl font-bold text-yellow-600 mb-2" id="states-learned">0</div>
+                        <div class="text-gray-600">States of Matter</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-orange-600 mb-2" id="materials-known">0</div>
+                        <div class="text-gray-600">Materials Studied</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-amber-600 mb-2" id="matter-points">0</div>
+                        <div class="text-gray-600">Matter Points</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let statesLearned = 0;
+    let materialsKnown = 0;
+    let matterPoints = 0;
+    let answeredQuestions = new Set();
+    let currentQuizQuestions = [];
+    let currentTemperature = 0;
+    let correctChangeIdentifications = 0;
+    
+    // Dynamic quiz questions
+    const quizQuestions = [
+        {
+            question: "Which state of matter keeps its shape?",
+            options: ["Solid", "Liquid", "Gas", "All of the above"],
+            correct: 0
+        },
+        {
+            question: "Which is an irreversible change?",
+            options: ["Ice melting", "Burning paper", "Water freezing", "Paper folding"],
+            correct: 1
+        },
+        {
+            question: "What material is best for making furniture?",
+            options: ["Fabric", "Wood", "Plastic", "Metal"],
+            correct: 1
+        },
+        {
+            question: "Which property describes how heavy something is?",
+            options: ["Hard/Soft", "Shiny/Dull", "Heavy/Light", "Flexible/Stiff"],
+            correct: 2
+        },
+        {
+            question: "What happens when water reaches 100°C?",
+            options: ["It freezes", "It melts", "It boils", "It dissolves"],
+            correct: 2
+        },
+        {
+            question: "Which material conducts heat best?",
+            options: ["Wood", "Plastic", "Fabric", "Metal"],
+            correct: 3
+        },
+        {
+            question: "What is a reversible change?",
+            options: ["Burning", "Cooking", "Melting ice", "Rusting"],
+            correct: 2
+        },
+        {
+            question: "Which state of matter fills any container?",
+            options: ["Solid", "Liquid", "Gas", "Both Liquid and Gas"],
+            correct: 3
+        },
+        {
+            question: "What property makes rubber good for tires?",
+            options: ["Hardness", "Flexibility", "Shininess", "Heaviness"],
+            correct: 1
+        },
+        {
+            question: "Which change cannot be undone?",
+            options: ["Tearing paper", "Cutting hair", "Breaking glass", "All of the above"],
+            correct: 3
+        }
+    ];
+
+    // Changes data
+    const changes = [
+        { emoji: '🧊➡️💧', description: 'Ice melting into water', type: 'reversible' },
+        { emoji: '💧➡️🧊', description: 'Water freezing into ice', type: 'reversible' },
+        { emoji: '📄🔥', description: 'Paper burning to ash', type: 'irreversible' },
+        { emoji: '🥚🍳', description: 'Egg cooking', type: 'irreversible' },
+        { emoji: '🍎➡️', description: 'Apple rotting', type: 'irreversible' },
+        { emoji: '🪵🪓', description: 'Wood being cut', type: 'reversible' }
+    ];
+
+    // State of Matter Simulator
+    function changeTemperature(change) {
+        currentTemperature += change;
+        document.getElementById('current-temp').textContent = currentTemperature;
+        
+        let newState, newStateName, newEmoji;
+        
+        if (currentTemperature <= 0) {
+            newState = 'solid';
+            newStateName = 'Solid (Ice)';
+            newEmoji = '🧊';
+        } else if (currentTemperature <= 100) {
+            newState = 'liquid';
+            newStateName = 'Liquid (Water)';
+            newEmoji = '💧';
+        } else {
+            newState = 'gas';
+            newStateName = 'Gas (Steam)';
+            newEmoji = '💨';
+        }
+        
+        document.getElementById('matter-display').textContent = newEmoji;
+        document.getElementById('state-name').textContent = newStateName;
+        document.getElementById('temperature-display').textContent = `${currentTemperature}°C`;
+        
+        statesLearned++;
+        matterPoints += 2;
+        updateProgress();
+    }
+
+    // Change Type Explorer
+    let currentChangeIndex = 0;
+    
+    function selectChangeType(selectedType) {
+        const currentChange = changes[currentChangeIndex];
+        const resultDiv = document.getElementById('change-result');
+        
+        if (selectedType === currentChange.type) {
+            resultDiv.innerHTML = '<span class="text-green-600">✅ Correct! Well done!</span>';
+            correctChangeIdentifications++;
+            matterPoints += 5;
+        } else {
+            const correctType = currentChange.type === 'reversible' ? '🔄 Reversible' : '❌ Irreversible';
+            resultDiv.innerHTML = `<span class="text-red-600">❌ Try again! This is ${correctType}.</span>`;
+        }
+        
+        resultDiv.classList.remove('hidden');
+        updateProgress();
+    }
+
+    function nextChange() {
+        currentChangeIndex = (currentChangeIndex + 1) % changes.length;
+        const change = changes[currentChangeIndex];
+        
+        document.getElementById('change-display').innerHTML = `<div class="text-4xl mb-2">${change.emoji}</div>`;
+        document.getElementById('change-description').textContent = change.description;
+        document.getElementById('change-result').classList.add('hidden');
+        
+        materialsKnown++;
+        matterPoints += 2;
+        updateProgress();
+    }
+
+    // Dynamic Quiz Functions
+    function generateNewQuiz() {
+        const container = document.getElementById('quiz-container');
+        container.innerHTML = '';
+        
+        // Shuffle questions and pick 3 random ones
+        const shuffled = [...quizQuestions].sort(() => 0.5 - Math.random()).slice(0, 3);
+        currentQuizQuestions = shuffled;
+        
+        shuffled.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'mb-6 p-4 border border-gray-200 rounded-lg';
+            questionDiv.innerHTML = `
+                <h3 class="text-lg font-bold text-gray-800 mb-3">${index + 1}. ${q.question}</h3>
+                <div class="space-y-2">
+                    ${q.options.map((opt, optIdx) => `
+                        <div>
+                            <input type="radio" name="q${index}" id="q${index}_opt${optIdx}" value="${optIdx}">
+                            <label for="q${index}_opt${optIdx}" class="ml-2 text-gray-700">${opt}</label>
+                        </div>
+                    `).join('')}
+                </div>
+                <button onclick="checkAnswer(${index})" class="mt-3 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-1 rounded text-sm">
+                    Check Answer
+                </button>
+                <div id="result-${index}" class="mt-2 text-sm font-medium hidden"></div>
+            `;
+            container.appendChild(questionDiv);
+        });
+        
+        answeredQuestions.clear();
+        updateProgress();
+    }
+
+    function checkAnswer(questionIndex) {
+        if (answeredQuestions.has(questionIndex)) return;
+        
+        const selectedOption = document.querySelector(`input[name="q${questionIndex}"]:checked`);
+        if (!selectedOption) {
+            alert("Please select an answer!");
+            return;
+        }
+
+        const resultDiv = document.getElementById(`result-${questionIndex}`);
+        const userAnswer = parseInt(selectedOption.value);
+        const correctAnswer = currentQuizQuestions[questionIndex].correct;
+
+        if (userAnswer === correctAnswer) {
+            resultDiv.innerHTML = '<span class="text-green-600">✅ Correct! Great job!</span>';
+            matterPoints += 10;
+        } else {
+            resultDiv.innerHTML = `<span class="text-red-600">❌ Try again! The correct answer is: ${currentQuizQuestions[questionIndex].options[correctAnswer]}</span>`;
+        }
+
+        resultDiv.classList.remove('hidden');
+        answeredQuestions.add(questionIndex);
+        updateProgress();
+    }
+
+    function updateProgress() {
+        document.getElementById('states-learned').textContent = statesLearned;
+        document.getElementById('materials-known').textContent = materialsKnown;
+        document.getElementById('matter-points').textContent = matterPoints;
+        
+        saveProgress('matter_dynamic', 1);
+    }
+
+    // --- Save Progress ---
+    async function saveProgress(qid, pts) {
+        try {
+            await fetch('/api/submit_progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quiz_id: `g2_science_${qid}`, score: pts, total: 1 })
+            });
+        } catch (e) { }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function () {
+        statesLearned = 3; // 3 states of matter
+        materialsKnown = 4; // 4 material types
+        generateNewQuiz();
+        updateProgress();
+    });
+</script>
+{% endblock %}

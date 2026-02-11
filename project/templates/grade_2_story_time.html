@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block title %}Grade 2 Story Time{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-indigo-800 mb-2">📚 Story Time</h1>
+                <p class="text-xl text-indigo-600">Enjoy wonderful stories and improve your reading skills</p>
+            </div>
+
+            <!-- Story Selection -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">📖 Choose a Story</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <button onclick="selectStory('the-little-red-hen')" class="bg-blue-100 hover:bg-blue-200 p-4 rounded-lg text-center font-medium">
+                        <div class="text-4xl mb-2">🐔</div>
+                        <div>The Little Red Hen</div>
+                    </button>
+                    <button onclick="selectStory('the-frog-prince')" class="bg-green-100 hover:bg-green-200 p-4 rounded-lg text-center font-medium">
+                        <div class="text-4xl mb-2">🐸</div>
+                        <div>The Frog Prince</div>
+                    </button>
+                    <button onclick="selectStory('the-lion-and-mouse')" class="bg-yellow-100 hover:bg-yellow-200 p-4 rounded-lg text-center font-medium">
+                        <div class="text-4xl mb-2">🦁</div>
+                        <div>The Lion and Mouse</div>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button onclick="selectStory('goldilocks')" class="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg text-center font-medium">
+                        <div class="text-4xl mb-2">🐻</div>
+                        <div>Goldilocks</div>
+                    </button>
+                    <button onclick="selectStory('three-little-pigs')" class="bg-red-100 hover:bg-red-200 p-4 rounded-lg text-center font-medium">
+                        <div class="text-4xl mb-2">🐷</div>
+                        <div>Three Little Pigs</div>
+                    </button>
+                    <button onclick="selectStory('cinderella')" class="bg-pink-100 hover:bg-pink-200 p-4 rounded-lg text-center font-medium">
+                        <div class="text-4xl mb-2">👸</div>
+                        <div>Cinderella</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Story Display -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center" id="story-title">Select a Story to Begin</h2>
+                <div class="bg-gray-50 rounded-xl p-6" id="story-content">
+                    <div class="text-center text-gray-500 py-12">
+                        <div class="text-6xl mb-4">📖</div>
+                        <p>Choose a story from above to start reading!</p>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-6 hidden" id="story-controls">
+                    <button onclick="speakStory()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium mr-3">
+                        <i class="fas fa-volume-up mr-2"></i>Read Aloud
+                    </button>
+                    <button onclick="pauseStory()" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg font-medium mr-3">
+                        <i class="fas fa-pause mr-2"></i>Pause
+                    </button>
+                    <button onclick="stopStory()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-medium">
+                        <i class="fas fa-stop mr-2"></i>Stop
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Tracker -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📊 Your Story Time Progress</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
+                    <div>
+                        <div class="text-3xl font-bold text-green-600 mb-2" id="stories-read">0</div>
+                        <div class="text-gray-600">Stories Read</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-purple-600 mb-2" id="story-points">0</div>
+                        <div class="text-gray-600">Story Points</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let storiesRead = 0;
+    let storyPoints = 0;
+    let currentStory = null;
+    let currentUtterance = null;
+
+    // Story data
+    const stories = {
+        'the-little-red-hen': {
+            title: 'The Little Red Hen',
+            content: `Once upon a time, there lived a little red hen with her chicks. She worked hard every day to take care of her family.
+
+One day, she found some grains of wheat. "Who will help me plant these?" she asked. "Not I," said the cat. "Not I," said the dog. "Not I," said the pig. So the little red hen planted the wheat herself.
+
+When the wheat grew tall, she asked, "Who will help me cut the wheat?" Again, no one helped. The little red hen cut the wheat herself. She took the wheat to the mill to make flour. Then she baked bread. "Who will help me eat this delicious bread?" she asked. "I will!" said the cat, the dog, and the pig. But the little red hen said, "No, I will eat it myself." And she did, with her chicks.
+
+Moral: If you want something done, do it yourself.`,
+            questions: [
+                {
+                    question: "Who found the grains of wheat?",
+                    options: ["The cat", "The dog", "The little red hen", "The pig"],
+                    correct: 2
+                },
+                {
+                    question: "Did anyone help the hen plant the wheat?",
+                    options: ["Yes, the cat helped", "Yes, the dog helped", "Yes, the pig helped", "No, nobody helped"],
+                    correct: 3
+                },
+                {
+                    question: "What did the hen do with the wheat?",
+                    options: ["Made porridge", "Made flour and baked bread", "Fed it to her chicks", "Planted it again"],
+                    correct: 1
+                }
+            ],
+            characters: ['Little Red Hen', 'Cat', 'Dog', 'Pig']
+        },
+        'the-frog-prince': {
+            title: 'The Frog Prince',
+            content: `A beautiful princess was playing with a golden ball near a pond. Her ball fell into the water. A frog offered to get it if she would be his friend. She agreed but didn't keep her promise.
+
+Later, the frog came to the castle. The king told his daughter to keep her word. She took the frog in, and when she kissed him, he turned into a handsome prince. They married and lived happily ever after.`,
+            questions: [
+                {
+                    question: "What did the princess lose in the pond?",
+                    options: ["A ring", "A crown", "A golden ball", "A necklace"],
+                    correct: 2
+                },
+                {
+                    question: "What did the frog ask for in return?",
+                    options: ["Money", "To be her friend", "Food", "A kiss"],
+                    correct: 1
+                }
+            ],
+            characters: ['Frog Prince', 'Princess', 'King']
+        },
+        'the-lion-and-mouse': {
+            title: 'The Lion and the Mouse',
+            content: `A lion was sleeping when a mouse ran over his face. The lion woke up angry and caught the mouse. The mouse begged for mercy, saying he could help the lion someday. The lion laughed but let him go.
+
+Later, hunters caught the lion and tied him with ropes. The mouse heard the lion's roars and came to help. He chewed through the ropes and freed the lion. Even a small friend can help you.`,
+            questions: [
+                {
+                    question: "What woke up the lion?",
+                    options: ["A loud noise", "The mouse", "Rain", "Sunlight"],
+                    correct: 1
+                },
+                {
+                    question: "How did the mouse help the lion?",
+                    options: ["Called for help", "Fought the hunters", "Chewed through the ropes", "Scared the lions away"],
+                    correct: 2
+                }
+            ],
+            characters: ['Lion', 'Mouse']
+        },
+        'goldilocks': {
+            title: 'Goldilocks and the Three Bears',
+            content: `Goldilocks went for a walk in the forest and found a house. She entered and tasted three bowls of porridge. The first was too hot, the second too cold, the third was just right.
+
+She tried three chairs. The first was too big, the second too big, the third was just right but broke. She went upstairs and tried three beds. The first was too hard, the second too soft, the third was just right. She fell asleep in it.
+
+When the three bears came home, they found Goldilocks in Baby Bear's bed. She woke up scared and ran home.`,
+            questions: [
+                {
+                    question: "How many bears were in the house?",
+                    options: ["One", "Two", "Three", "Four"],
+                    correct: 2
+                },
+                {
+                    question: "What did Goldilocks break?",
+                    options: ["A bowl", "A chair", "A bed", "A door"],
+                    correct: 1
+                }
+            ],
+            characters: ['Goldilocks', 'Papa Bear', 'Mama Bear', 'Baby Bear']
+        },
+        'three-little-pigs': {
+            title: 'The Three Little Pigs',
+            content: `Three little pigs went out to build houses. The first pig built his house of straw. The second pig built his house of sticks. The third pig built his house of bricks.
+
+A wolf came and blew down the first house. The first pig ran to the second pig's house. The wolf blew down the second house too. Both pigs ran to the third pig's brick house.
+
+The wolf couldn't blow down the brick house. The three pigs stayed safe inside. They learned that hard work pays off.`,
+            questions: [
+                {
+                    question: "What did the third pig build his house from?",
+                    options: ["Straw", "Sticks", "Bricks", "Logs"],
+                    correct: 2
+                },
+                {
+                    question: "Could the wolf blow down the brick house?",
+                    options: ["Yes", "No", "Maybe", "Sometimes"],
+                    correct: 1
+                }
+            ],
+            characters: ['Pig 1', 'Pig 2', 'Pig 3', 'Wolf']
+        },
+        'cinderella': {
+            title: 'Cinderella',
+            content: `Cinderella lived with her cruel stepmother and stepsisters. They made her do all the work. When the royal ball was announced, Cinderella wanted to go too.
+
+Her fairy godmother appeared and helped her. She turned a pumpkin into a carriage, mice into horses, and gave Cinderella a beautiful dress and glass slippers. She warned that everything would turn back at midnight.
+
+At the ball, Cinderella met the prince and danced with him. As midnight approached, she ran away, losing one glass slipper. The prince searched for the girl whose foot fit the slipper. He found Cinderella, and they married and lived happily ever after.`,
+            questions: [
+                {
+                    question: "Who helped Cinderella go to the ball?",
+                    options: ["Her father", "Her stepmother", "Her fairy godmother", "Her sister"],
+                    correct: 2
+                },
+                {
+                    question: "What did Cinderella lose at the palace?",
+                    options: ["A ring", "A glove", "A shoe", "A necklace"],
+                    correct: 2
+                }
+            ],
+            characters: ['Cinderella', 'Fairy Godmother', 'Prince', 'Stepmother', 'Stepsisters']
+        }
+    };
+
+    function selectStory(storyKey) {
+        currentStory = stories[storyKey];
+        
+        document.getElementById('story-title').textContent = currentStory.title;
+        document.getElementById('story-content').innerHTML = `<p class="text-gray-700 leading-relaxed whitespace-pre-line">${currentStory.content}</p>`;
+        document.getElementById('story-controls').classList.remove('hidden');
+        
+        storiesRead++;
+        storyPoints += 10;
+        updateProgress();
+    }
+
+    function generateStoryQuestions() {
+        if (!currentStory) return;
+        
+        const questionsContainer = document.getElementById('story-questions');
+        questionsContainer.innerHTML = '';
+        
+        currentStory.questions.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'mb-4 p-3 border border-gray-200 rounded';
+            questionDiv.innerHTML = `
+                <h3 class="font-bold text-gray-800 mb-2">${index + 1}. ${q.question}</h3>
+                <div class="space-y-1">
+                    ${q.options.map((opt, optIdx) => `
+                        <div>
+                            <input type="radio" name="q${index}" id="q${index}_opt${optIdx}" value="${optIdx}">
+                            <label for="q${index}_opt${optIdx}" class="ml-2 text-gray-700">${opt}</label>
+                        </div>
+                    `).join('')}
+                </div>
+                <button onclick="checkStoryQuestion(${index})" class="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                    Submit
+                </button>
+                <div id="q${index}-result" class="mt-1 text-sm hidden"></div>
+            `;
+            questionsContainer.appendChild(questionDiv);
+        });
+    }
+
+    function speakStory() {
+        if (!currentStory) {
+            alert("Please select a story first!");
+            return;
+        }
+        
+        stopStory(); // Stop any ongoing narration
+        
+        currentUtterance = new SpeechSynthesisUtterance(currentStory.content);
+        currentUtterance.rate = 0.8;
+        currentUtterance.pitch = 1.2;
+        window.speechSynthesis.speak(currentUtterance);
+    }
+
+    function pauseStory() {
+        if (currentUtterance) {
+            window.speechSynthesis.pause();
+        }
+    }
+
+    function stopStory() {
+        window.speechSynthesis.cancel();
+    }
+
+    function updateProgress() {
+        document.getElementById('stories-read').textContent = storiesRead;
+        document.getElementById('questions-answered').textContent = questionsAnswered;
+        document.getElementById('story-points').textContent = storyPoints;
+
+        // Save to DB
+        saveProgress('story_time', 1);
+    }
+
+    // --- Save Progress ---
+    async function saveProgress(qid, pts) {
+        try {
+            await fetch('/api/submit_progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quiz_id: `g2_story_${qid}`, score: pts, total: 1 })
+            });
+        } catch (e) { }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function () {
+        updateProgress();
+    });
+</script>
+{% endblock %}

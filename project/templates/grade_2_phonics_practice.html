@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Grade 2 Phonics Practice{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-indigo-800 mb-2">🗣️ Phonics Practice</h1>
+                <p class="text-xl text-indigo-600">Learn sounds and improve your reading skills</p>
+            </div>
+
+            <!-- Sound Exploration -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">🔊 Explore the Sound</h2>
+                <div class="text-center">
+                    <div class="text-6xl font-bold text-indigo-600 mb-4" id="sound-display">/aɪ/</div>
+                    <div class="text-xl text-gray-700 mb-4" id="sound-clue">As in "light", "kite", "bike"</div>
+                    <div class="flex justify-center space-x-4 mb-6" id="sound-examples">
+                        <span class="text-3xl bg-indigo-100 px-3 py-1 rounded">IGHT</span>
+                        <span class="text-3xl bg-indigo-100 px-3 py-1 rounded">ITE</span>
+                        <span class="text-3xl bg-indigo-100 px-3 py-1 rounded">IKE</span>
+                    </div>
+                    
+                    <div class="flex justify-center space-x-4 mb-6">
+                        <button onclick="speakSound()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium">
+                            <i class="fas fa-volume-up mr-2"></i>Hear Sound
+                        </button>
+                        <button onclick="nextSound()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium">
+                            <i class="fas fa-forward mr-2"></i>Next Sound
+                        </button>
+                    </div>
+                    
+                    <!-- Sound Animation -->
+                    <div class="relative h-20 mb-4">
+                        <div id="sound-animation" class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center opacity-0 transition-opacity duration-300">
+                                <i class="fas fa-volume-up text-indigo-600 text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Word Examples -->
+                    <div class="bg-blue-50 rounded-xl p-4 mt-6">
+                        <h3 class="font-bold text-blue-800 mb-3">Words with this sound:</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-2" id="word-examples">
+                            <div class="bg-white px-3 py-2 rounded text-indigo-700 font-medium">KITE</div>
+                            <div class="bg-white px-3 py-2 rounded text-indigo-700 font-medium">LIGHT</div>
+                            <div class="bg-white px-3 py-2 rounded text-indigo-700 font-medium">FIGHT</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Word Families Gallery -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">🏠 Word Families Gallery</h2>
+                <div id="word-families-container">
+                    <!-- Word families will be dynamically generated here -->
+                </div>
+                <div class="text-center mt-6">
+                    <button onclick="showRandomFamily()" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-medium">
+                        <i class="fas fa-random mr-2"></i>Show Different Family
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Tracker -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📊 Your Phonics Progress</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
+                    <div>
+                        <div class="text-3xl font-bold text-green-600 mb-2" id="sounds-learned">0</div>
+                        <div class="text-gray-600">Sounds Explored</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-purple-600 mb-2" id="phonics-points">0</div>
+                        <div class="text-gray-600">Phonics Points</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let soundsLearned = 0;
+    let phonicsPoints = 0;
+    let currentSoundData = null;
+
+    // Extended phonics data with more word families
+    const phonicsData = [
+        { sound: '/aɪ/', pattern: 'IGHT', clue: 'As in "light", "kite", "bike"', words: ['KITE', 'LIGHT', 'FIGHT', 'RIGHT', 'SIGHT', 'NIGHT', 'MIGHT', 'BRIGHT', 'WHITE', 'FLIGHT'] },
+        { sound: '/eɪ/', pattern: 'AKE', clue: 'As in "cake", "make", "take"', words: ['CAKE', 'MAKE', 'TAKE', 'NAME', 'GAME', 'LATE', 'FAKE', 'SHAKE', 'WAKE', 'BAKE'] },
+        { sound: '/oʊ/', pattern: 'OME', clue: 'As in "home", "phone", "cone"', words: ['HOME', 'PHONE', 'CONE', 'ROPE', 'NOTE', 'BOAT', 'GOAT', 'COAT', 'FLOAT', 'QUOTE'] },
+        { sound: '/juː/', pattern: 'UTE', clue: 'As in "cute", "tube", "mute"', words: ['CUTE', 'TUBE', 'MUTE', 'LUTE', 'FLUTE', 'SUITE', 'COMPUTE', 'DISPUTE', 'REPUTE', 'ACUTE'] },
+        { sound: '/aʊ/', pattern: 'OUSE', clue: 'As in "house", "mouse", "loud"', words: ['HOUSE', 'MOUSE', 'LOUD', 'CLOUD', 'PROUD', 'TROWEL', 'CROWD', 'DOWEL', 'FOWL', 'HOWL'] },
+        { sound: '/ɪ/', pattern: 'ICK', clue: 'As in "pick", "stick", "quick"', words: ['PICK', 'STICK', 'QUICK', 'THICK', 'SICK', 'LICK', 'KICK', 'TRICK', 'CLICK', 'BRICK'] },
+        { sound: '/æ/', pattern: 'AT', clue: 'As in "cat", "hat", "bat"', words: ['CAT', 'HAT', 'BAT', 'MAT', 'RAT', 'FAT', 'PAT', 'SAT', 'CHAT', 'FLAT'] },
+        { sound: '/ʌ/', pattern: 'UT', clue: 'As in "cut", "but", "nut"', words: ['CUT', 'BUT', 'NUT', 'GUT', 'HUT', 'PUT', 'SHUT', 'CUT', 'BUT', 'NUT'] },
+        { sound: '/ɔː/', pattern: 'ALL', clue: 'As in "ball", "call", "fall"', words: ['BALL', 'CALL', 'FALL', 'TALL', 'WALL', 'MALL', 'STALL', 'BALL', 'CALL', 'FALL'] },
+        { sound: '/ɪə/', pattern: 'EAR', clue: 'As in "hear", "near", "dear"', words: ['HEAR', 'NEAR', 'DEAR', 'FEAR', 'CLEAR', 'PEAR', 'BEAR', 'TEAR', 'WEAR', 'APPEAR'] }
+    ];
+
+    function speakSound() {
+        const msg = new SpeechSynthesisUtterance(currentSoundData.clue);
+        msg.rate = 0.8;
+        msg.pitch = 1.2;
+        
+        // Show animation
+        const animation = document.getElementById('sound-animation').firstElementChild;
+        animation.classList.remove('opacity-0');
+        
+        window.speechSynthesis.speak(msg);
+        
+        setTimeout(() => {
+            animation.classList.add('opacity-0');
+        }, 1000);
+    }
+
+    function nextSound() {
+        // Get random sound data
+        currentSoundData = phonicsData[Math.floor(Math.random() * phonicsData.length)];
+        
+        // Update display
+        document.getElementById('sound-display').textContent = currentSoundData.sound;
+        document.getElementById('sound-clue').textContent = currentSoundData.clue;
+        document.getElementById('sound-examples').innerHTML = currentSoundData.pattern.split('').map(letter => 
+            `<span class="text-3xl bg-indigo-100 px-3 py-1 rounded">${letter.toUpperCase()}</span>`
+        ).join('');
+        
+        // Update word examples (show first 6 words)
+        const wordExamples = document.getElementById('word-examples');
+        wordExamples.innerHTML = currentSoundData.words.slice(0, 6).map(word => 
+            `<div class="bg-white px-3 py-2 rounded text-indigo-700 font-medium hover:bg-indigo-50 cursor-pointer" onclick="speakWord('${word}')">${word}</div>`
+        ).join('');
+        
+        // Generate word families display
+        generateWordFamilies();
+        
+        soundsLearned++;
+        phonicsPoints += 5;
+        updateProgress();
+    }
+
+    function speakWord(word) {
+        const msg = new SpeechSynthesisUtterance(word.toLowerCase());
+        msg.rate = 0.9;
+        msg.pitch = 1.1;
+        window.speechSynthesis.speak(msg);
+    }
+
+    function generateWordFamilies() {
+        const container = document.getElementById('word-families-container');
+        
+        // Create display for current word family
+        const familyHtml = `
+            <div class="text-center mb-6">
+                <div class="text-3xl font-bold text-purple-600 mb-3">-${currentSoundData.pattern} Family</div>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    ${currentSoundData.words.map(word => 
+                        `<div class="bg-purple-100 hover:bg-purple-200 p-3 rounded-lg font-bold text-lg cursor-pointer transition-colors" onclick="speakWord('${word}')">${word}</div>`
+                    ).join('')}
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = familyHtml;
+    }
+
+    function showRandomFamily() {
+        // Get a different random family
+        let newFamily;
+        do {
+            newFamily = phonicsData[Math.floor(Math.random() * phonicsData.length)];
+        } while (newFamily.sound === currentSoundData.sound);
+        
+        currentSoundData = newFamily;
+        generateWordFamilies();
+        
+        phonicsPoints += 3;
+        updateProgress();
+    }
+
+    function updateProgress() {
+        document.getElementById('sounds-learned').textContent = soundsLearned;
+        document.getElementById('phonics-points').textContent = phonicsPoints;
+
+        // Save to DB
+        saveProgress('phonics_clean', 1);
+    }
+
+    // --- Save Progress ---
+    async function saveProgress(qid, pts) {
+        try {
+            await fetch('/api/submit_progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quiz_id: `g2_phonics_${qid}`, score: pts, total: 1 })
+            });
+        } catch (e) { }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function () {
+        // Start with a random sound
+        nextSound();
+        updateProgress();
+    });
+</script>
+{% endblock %}

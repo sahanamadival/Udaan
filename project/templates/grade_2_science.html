@@ -26,10 +26,10 @@
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Living Things</h3>
                     <p class="text-gray-600 mb-4">Learn about plants, animals, and their needs</p>
-                    <button onclick="startLivingThings()"
+                    <a href="{{ url_for('grade_2_living_things') }}"
                         class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-6 py-2 rounded-lg transition-colors inline-block">
                         Explore Life
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -41,10 +41,10 @@
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Weather & Seasons</h3>
                     <p class="text-gray-600 mb-4">Understand weather patterns and seasonal changes</p>
-                    <button onclick="startWeather()"
+                    <a href="{{ url_for('grade_2_weather') }}"
                         class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-6 py-2 rounded-lg transition-colors inline-block">
                         Check Weather
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -56,10 +56,10 @@
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Matter & Materials</h3>
                     <p class="text-gray-600 mb-4">Explore solids, liquids, and gases around us</p>
-                    <button onclick="startMatter()"
+                    <a href="{{ url_for('grade_2_matter') }}"
                         class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-6 py-2 rounded-lg transition-colors inline-block">
                         Discover Matter
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -71,10 +71,10 @@
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Simple Machines</h3>
                     <p class="text-gray-600 mb-4">Learn about levers, wheels, and how things work</p>
-                    <button onclick="startMachines()"
+                    <a href="{{ url_for('grade_2_simple_machines') }}"
                         class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-6 py-2 rounded-lg transition-colors inline-block">
                         Explore Machines
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -82,34 +82,49 @@
         <!-- Fun Experiments -->
         <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🔬 Fun Science Experiments</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div class="text-center bg-amber-50 p-4 rounded-xl">
                     <div class="text-4xl mb-3">🌱</div>
                     <h3 class="font-bold text-gray-800 mb-2">Plant Growth</h3>
-                    <p class="text-gray-600 text-sm">Watch seeds sprout and grow into plants</p>
-                    <button onclick="plantExperiment()"
-                        class="mt-3 bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-4 py-2 rounded-lg text-sm">
+                    <p class="text-gray-600 text-sm mb-3">Watch seeds sprout and grow into plants</p>
+                    <a href="{{ url_for('grade_2_science_experiments') }}#plant"
+                        class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-4 py-2 rounded-lg text-sm">
                         Try It
-                    </button>
+                    </a>
                 </div>
                 <div class="text-center bg-blue-50 p-4 rounded-xl">
                     <div class="text-4xl mb-3">💧</div>
                     <h3 class="font-bold text-gray-800 mb-2">Water Cycle</h3>
-                    <p class="text-gray-600 text-sm">See how water evaporates and forms clouds</p>
-                    <button onclick="waterExperiment()"
-                        class="mt-3 bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-4 py-2 rounded-lg text-sm">
+                    <p class="text-gray-600 text-sm mb-3">See how water evaporates and forms clouds</p>
+                    <a href="{{ url_for('grade_2_science_experiments') }}#water"
+                        class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-4 py-2 rounded-lg text-sm">
                         Try It
-                    </button>
+                    </a>
                 </div>
                 <div class="text-center bg-purple-50 p-4 rounded-xl">
-                    <div class="text-4xl mb-3">⚖️</div>
-                    <h3 class="font-bold text-gray-800 mb-2">Balance Scale</h3>
-                    <p class="text-gray-600 text-sm">Learn about weight and measurement</p>
-                    <button onclick="balanceExperiment()"
-                        class="mt-3 bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-4 py-2 rounded-lg text-sm">
+                    <div class="text-4xl mb-3">🌈</div>
+                    <h3 class="font-bold text-gray-800 mb-2">Density Rainbow</h3>
+                    <p class="text-gray-600 text-sm mb-3">Create colorful liquid layers</p>
+                    <a href="{{ url_for('grade_2_science_experiments') }}#rainbow"
+                        class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-4 py-2 rounded-lg text-sm">
                         Try It
-                    </button>
+                    </a>
                 </div>
+                <div class="text-center bg-red-50 p-4 rounded-xl">
+                    <div class="text-4xl mb-3">🌋</div>
+                    <h3 class="font-bold text-gray-800 mb-2">Volcano Eruption</h3>
+                    <p class="text-gray-600 text-sm mb-3">Make a fizzy chemical reaction</p>
+                    <a href="{{ url_for('grade_2_science_experiments') }}#volcano"
+                        class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-4 py-2 rounded-lg text-sm">
+                        Try It
+                    </a>
+                </div>
+            </div>
+            <div class="text-center mt-6">
+                <a href="{{ url_for('grade_2_science_experiments') }}"
+                    class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium">
+                    View All Experiments
+                </a>
             </div>
         </div>
 
@@ -137,41 +152,6 @@
 </div>
 
 <script>
-    function startLivingThings() {
-        alert("Living things exploration would start here!");
-        saveProgress('living_things', 1);
-    }
-
-    function startWeather() {
-        alert("Weather and seasons learning would start here!");
-        saveProgress('weather', 1);
-    }
-
-    function startMatter() {
-        alert("Matter and materials exploration would start here!");
-        saveProgress('matter', 1);
-    }
-
-    function startMachines() {
-        alert("Simple machines learning would start here!");
-        saveProgress('machines', 1);
-    }
-
-    function plantExperiment() {
-        alert("Plant growth experiment would start here!");
-        saveProgress('experiment_plant', 2);
-    }
-
-    function waterExperiment() {
-        alert("Water cycle experiment would start here!");
-        saveProgress('experiment_water', 2);
-    }
-
-    function balanceExperiment() {
-        alert("Balance scale experiment would start here!");
-        saveProgress('experiment_balance', 2);
-    }
-
     // --- Save Progress ---
     async function saveProgress(qid, pts) {
         try {

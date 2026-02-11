@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}Grade 2 Reading Comprehension{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-indigo-800 mb-2">📖 Reading Comprehension</h1>
+                <p class="text-xl text-indigo-600">Understand and enjoy stories and passages</p>
+            </div>
+
+            <!-- Story Selection -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">📖 Choose a Story</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <button onclick="selectStory('the-little-red-hen')" class="bg-blue-100 hover:bg-blue-200 p-4 rounded-lg text-center font-medium">
+                        <div class="text-4xl mb-2">🐔</div>
+                        <div>The Little Red Hen</div>
+                    </button>
+                    <button onclick="selectStory('the-frog-prince')" class="bg-green-100 hover:bg-green-200 p-4 rounded-lg text-center font-medium">
+                        <div class="text-4xl mb-2">🐸</div>
+                        <div>The Frog Prince</div>
+                    </button>
+                    <button onclick="selectStory('the-tortoise-and-the-hare')" class="bg-yellow-100 hover:bg-yellow-200 p-4 rounded-lg text-center font-medium">
+                        <div class="text-4xl mb-2">🐢</div>
+                        <div>The Tortoise and the Hare</div>
+                    </button>
+                </div>
+                
+                <!-- Reading Passage -->
+                <div id="story-container" class="hidden">
+                    <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                        <h3 class="text-xl font-bold text-green-600 mb-3" id="story-title">Story Title</h3>
+                        <p class="text-gray-700 leading-relaxed mb-4" id="story-content">
+                            Story content will appear here.
+                        </p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button onclick="speakPassage()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium mr-3">
+                            <i class="fas fa-volume-up mr-2"></i>Hear Story
+                        </button>
+                        <button onclick="pauseStory()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg font-medium mr-3">
+                            <i class="fas fa-pause mr-2"></i>Pause
+                        </button>
+                        <button onclick="stopStory()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-medium mr-3">
+                            <i class="fas fa-stop mr-2"></i>Stop
+                        </button>
+                        <button onclick="resetReading()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium">
+                            <i class="fas fa-redo mr-2"></i>New Story
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comprehension Questions -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">❓ Comprehension Questions</h2>
+                <div id="questions-container">
+                    <!-- Questions will be dynamically generated -->
+                </div>
+            </div>
+
+            <!-- Progress Tracker -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">📊 Your Reading Progress</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <div>
+                        <div class="text-3xl font-bold text-green-600 mb-2" id="stories-read">0</div>
+                        <div class="text-gray-600">Stories Read</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-blue-600 mb-2" id="questions-correct">0</div>
+                        <div class="text-gray-600">Questions Correct</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-purple-600 mb-2" id="reading-points">0</div>
+                        <div class="text-gray-600">Reading Points</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let storiesRead = 0;
+    let questionsCorrect = 0;
+    let readingPoints = 0;
+    let currentQuestions = [];
+    let currentStory = null;
+    let currentUtterance = null;
+
+    // Dynamic stories data
+    const stories = {
+        'the-little-red-hen': {
+            title: 'The Little Red Hen',
+            content: `Once upon a time, there lived a little red hen with her chicks. She worked hard every day to take care of her family. One day, she found some grains of wheat. "Who will help me plant these?" she asked. "Not I," said the cat. "Not I," said the dog. "Not I," said the pig. So the little red hen planted the wheat herself. When the wheat grew tall, she asked, "Who will help me cut the wheat?" Again, no one helped. The little red hen cut the wheat herself. She took the wheat to the mill to make flour. Then she baked bread. "Who will help me eat this delicious bread?" she asked. "I will!" said the cat, the dog, and the pig. But the little red hen said, "No, I will eat it myself." And she did, with her chicks.`,
+            questions: [
+                {
+                    question: "Who found the grains of wheat?",
+                    options: ["The cat", "The dog", "The little red hen", "The pig"],
+                    correct: 2
+                },
+                {
+                    question: "Did anyone help the hen plant the wheat?",
+                    options: ["Yes, the cat helped", "Yes, the dog helped", "Yes, the pig helped", "No, nobody helped"],
+                    correct: 3
+                },
+                {
+                    question: "What did the hen do with the wheat?",
+                    options: ["Made porridge", "Made flour and baked bread", "Fed it to her chicks", "Planted it again"],
+                    correct: 1
+                },
+                {
+                    question: "Who wanted to eat the bread at the end?",
+                    options: ["Only the hen", "The cat, dog, and pig", "The hen and her chicks", "Everyone except the hen"],
+                    correct: 2
+                },
+                {
+                    question: "What lesson does this story teach?",
+                    options: ["Sharing is caring", "Hard work pays off", "Animals are friends", "Bread tastes good"],
+                    correct: 1
+                }
+            ]
+        },
+        'the-frog-prince': {
+            title: 'The Frog Prince',
+            content: `A beautiful princess was playing with a golden ball near a pond. Her ball fell into the water. A frog offered to get it if she would be his friend. She agreed but didn't keep her promise. Later, the frog came to the castle. The king told his daughter to keep her word. She took the frog in, and when she kissed him, he turned into a handsome prince. They married and lived happily ever after.`,
+            questions: [
+                {
+                    question: "What did the princess lose in the pond?",
+                    options: ["A ring", "A crown", "A golden ball", "A necklace"],
+                    correct: 2
+                },
+                {
+                    question: "What did the frog ask for in return?",
+                    options: ["Money", "To be her friend", "Food", "A kiss"],
+                    correct: 1
+                },
+                {
+                    question: "Did the princess keep her promise at first?",
+                    options: ["Yes, she did", "No, she didn't", "She forgot", "She ran away"],
+                    correct: 1
+                },
+                {
+                    question: "Who told the princess to keep her word?",
+                    options: ["The queen", "The king", "The frog", "Her servant"],
+                    correct: 1
+                },
+                {
+                    question: "What happened when the princess kissed the frog?",
+                    options: ["The frog died", "The frog turned into a prince", "The frog became a bird", "Nothing happened"],
+                    correct: 1
+                }
+            ]
+        },
+        'the-tortoise-and-the-hare': {
+            title: 'The Tortoise and the Hare',
+            content: `A hare was making fun of a tortoise for being so slow. "I'm much faster than you," said the hare. "I could beat you in a race." The tortoise agreed to race. The hare ran ahead and took a nap under a tree, thinking he had plenty of time. The tortoise kept moving slowly but steadily. When the hare woke up, he saw the tortoise had already crossed the finish line. The tortoise won the race because he never gave up.`,
+            questions: [
+                {
+                    question: "Who was making fun of whom?",
+                    options: ["The tortoise made fun of the hare", "The hare made fun of the tortoise", "Both made fun of each other", "No one was making fun"],
+                    correct: 1
+                },
+                {
+                    question: "What did the hare do during the race?",
+                    options: ["Ran very fast", "Took a nap", "Cheered for the tortoise", "Asked for help"],
+                    correct: 1
+                },
+                {
+                    question: "How did the tortoise move?",
+                    options: ["Very fast", "Slowly but steadily", "He didn't move", "He flew"],
+                    correct: 1
+                },
+                {
+                    question: "Who won the race?",
+                    options: ["The hare", "The tortoise", "No one", "Both won"],
+                    correct: 1
+                },
+                {
+                    question: "What is the lesson of this story?",
+                    options: ["Sleeping is good", "Speed is everything", "Slow and steady wins the race", "Animals should not race"],
+                    correct: 2
+                }
+            ]
+        }
+    };
+
+    function selectStory(storyId) {
+        currentStory = stories[storyId];
+        if (!currentStory) return;
+        
+        // Update story display
+        document.getElementById('story-title').textContent = currentStory.title;
+        document.getElementById('story-content').textContent = currentStory.content;
+        
+        // Show story container
+        document.getElementById('story-container').classList.remove('hidden');
+        
+        // Generate questions for this story
+        generateQuestions();
+        
+        // Reset progress for new story
+        storiesRead++;
+        updateProgress();
+    }
+
+    function speakPassage() {
+        if (!currentStory) {
+            alert("Please select a story first!");
+            return;
+        }
+        
+        stopStory(); // Stop any ongoing narration
+        
+        currentUtterance = new SpeechSynthesisUtterance(currentStory.content);
+        currentUtterance.rate = 0.8;
+        currentUtterance.pitch = 1.2;
+        window.speechSynthesis.speak(currentUtterance);
+    }
+
+    function pauseStory() {
+        if (currentUtterance) {
+            window.speechSynthesis.pause();
+        }
+    }
+
+    function stopStory() {
+        window.speechSynthesis.cancel();
+    }
+
+    function resetReading() {
+        // Hide story container
+        document.getElementById('story-container').classList.add('hidden');
+        // Clear questions
+        document.getElementById('questions-container').innerHTML = '';
+        // Reset current story
+        currentStory = null;
+        currentQuestions = [];
+    }
+
+    function generateQuestions() {
+        if (!currentStory) return;
+        
+        const container = document.getElementById('questions-container');
+        container.innerHTML = '';
+
+        // Shuffle questions and pick 3 random ones from current story
+        const shuffled = [...currentStory.questions].sort(() => 0.5 - Math.random());
+        currentQuestions = shuffled.slice(0, 3);
+
+        currentQuestions.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'mb-6 p-4 border border-gray-200 rounded-lg';
+            questionDiv.innerHTML = `
+                <h3 class="text-lg font-bold text-gray-800 mb-3">${index + 1}. ${q.question}</h3>
+                <div class="space-y-2">
+                    ${q.options.map((opt, optIdx) => `
+                        <div>
+                            <input type="radio" name="q${index}" id="q${index}_opt${optIdx}" value="${optIdx}">
+                            <label for="q${index}_opt${optIdx}" class="ml-2 text-gray-700">${opt}</label>
+                        </div>
+                    `).join('')}
+                </div>
+                <button onclick="checkAnswer(${index})" class="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded text-sm">
+                    Check Answer
+                </button>
+                <div id="result-${index}" class="mt-2 text-sm font-medium hidden"></div>
+            `;
+            container.appendChild(questionDiv);
+        });
+    }
+
+    function checkAnswer(questionIndex) {
+        const selectedOption = document.querySelector(`input[name="q${questionIndex}"]:checked`);
+        if (!selectedOption) {
+            alert("Please select an answer!");
+            return;
+        }
+
+        const resultDiv = document.getElementById(`result-${questionIndex}`);
+        const userAnswer = parseInt(selectedOption.value);
+        const correctAnswer = currentQuestions[questionIndex].correct;
+
+        if (userAnswer === correctAnswer) {
+            resultDiv.innerHTML = '<span class="text-green-600">✅ Correct! Great job!</span>';
+            questionsCorrect++;
+            readingPoints += 10;
+        } else {
+            resultDiv.innerHTML = `<span class="text-red-600">❌ Try again! The correct answer is: ${currentQuestions[questionIndex].options[correctAnswer]}</span>`;
+        }
+
+        resultDiv.classList.remove('hidden');
+        updateProgress();
+    }
+
+    function updateProgress() {
+        document.getElementById('stories-read').textContent = storiesRead;
+        document.getElementById('questions-correct').textContent = questionsCorrect;
+        document.getElementById('reading-points').textContent = readingPoints;
+
+        // Save to DB
+        saveProgress('reading_comp', 1);
+    }
+
+    // --- Save Progress ---
+    async function saveProgress(qid, pts) {
+        try {
+            await fetch('/api/submit_progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quiz_id: `g2_reading_${qid}`, score: pts, total: 1 })
+            });
+        } catch (e) { }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function () {
+        // Don't auto-generate questions - wait for story selection
+        updateProgress();
+    });
+</script>
+{% endblock %}

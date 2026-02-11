@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+
+{% block title %}Weather & Seasons - Grade 2 Science{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-blue-800 mb-2">🌦️ Weather & Seasons</h1>
+                <p class="text-xl text-blue-600">Learn about weather patterns and seasonal changes</p>
+            </div>
+
+            <!-- Weather Types -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Different Types of Weather</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="text-center bg-yellow-50 p-4 rounded-xl">
+                        <div class="text-5xl mb-3">☀️</div>
+                        <h3 class="font-bold text-yellow-700 mb-2">Sunny</h3>
+                        <p class="text-gray-600 text-sm">Bright and warm with clear skies</p>
+                    </div>
+                    <div class="text-center bg-gray-100 p-4 rounded-xl">
+                        <div class="text-5xl mb-3">☁️</div>
+                        <h3 class="font-bold text-gray-700 mb-2">Cloudy</h3>
+                        <p class="text-gray-600 text-sm">Gray skies with lots of clouds</p>
+                    </div>
+                    <div class="text-center bg-blue-50 p-4 rounded-xl">
+                        <div class="text-5xl mb-3">🌧️</div>
+                        <h3 class="font-bold text-blue-700 mb-2">Rainy</h3>
+                        <p class="text-gray-600 text-sm">Water falls from the clouds</p>
+                    </div>
+                    <div class="text-center bg-purple-50 p-4 rounded-xl">
+                        <div class="text-5xl mb-3">❄️</div>
+                        <h3 class="font-bold text-purple-700 mb-2">Snowy</h3>
+                        <p class="text-gray-600 text-sm">White flakes fall from cold clouds</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Tools -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">🌦️ Weather Measuring Tools</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div class="text-6xl mb-3">🌡️</div>
+                        <h3 class="font-bold text-gray-800 mb-2">Thermometer</h3>
+                        <p class="text-gray-600">Measures how hot or cold it is</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-6xl mb-3">💨</div>
+                        <h3 class="font-bold text-gray-800 mb-2">Wind Vane</h3>
+                        <p class="text-gray-600">Shows which direction wind blows</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-6xl mb-3">🌧️</div>
+                        <h3 class="font-bold text-gray-800 mb-2">Rain Gauge</h3>
+                        <p class="text-gray-600">Measures how much rain falls</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seasons Section -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">🍂 The Four Seasons</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-green-50 p-4 rounded-xl text-center">
+                        <div class="text-4xl mb-2">🌸</div>
+                        <h3 class="font-bold text-green-700 mb-2">Spring</h3>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>🌸 Flowers bloom</li>
+                            <li>🌱 Plants grow</li>
+                            <li>🌤️ Warm weather</li>
+                            <li>🐦 Birds return</li>
+                        </ul>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-xl text-center">
+                        <div class="text-4xl mb-2">☀️</div>
+                        <h3 class="font-bold text-yellow-700 mb-2">Summer</h3>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>☀️ Hot and sunny</li>
+                            <li>🏖️ Beach time</li>
+                            <li>🍉 Fruits ripen</li>
+                            <li>🏊 Swimming fun</li>
+                        </ul>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-xl text-center">
+                        <div class="text-4xl mb-2">🍂</div>
+                        <h3 class="font-bold text-orange-700 mb-2">Autumn/Fall</h3>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>🍂 Leaves change color</li>
+                            <li>🎃 Harvest time</li>
+                            <li>🍁 Leaves fall down</li>
+                            <li>🧥 Cooler weather</li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-xl text-center">
+                        <div class="text-4xl mb-2">❄️</div>
+                        <h3 class="font-bold text-blue-700 mb-2">Winter</h3>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>❄️ Cold and snowy</li>
+                            <li>🎿 Fun in snow</li>
+                            <li>🏠 Stay warm inside</li>
+                            <li>🎄 Holiday season</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Activities -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">🎯 Weather Activities</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-indigo-50 p-4 rounded-xl">
+                        <h3 class="font-bold text-indigo-700 mb-3">Create a Weather Chart</h3>
+                        <p class="text-gray-600 mb-3">Draw pictures of different weather types you see each day for a week.</p>
+                        <div id="weather-chart-display" class="min-h-32 bg-white rounded-lg p-3 mb-3 text-center">
+                            <div class="text-gray-500">Your weather observations will appear here</div>
+                        </div>
+                        <div class="grid grid-cols-4 gap-2 mb-3">
+                            <button onclick="addWeatherObservation('sunny')" class="bg-yellow-100 hover:bg-yellow-200 p-2 rounded text-2xl">☀️</button>
+                            <button onclick="addWeatherObservation('cloudy')" class="bg-gray-100 hover:bg-gray-200 p-2 rounded text-2xl">☁️</button>
+                            <button onclick="addWeatherObservation('rainy')" class="bg-blue-100 hover:bg-blue-200 p-2 rounded text-2xl">🌧️</button>
+                            <button onclick="addWeatherObservation('snowy')" class="bg-purple-100 hover:bg-purple-200 p-2 rounded text-2xl">❄️</button>
+                        </div>
+                        <button onclick="weatherChart()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm">
+                            Save Chart
+                        </button>
+                    </div>
+                    <div class="bg-teal-50 p-4 rounded-xl">
+                        <h3 class="font-bold text-teal-700 mb-3">Seasons Dress-Up Game</h3>
+                        <p class="text-gray-600 mb-3">Match clothes to the correct season - what do you wear in each weather?</p>
+                        <div class="text-center mb-3">
+                            <div id="current-season" class="text-4xl mb-2">🌸</div>
+                            <div id="season-name" class="font-bold text-teal-700">Spring</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <button onclick="selectClothing('light-jacket')" class="bg-white hover:bg-gray-100 p-2 rounded border">🧥 Light Jacket</button>
+                            <button onclick="selectClothing('t-shirt')" class="bg-white hover:bg-gray-100 p-2 rounded border">👕 T-Shirt</button>
+                            <button onclick="selectClothing('sweater')" class="bg-white hover:bg-gray-100 p-2 rounded border">🧥 Sweater</button>
+                            <button onclick="selectClothing('heavy-coat')" class="bg-white hover:bg-gray-100 p-2 rounded border">🧥 Heavy Coat</button>
+                        </div>
+                        <div id="clothing-result" class="text-sm font-medium text-center mb-2"></div>
+                        <button onclick="nextSeason()" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm">
+                            Next Season
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Quiz -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">🧠 Weather Quiz</h2>
+                <div id="quiz-container">
+                    <!-- Dynamic questions will be generated here -->
+                </div>
+                <div class="text-center mt-4">
+                    <button onclick="generateNewQuiz()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg">
+                        <i class="fas fa-sync-alt mr-2"></i>New Quiz Questions
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Tracker -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Your Weather Learning</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <div>
+                        <div class="text-3xl font-bold text-blue-600 mb-2" id="weather-learned">0</div>
+                        <div class="text-gray-600">Weather Types</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-indigo-600 mb-2" id="seasons-known">0</div>
+                        <div class="text-gray-600">Seasons Learned</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-cyan-600 mb-2" id="weather-points">0</div>
+                        <div class="text-gray-600">Weather Points</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let weatherLearned = 0;
+    let seasonsKnown = 0;
+    let weatherPoints = 0;
+    let answeredQuestions = new Set();
+    let currentQuizQuestions = [];
+    let weatherObservations = [];
+    let currentSeasonIndex = 0;
+    let correctClothingMatches = 0;
+
+    // Dynamic quiz questions
+    const quizQuestions = [
+        {
+            question: "What tool measures temperature?",
+            options: ["Wind vane", "Thermometer", "Rain gauge", "Compass"],
+            correct: 1
+        },
+        {
+            question: "Which season has falling leaves?",
+            options: ["Spring", "Summer", "Autumn/Fall", "Winter"],
+            correct: 2
+        },
+        {
+            question: "What does a wind vane show?",
+            options: ["Temperature", "Wind direction", "Rain amount", "Humidity"],
+            correct: 1
+        },
+        {
+            question: "Which weather tool measures rainfall?",
+            options: ["Thermometer", "Wind vane", "Rain gauge", "Barometer"],
+            correct: 2
+        },
+        {
+            question: "What season is hot and sunny?",
+            options: ["Spring", "Summer", "Autumn", "Winter"],
+            correct: 1
+        },
+        {
+            question: "Which season has snow and cold weather?",
+            options: ["Spring", "Summer", "Autumn", "Winter"],
+            correct: 3
+        },
+        {
+            question: "What do plants need to grow in spring?",
+            options: ["Cold weather", "Warm weather and rain", "Snow", "Strong winds"],
+            correct: 1
+        },
+        {
+            question: "Which weather means gray skies with clouds?",
+            options: ["Sunny", "Cloudy", "Rainy", "Snowy"],
+            correct: 1
+        }
+    ];
+
+    // Seasons data
+    const seasons = [
+        { emoji: '🌸', name: 'Spring', correctClothing: 'light-jacket' },
+        { emoji: '☀️', name: 'Summer', correctClothing: 't-shirt' },
+        { emoji: '🍂', name: 'Autumn/Fall', correctClothing: 'sweater' },
+        { emoji: '❄️', name: 'Winter', correctClothing: 'heavy-coat' }
+    ];
+
+    // Clothing names
+    const clothingNames = {
+        'light-jacket': 'Light Jacket',
+        't-shirt': 'T-Shirt',
+        'sweater': 'Sweater',
+        'heavy-coat': 'Heavy Coat'
+    };
+
+    function generateNewQuiz() {
+        const container = document.getElementById('quiz-container');
+        container.innerHTML = '';
+        
+        // Shuffle questions and pick 3 random ones
+        const shuffled = [...quizQuestions].sort(() => 0.5 - Math.random()).slice(0, 3);
+        currentQuizQuestions = shuffled;
+        
+        shuffled.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'mb-6 p-4 border border-gray-200 rounded-lg';
+            questionDiv.innerHTML = `
+                <h3 class="text-lg font-bold text-gray-800 mb-3">${index + 1}. ${q.question}</h3>
+                <div class="space-y-2">
+                    ${q.options.map((opt, optIdx) => `
+                        <div>
+                            <input type="radio" name="q${index}" id="q${index}_opt${optIdx}" value="${optIdx}">
+                            <label for="q${index}_opt${optIdx}" class="ml-2 text-gray-700">${opt}</label>
+                        </div>
+                    `).join('')}
+                </div>
+                <button onclick="checkAnswer(${index})" class="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded text-sm">
+                    Check Answer
+                </button>
+                <div id="result-${index}" class="mt-2 text-sm font-medium hidden"></div>
+            `;
+            container.appendChild(questionDiv);
+        });
+        
+        answeredQuestions.clear();
+        updateProgress();
+    }
+
+    function checkAnswer(questionIndex) {
+        if (answeredQuestions.has(questionIndex)) return;
+        
+        const selectedOption = document.querySelector(`input[name="q${questionIndex}"]:checked`);
+        if (!selectedOption) {
+            alert("Please select an answer!");
+            return;
+        }
+
+        const resultDiv = document.getElementById(`result-${questionIndex}`);
+        const userAnswer = parseInt(selectedOption.value);
+        const correctAnswer = currentQuizQuestions[questionIndex].correct;
+
+        if (userAnswer === correctAnswer) {
+            resultDiv.innerHTML = '<span class="text-green-600">✅ Correct! Great job!</span>';
+            weatherPoints += 10;
+        } else {
+            resultDiv.innerHTML = `<span class="text-red-600">❌ Try again! The correct answer is: ${currentQuizQuestions[questionIndex].options[correctAnswer]}</span>`;
+        }
+
+        resultDiv.classList.remove('hidden');
+        answeredQuestions.add(questionIndex);
+        updateProgress();
+    }
+
+    // Weather Chart Activity
+    function addWeatherObservation(weatherType) {
+        const display = document.getElementById('weather-chart-display');
+        const weatherEmoji = {
+            'sunny': '☀️',
+            'cloudy': '☁️',
+            'rainy': '🌧️',
+            'snowy': '❄️'
+        };
+        
+        weatherObservations.push(weatherEmoji[weatherType]);
+        
+        if (weatherObservations.length === 1) {
+            display.innerHTML = '<div class="text-center"><div class="text-3xl mb-2">' + weatherObservations.join(' ') + '</div><div class="text-gray-600">Day 1</div></div>';
+        } else {
+            display.innerHTML = '<div class="text-center"><div class="text-2xl mb-2">' + weatherObservations.join(' ') + '</div><div class="text-gray-600">Days 1-' + weatherObservations.length + '</div></div>';
+        }
+    }
+
+    function weatherChart() {
+        if (weatherObservations.length === 0) {
+            alert("Please add some weather observations first!");
+            return;
+        }
+        
+        alert(`Great job! You've recorded ${weatherObservations.length} days of weather observations:\n${weatherObservations.join(' ')}\n\nThis is how meteorologists track weather patterns!`);
+        weatherLearned++;
+        weatherPoints += 10;
+        updateProgress();
+    }
+
+    // Seasons Dress-Up Game
+    function selectClothing(clothingType) {
+        const resultDiv = document.getElementById('clothing-result');
+        const currentSeason = seasons[currentSeasonIndex];
+        
+        if (clothingType === currentSeason.correctClothing) {
+            resultDiv.innerHTML = `<span class="text-green-600">✅ Perfect! ${clothingNames[clothingType]} is perfect for ${currentSeason.name}!</span>`;
+            correctClothingMatches++;
+            weatherPoints += 5;
+        } else {
+            resultDiv.innerHTML = `<span class="text-orange-600">🤔 Good try! For ${currentSeason.name}, ${clothingNames[currentSeason.correctClothing]} works better.</span>`;
+        }
+        
+        resultDiv.classList.remove('hidden');
+        updateProgress();
+    }
+
+    function nextSeason() {
+        currentSeasonIndex = (currentSeasonIndex + 1) % seasons.length;
+        const season = seasons[currentSeasonIndex];
+        
+        document.getElementById('current-season').textContent = season.emoji;
+        document.getElementById('season-name').textContent = season.name;
+        document.getElementById('clothing-result').classList.add('hidden');
+        
+        seasonsKnown++;
+        weatherPoints += 2;
+        updateProgress();
+    }
+
+    function updateProgress() {
+        document.getElementById('weather-learned').textContent = weatherLearned;
+        document.getElementById('seasons-known').textContent = seasonsKnown;
+        document.getElementById('weather-points').textContent = weatherPoints;
+        
+        saveProgress('weather_dynamic', 1);
+    }
+
+    // --- Save Progress ---
+    async function saveProgress(qid, pts) {
+        try {
+            await fetch('/api/submit_progress', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quiz_id: `g2_science_${qid}`, score: pts, total: 1 })
+            });
+        } catch (e) { }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function () {
+        weatherLearned = 4; // 4 weather types
+        seasonsKnown = 4;   // 4 seasons
+        generateNewQuiz();
+        updateProgress();
+    });
+</script>
+{% endblock %}
