@@ -611,7 +611,6 @@ a,
 .text-gray-300,
 .text-gray-400 {
   color: var(--color-primary);
-  /* Force dark text */
 }
 
 .text-gray-300,
@@ -1186,18 +1185,6 @@ textarea:focus {
   color: #555 !important;
 }
 
-/* Login/Signup Improvements */
-.login-card button,
-.signup-card button {
-  background: linear-gradient(135deg, #3b82f6, #4f46e5) !important;
-}
-
-.login-card button:hover,
-.signup-card button:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3) !important;
-}
-
 .login-card a,
 .signup-card a {
   color: #3b82f6 !important;
@@ -1283,8 +1270,6 @@ body {
 .balloon {
   display: none !important;
 }
-
-/* Removed Dark Mode Specifics */
 
 /* Mobile Font Optimization */
 @media screen and (max-width: 768px) {
