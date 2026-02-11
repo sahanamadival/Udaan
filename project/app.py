@@ -724,12 +724,7 @@ def login_required(role=None):
                 return redirect(url_for("index"))
             # Check role restrictions
             if role:
-                # If trying to access teacher functionality, deny access since it's been removed
-                if role == "teacher":
-                    flash("Teacher functionality has been removed.")
-                    return redirect(url_for("index"))
-                # Otherwise, check if user has the required role
-                elif user.get("role") != role:
+                if user.get("role") != role:
                     flash(f"Access restricted to {role}s only.")
                     return redirect(url_for("index"))
             return f(*args, **kwargs)
@@ -800,6 +795,10 @@ def index():
 @app.route("/student")
 def student_portal():
     return render_template("student_portal.html")
+
+@app.route("/teacher")
+def teacher_portal():
+    return render_template("teacher_portal.html")
 
 @app.route("/role/<role>")
 def role_page(role):
