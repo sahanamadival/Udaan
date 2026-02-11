@@ -2,7 +2,7 @@
 
 {% block title %}Reading Journey - Grade 4 - Udaan{% endblock %}
 
-{% block body_class %}min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 light-theme{% endblock %}
+{% block body_class %}min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 light-theme{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
@@ -11,7 +11,8 @@
       <h1 class="text-3xl font-bold text-purple-700 mb-6">Redirecting...</h1>
       <p class="text-gray-700 mb-8">You are being redirected to the Reading Journey page.</p>
       <div class="flex justify-center">
-        <a href="{{ url_for('grade_4_reading') }}" class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 font-bold py-3 px-6 rounded-xl transition-all">
+        <a href="{{ url_for('grade_4_reading') }}"
+          class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 font-bold py-3 px-6 rounded-xl transition-all">
           Go to Reading Journey Now
         </a>
       </div>
@@ -20,9 +21,9 @@
 </div>
 
 <script>
-// Auto-redirect after 2 seconds
-setTimeout(function() {
-  window.location.href = "{{ url_for('grade_4_reading') }}";
-}, 2000);
+  // Auto-redirect after 2 seconds
+  setTimeout(function () {
+    window.location.href = "{{ url_for('grade_4_reading') }}";
+  }, 2000);
 </script>
 {% endblock %}

@@ -195,7 +195,7 @@ body {
   animation: themeTransition 0.8s ease-out;
 }
 
-/* Removed Dark Theme Meteor Shower */
+
 
 @keyframes zoomInOut {
   0% {
@@ -1112,10 +1112,18 @@ textarea:focus {
 }
 
 /* Light theme form improvements */
-.light-theme .login-card {
-  background: rgba(255, 255, 255, 0.9) !important;
-  border-color: rgba(100, 100, 100, 0.2) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+.login-card button,
+.login-card.button,
+.login-card a,
+.login-card.block,
+.signup-card button,
+.signup-card.button,
+.signup-card a,
+.signup-card.block {
+  background: #F8F3E6 !important;
+  color: #5A4A1F !important;
+  border: 1px solid #EADFC2 !important;
+  box-shadow: none !important;
 }
 
 .light-theme .login-card input {

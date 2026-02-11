@@ -13,7 +13,9 @@
   {% block extra_css %}{% endblock %}
 </head>
 
-<body class="{% block body_class %}relative min-h-screen text-gray-900{% endblock %}">
+<body class="{% block body_class %}relative min-h-screen text-gray-900{% endblock %}"
+  data-has-textbook="{{ 'true' if session.get('uploaded_file') else 'false' }}"
+  data-flash-messages='{{ get_flashed_messages() | tojson | safe }}'>
 
   <!-- Flash Messages -->
   {% with messages = get_flashed_messages() %}
@@ -44,7 +46,8 @@
   </a>
 
   <!-- Fixed Back to Dashboard Button -->
-  {% if request.endpoint and 'dashboard' not in request.endpoint and 'index' not in request.endpoint %}
+  {% if request.endpoint and (('dashboard' not in request.endpoint) or (request.endpoint == 'games_dashboard')) and
+  'index' not in request.endpoint %}
   <a href="{{ url_for('teacher_dashboard') if session.user.role == 'teacher' else url_for('grade_' ~ session.user.grade ~ '_dashboard') }}"
     class="fixed top-4 left-4 z-50 bg-white/90 backdrop-blur-sm border border-gray-200 text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-full shadow-lg transition-all hover:scale-105 flex items-center gap-2 font-medium group">
     <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
@@ -52,7 +55,7 @@
   </a>
   {% endif %}
   {% endif %}
-  <!-- Theme Toggle Removed -->
+
 
   <!-- Light Theme Background Elements -->
   <div class="stars">
@@ -86,11 +89,175 @@
     <div class="particle"></div>
   </div>
 
+  <!-- Global Modals (No Blur, Ultra-High Z-Index) -->
+  <div id="loadingModal" class="fixed inset-0 bg-black/10 z-[300] hidden items-center justify-center"
+    style="display: none;">
+    <div class="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center">
+      <div class="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+      <h3 id="loadingText" class="text-xl font-bold text-gray-800 mb-2">Processing...</h3>
+      <p class="text-gray-500 text-center">Please wait while we generate your content.</p>
+    </div>
+  </div>
+
+  <div id="textbookWarningModal" class="fixed inset-0 bg-black/10 z-[300] hidden items-center justify-center"
+    style="display: none;">
+    <div class="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center">
+      <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mb-4 text-3xl">⚠️
+      </div>
+      <h3 class="text-xl font-bold text-gray-800 mb-2">No Textbook Selected</h3>
+      <p class="text-gray-600 text-center mb-6">Please upload or select a textbook to use this feature.</p>
+      <button onclick="document.getElementById('textbookWarningModal').style.display='none'"
+        class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-full font-bold transition-all">
+        Okay, I'll Upload One
+      </button>
+    </div>
+  </div>
+
+  <div id="successModal" class="fixed inset-0 bg-black/10 z-[300] hidden items-center justify-center"
+    style="display: none;">
+    <div class="bg-white rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center">
+      <div class="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4 text-3xl">✅
+      </div>
+      <h3 id="successTitle" class="text-xl font-bold text-gray-800 mb-2">Success!</h3>
+      <p id="successMessage" class="text-gray-600 text-center mb-6">Content generated successfully.</p>
+      <button onclick="document.getElementById('successModal').style.display='none'"
+        class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full font-bold transition-all">
+        Awesome!
+      </button>
+    </div>
+  </div>
+
   {% block content %}{% endblock %}
 
   <script>
-    // Theme logic removed - Enforced Light Theme
+
     document.body.classList.remove('light-theme'); // Clean just in case
+
+    // Global Learning Feature Validation & Loading
+    document.addEventListener('DOMContentLoaded', function () {
+      const hasTextbook = document.body.dataset.hasTextbook === 'true';
+      const loadingModal = document.getElementById('loadingModal');
+      const warningModal = document.getElementById('textbookWarningModal');
+      const successModal = document.getElementById('successModal');
+      const loadingText = document.getElementById('loadingText');
+      const successTitle = document.getElementById('successTitle');
+      const successMessage = document.getElementById('successMessage');
+
+      // Cleanup all modals on page load
+      if (loadingModal) loadingModal.style.display = 'none';
+      if (warningModal) warningModal.style.display = 'none';
+      if (successModal) successModal.style.display = 'none';
+
+      // --- Success Modal Logic ---
+      // Check for success via Template Flag (for flashcards/quiz pages)
+      const isSuccessTemplate = "{{ 'true' if success else 'false' }}" === 'true';
+
+      // Check for success via Flash Messages
+      let messages = [];
+      try {
+        const raw = document.body.dataset.flashMessages;
+        if (raw) messages = JSON.parse(raw);
+      } catch (e) {
+        console.error("Failed to parse flash messages:", e);
+      }
+      const flashSuccess = messages.find(msg => msg && (msg.includes('successfully') || msg.includes('ready for download')));
+
+      if (isSuccessTemplate) {
+        successTitle.textContent = "Generated Successfully!";
+        successMessage.textContent = "Your content is ready to explore.";
+        successModal.style.display = 'flex';
+      } else if (flashSuccess) {
+        successTitle.textContent = "Success!";
+        successMessage.textContent = flashSuccess;
+        if (loadingModal) loadingModal.style.display = 'none';
+        successModal.style.display = 'flex';
+
+        // Hide the default banner
+        const banners = document.querySelectorAll('.animate-bounce-in');
+        banners.forEach(b => b.style.display = 'none');
+      }
+
+      // Map form actions to loading messages
+      const featureMessages = {
+        'audio_narration': 'Generating Audio...',
+        'generate_summary': 'Summarizing... (May take 30s)',
+        'translate_text': 'Translating... (Please wait a minute)',
+        'generate_flashcards': 'Creating Flashcards...',
+        'generate_quiz': 'Preparing Quiz...',
+        'dyslexic_friendly': 'Opening Dyslexic Reader...',
+        'start_game': 'Starting Game...',
+        'ai_tutor': 'Starting AI Tutor...'
+      };
+
+      // Map link hrefs to messages
+      const linkMessages = {
+        '/game/memory': 'Loading Memory Game...',
+        '/game/dragdrop': 'Loading Drag & Drop...',
+        '/game/story': 'Starting Story Adventure...',
+        '/game/wordspeed': 'Loading Word Speed Game...'
+      };
+
+      document.addEventListener('submit', function (e) {
+        const form = e.target;
+        const action = form.getAttribute('action');
+
+        // Check if this form is one of our learning features
+        let isFeature = false;
+        let message = 'Processing...';
+
+        for (const [key, msg] of Object.entries(featureMessages)) {
+          if (action && action.includes(key)) {
+            isFeature = true;
+            message = msg;
+            break;
+          }
+        }
+
+        if (isFeature) {
+          if (!hasTextbook) {
+            e.preventDefault();
+            warningModal.style.display = 'flex';
+          } else {
+            // Show loading modal
+            loadingText.textContent = message;
+            loadingModal.style.display = 'flex';
+          }
+        }
+      });
+
+      document.addEventListener('click', function (e) {
+        const link = e.target.closest('a');
+        if (!link) return;
+
+        const href = link.getAttribute('href');
+        let isFeature = false;
+        let message = 'Loading...';
+
+        for (const [key, msg] of Object.entries(linkMessages)) {
+          if (href && href.includes(key)) {
+            isFeature = true;
+            message = msg;
+            break;
+          }
+        }
+
+        if (isFeature) {
+          if (!hasTextbook) {
+            e.preventDefault();
+            warningModal.style.display = 'flex';
+          } else {
+            loadingText.textContent = message;
+            loadingModal.style.display = 'flex';
+          }
+        }
+      });
+
+      // Also handle links that need validation (like AI Tutor if it's a link)
+      // Note: If AI Tutor is a link <a>, we need to intercept click
+      // Based on grade_4_dashboard, AI Tutor might be a link or not present in the list I saw.
+      // But typically links don't trigger submit. 
+      // If there are specific links to intercept, add them here.
+    });
   </script>
 
   {% block extra_js %}{% endblock %}

@@ -1,8 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 import sqlite3
 import os
+import xml.sax.saxutils as saxutils
+import asyncio
+import edge_tts
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from functools import wraps
 import PyPDF2
 import time
@@ -18,17 +21,52 @@ from PyPDF2 import PdfReader
 import fitz 
 import pytesseract
 from PIL import Image
+import secrets
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from dotenv import load_dotenv
 import json
 import re
 from pdf2image import convert_from_path
-import pytesseract
-import os
-from dotenv import load_dotenv
 import zipfile
 import xml.etree.ElementTree as ET
 
-# Load .env file
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))  # Load environment variables from .env file
+
+# AI Quota Config
+MAX_TOKENS = int(os.getenv("MAX_TOKENS", 500))
+DAILY_REQUEST_LIMIT = int(os.getenv("DAILY_REQUEST_LIMIT", 20))
+
+def check_and_update_quota(student_id):
+    """
+    Logs AI usage to terminal and database.
+    Does NOT block the user (monitoring mode).
+    """
+    today = datetime.now(timezone.utc).date().isoformat()
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Check current usage
+    cur.execute("SELECT request_count FROM api_usage WHERE student_id = ? AND usage_date = ?", (student_id, today))
+    row = cur.fetchone()
+    
+    count = 0
+    if row:
+        count = row[0]
+        # Log to terminal if over soft limit
+        if count >= DAILY_REQUEST_LIMIT:
+            print(f"!!! [MONITORING] Student {student_id} exceeded soft daily limit ({count + 1}/{DAILY_REQUEST_LIMIT}) !!!")
+        
+        # Increment usage
+        cur.execute("UPDATE api_usage SET request_count = request_count + 1 WHERE student_id = ? AND usage_date = ?", (student_id, today))
+    else:
+        # First request of the day
+        cur.execute("INSERT INTO api_usage (student_id, usage_date, request_count) VALUES (?, ?, ?)", (student_id, today, 1))
+    
+    conn.commit()
+    conn.close()
+    return True, ""
 
 # Initialize OpenAI client
 api_key = os.getenv("OPENAI_API_KEY")
@@ -62,9 +100,41 @@ else:
 
 
 app = Flask(__name__)
-app.secret_key = "dev-secret-change-this"  
+app.secret_key = os.getenv("SECRET_KEY", "dev-secret-change-this")  
 DB = "database.db"
-books=[]
+
+# Google OAuth setup
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_DISCOVERY_URL = os.getenv("GOOGLE_DISCOVERY_URL", "https://accounts.google.com/.well-known/openid_configuration")
+
+if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
+    from requests_oauthlib import OAuth2Session
+    import requests
+    
+    # Allow OAuth2 over HTTP for local development
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+    
+    # Define Google OAuth URLs
+    AUTHORIZATION_BASE_URL = "https://accounts.google.com/o/oauth2/v2/auth"
+    TOKEN_URL = "https://oauth2.googleapis.com/token"
+    USER_INFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
+    
+    # Scopes for Google OAuth
+    GOOGLE_SCOPES = ["openid", "email", "profile"]
+    
+    def get_google_auth_state_token():
+        """Generate a state parameter to prevent CSRF attacks"""
+        import secrets
+        return secrets.token_urlsafe(32)
+    
+    # Google OAuth routes will create OAuth2Session directly
+
+# Check if Google OAuth is properly configured
+if GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET:
+    print("Google OAuth configured successfully")
+else:
+    print("Warning: Google OAuth is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env file.")
 
 BOOKS_FOLDER = os.path.join("static", "books")
 os.makedirs(BOOKS_FOLDER, exist_ok=True)
@@ -77,26 +147,46 @@ os.makedirs(AUDIO_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # Hybrid Text Extraction
-def extract_text_hybrid(file_path):
+def run_edge_tts(text, output_file, voice="en-US-ChristopherNeural"):
+    """
+    Synchronous wrapper for Edge TTS.
+    """
+    async def _generate():
+        communicate = edge_tts.Communicate(text, voice)
+        await communicate.save(output_file)
+
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+             # If strictly single-threaded/event loop already running, we might need nesting
+             # But for Flask (threaded), new loop usually works better or run_coroutine_threadsafe
+            asyncio.run(_generate()) 
+        else:
+            loop.run_until_complete(_generate())
+    except RuntimeError:
+        # Fallback for when loop is already running (e.g. some envs)
+        asyncio.run(_generate())
+
+def extract_text_hybrid(filepath):
     """
     Robust text extraction supporting PDF, DOCX, and TXT.
     Handles scanned PDFs via OCR (if dependencies exist).
     """
     text = ""
-    ext = os.path.splitext(file_path)[1].lower()
+    ext = os.path.splitext(filepath)[1].lower()
 
-    print(f"Extracting text from: {file_path} ({ext})")
+    print(f"Extracting text from: {filepath} ({ext})")
 
     try:
         # --- TXT File ---
         if ext == ".txt":
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
                 return f.read()
 
         # --- DOCX File (XML Parsing) ---
-        elif ext == ".docx":
+        if ext == ".docx":
             try:
-                with zipfile.ZipFile(file_path) as z:
+                with zipfile.ZipFile(filepath) as z:
                     xml_content = z.read("word/document.xml")
                     root = ET.fromstring(xml_content)
                     namespace = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
@@ -110,10 +200,10 @@ def extract_text_hybrid(file_path):
                 return ""
 
         # --- PDF File ---
-        elif ext == ".pdf":
+        if ext == ".pdf":
             # 1. Try PyPDF2 (Text-based PDF)
             try:
-                pdf_reader = PyPDF2.PdfReader(open(file_path, "rb"))
+                pdf_reader = PyPDF2.PdfReader(open(filepath, "rb"))
                 for page in pdf_reader.pages:
                     text += page.extract_text() or ""
             except Exception as e:
@@ -129,7 +219,7 @@ def extract_text_hybrid(file_path):
                 # Check for Poppler (required for convert_from_path to work)
                 try:
                     from pdf2image import convert_from_path
-                    pages = convert_from_path(file_path) 
+                    pages = convert_from_path(filepath) 
                     for page in pages:
                         text += pytesseract.image_to_string(page)
                 except Exception as e:
@@ -198,10 +288,16 @@ def text_to_pdf(text, output_pdf, font_path, font_size=16):
 
     story = []
     
+    # Clean text: Remove control characters that might break ReportLab
+    text = "".join(ch for ch in text if ch.isprintable() or ch in "\n\r\t")
+    
     # Process text into paragraphs
     for p in text.split("\n"):
-        if p.strip():
-            story.append(Paragraph(p, custom_style))
+        p_clean = p.strip()
+        if p_clean:
+            # Escape HTML-like characters (e.g., <, >, &) that break ReportLab Paragraph
+            escaped_text = saxutils.escape(p_clean)
+            story.append(Paragraph(escaped_text, custom_style))
         else:
             story.append(Spacer(1, 12))
 
@@ -212,8 +308,7 @@ def text_to_pdf(text, output_pdf, font_path, font_size=16):
 def translate_pdf_to_pdf(input_pdf, output_pdf, target_lang, font_path):
     font_name = f"Font_{target_lang}"
     pdfmetrics.registerFont(TTFont(font_name, font_path))
-    # translator = Translator()
-
+    
     with open(input_pdf, "rb") as book:
         reader = PyPDF2.PdfReader(book)
         c = canvas.Canvas(output_pdf, pagesize=A4)
@@ -222,8 +317,14 @@ def translate_pdf_to_pdf(input_pdf, output_pdf, target_lang, font_path):
         for num in range(len(reader.pages)):
             text = reader.pages[num].extract_text()
             if text:
-                # Skip translation since translator is not properly configured
-                translated = text
+                # Translate text using deep-translator
+                try:
+                    translated = GoogleTranslator(source="auto", target=target_lang).translate(text)
+                except Exception as e:
+                    print(f"Translation error: {e}")
+                    # Fallback to original text if translation fails
+                    translated = text
+                    
                 textobject = c.beginText(50, height - 50)
                 textobject.setFont(font_name, 12)
 
@@ -289,62 +390,7 @@ def extract_labels_for_dragdrop(text):
         print(f"Error in extract_labels_for_dragdrop: {e}")
         return {"error": str(e)}
 
-def get_grade4_progress(student_id):
-    conn = sqlite3.connect("database.db")
-    cur = conn.cursor()
 
-    # First, run migration to ensure columns exist
-    migrate_student_progress_table()
-
-    try:
-        cur.execute("""
-            SELECT books_analyzed, math_solved, science_done, creative_done
-            FROM student_progress
-            WHERE student_id=? AND grade=4
-        """, (student_id,))
-
-        row = cur.fetchone()
-
-        if not row:
-            cur.execute("""
-                INSERT INTO student_progress (student_id, grade)
-                VALUES (?, 4)
-            """, (student_id,))
-            conn.commit()
-            return (0, 0, 0, 0)
-
-        conn.close()
-        return row
-    except sqlite3.OperationalError as e:
-        # Handle case where columns still don't exist after migration
-        if "no such column" in str(e):
-            # Ensure columns exist by running migration again
-            conn.close()
-            migrate_student_progress_table()
-            # Retry the operation
-            conn = sqlite3.connect("database.db")
-            cur = conn.cursor()
-            
-            cur.execute("""
-                SELECT books_analyzed, math_solved, science_done, creative_done
-                FROM student_progress
-                WHERE student_id=? AND grade=4
-            """, (student_id,))
-
-            row = cur.fetchone()
-
-            if not row:
-                cur.execute("""
-                    INSERT INTO student_progress (student_id, grade)
-                    VALUES (?, 4)
-                """, (student_id,))
-                conn.commit()
-                return (0, 0, 0, 0)
-
-            conn.close()
-            return row
-        else:
-            raise e
 
 def update_progress(student_id, field):
     # First, run migration to ensure columns exist
@@ -457,6 +503,16 @@ def migrate_database():
         if "last_activity_date" not in columns:
             cur.execute("ALTER TABLE student_progress ADD COLUMN last_activity_date DATE")
             print("Added last_activity_date column to student_progress table")
+
+        # Add OTP columns to students table if they don't exist
+        cur.execute("PRAGMA table_info(students)")
+        student_columns = [row[1] for row in cur.fetchall()]
+        if "reset_otp" not in student_columns:
+            cur.execute("ALTER TABLE students ADD COLUMN reset_otp TEXT")
+            print("Added reset_otp column to students table")
+        if "reset_otp_expires" not in student_columns:
+            cur.execute("ALTER TABLE students ADD COLUMN reset_otp_expires TEXT")
+            print("Added reset_otp_expires column to students table")
         
         if "streak_count" not in columns:
             cur.execute("ALTER TABLE student_progress ADD COLUMN streak_count INTEGER DEFAULT 0")
@@ -481,6 +537,39 @@ def migrate_database():
         )""")
         print("Ensured grade_activities table exists")
         
+        # Add reset_token columns to students table only (teacher functionality removed)
+        try:
+            cur.execute("ALTER TABLE students ADD COLUMN reset_token TEXT")
+            print("Added reset_token column to students table")
+        except sqlite3.OperationalError:
+            # Column might already exist, ignore error
+            pass
+        
+        try:
+            cur.execute("ALTER TABLE students ADD COLUMN reset_token_expires TEXT")
+            print("Added reset_token_expires column to students table")
+        except sqlite3.OperationalError:
+            # Column might already exist, ignore error
+            pass
+        
+        # Add google_id column for Google OAuth support
+        try:
+            cur.execute("ALTER TABLE students ADD COLUMN google_id TEXT")
+            print("Added google_id column to students table")
+        except sqlite3.OperationalError:
+            # Column might already exist, ignore error
+            pass
+        
+        # Add api_usage table for quota tracking
+        cur.execute("""CREATE TABLE IF NOT EXISTS api_usage (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER,
+            usage_date DATE,
+            request_count INTEGER DEFAULT 0,
+            FOREIGN KEY(student_id) REFERENCES students(id)
+        )""")
+        print("Ensured api_usage table exists")
+        
         conn.commit()
         print("Database migration completed successfully")
         
@@ -490,7 +579,6 @@ def migrate_database():
         raise
     finally:
         conn.close()
-
 def create_default_teachers():
     """Ensure 5 default teacher accounts exist, one for each grade."""
     conn = sqlite3.connect("database.db")
@@ -571,108 +659,14 @@ def create_basic_tables(c):
         email TEXT,
         phone TEXT,
         password_hash TEXT,
-        created_at TEXT
+        created_at TEXT,
+        reset_token TEXT,
+        reset_token_expires TEXT
     )""")
     # Add other essential tables as needed
 
 
-def init_db_old():
-    # Original init_db function preserved for reference
-    conn = get_db()
-    c = conn.cursor()
 
-    c.execute("""CREATE TABLE IF NOT EXISTS students (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        age INTEGER,
-        grade TEXT,
-        accessibility TEXT,
-        email TEXT,
-        phone TEXT,
-        password_hash TEXT,
-        created_at TEXT
-    )""")
-    c.execute("""CREATE TABLE IF NOT EXISTS teachers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT,
-        phone TEXT,
-        password_hash TEXT,
-        created_at TEXT
-    )""")
-    c.execute("""CREATE TABLE IF NOT EXISTS uploads (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_id INTEGER,
-        filename TEXT,
-        uploaded_at TEXT,
-        FOREIGN KEY(student_id) REFERENCES students(id)
-    )""")
-    
-    c.execute("""CREATE TABLE IF NOT EXISTS flashcards (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_id INTEGER,
-        filename TEXT,
-        num_flashcards INTEGER,
-        created_at TEXT,
-        data TEXT,
-        FOREIGN KEY(student_id) REFERENCES students(id)
-    )""")
-
-    c.execute("""CREATE TABLE IF NOT EXISTS student_progress (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_id INTEGER,
-        activity_type TEXT NOT NULL,
-        data_json TEXT,
-        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(student_id) REFERENCES students(id),
-        UNIQUE(student_id, activity_type)
-    )""")
-
-    c.execute("""CREATE TABLE IF NOT EXISTS quiz_attempts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_id INTEGER,
-        quiz_id TEXT,
-        score INTEGER,
-        total INTEGER,
-        attempted_at TEXT,
-        FOREIGN KEY(student_id) REFERENCES students(id)
-    )""")
-    
-    # Create AI Tutor sessions table
-    c.execute("""CREATE TABLE IF NOT EXISTS ai_tutor_sessions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_id INTEGER,
-        role TEXT,          -- 'user' or 'assistant'
-        message TEXT,
-        difficulty INTEGER DEFAULT 3,
-        timestamp TEXT,
-        FOREIGN KEY(student_id) REFERENCES students(id)
-    )""")
-    
-    # Create puzzle_data table for drag-and-drop game
-    c.execute("""CREATE TABLE IF NOT EXISTS puzzle_data (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        student_id INTEGER,
-        filename TEXT,
-        puzzle_json TEXT,
-        created_at TEXT,
-        FOREIGN KEY(student_id) REFERENCES students(id)
-    )""")
-    
-    # Create AI summaries table
-    c.execute("CREATE TABLE IF NOT EXISTS ai_summaries (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        student_id INTEGER,\n        filename TEXT,\n        summary TEXT,\n        created_at TEXT,\n        FOREIGN KEY(student_id) REFERENCES students(id)\n    )")
-        
-    # Create writing progress table
-    c.execute("CREATE TABLE IF NOT EXISTS writing_progress (\n        id INTEGER PRIMARY KEY,\n        student_id TEXT,\n        text TEXT,\n        word_count INTEGER,\n        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n    )")
-    
-    # Create writing streak table
-    c.execute("CREATE TABLE IF NOT EXISTS writing_streak (\n        student_id TEXT PRIMARY KEY,\n        last_date DATE,\n        streak_count INTEGER DEFAULT 0\n    )")
-    
-    # Create student progress table
-    c.execute("""CREATE TABLE IF NOT EXISTS student_progress (\n        id INTEGER PRIMARY KEY AUTOINCREMENT,\n        student_id INTEGER,\n        grade INTEGER,\n        books_analyzed INTEGER DEFAULT 0,\n        math_solved INTEGER DEFAULT 0,\n        science_done INTEGER DEFAULT 0,\n        creative_done INTEGER DEFAULT 0,\n        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n    )""")
-    
-    conn.commit()
-    conn.close()
 
 
 def login_required(role=None):
@@ -683,9 +677,11 @@ def login_required(role=None):
             if not user:
                 flash("Please log in first.")
                 return redirect(url_for("index"))
-            if role and user.get("role") != role:
-                flash(f"Access restricted to {role}s only.")
-                return redirect(url_for("index"))
+            # Check role restrictions
+            if role:
+                if user.get("role") != role:
+                    flash(f"Access restricted to {role}s only.")
+                    return redirect(url_for("index"))
             return f(*args, **kwargs)
         return wrapped
     return decorator
@@ -767,9 +763,11 @@ def teacher_portal():
 @app.route("/role/<role>")
 def role_page(role):
     role = role.lower()
-    if role not in ("student", "teacher"):
+    if role not in ["student", "teacher"]:
         flash("Invalid role selected.")
         return redirect(url_for("index"))
+    if role == "teacher":
+        return redirect(url_for("login_teacher"))
     return render_template("auth_options.html", role=role)
 
 # Student signup/login 
@@ -850,6 +848,130 @@ def login_student():
             return redirect(request.url)
     return render_template("login_student.html")
 
+
+@app.route('/google/login/student')
+def google_login_student():
+    if not (GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET):
+        flash("Google login is not configured by the administrator.")
+        return redirect(url_for('login_student'))
+    
+    # Create OAuth2 session
+    google = OAuth2Session(
+        client_id=GOOGLE_CLIENT_ID,
+        scope=GOOGLE_SCOPES,
+        redirect_uri=url_for('google_callback_student', _external=True)
+    )
+    
+    # Generate authorization URL
+    authorization_url, state = google.authorization_url(
+        AUTHORIZATION_BASE_URL,
+        access_type="offline",
+        prompt="select_account"
+    )
+    
+    # Store state in session for security
+    session['oauth_state'] = state
+    
+    return redirect(authorization_url)
+
+
+@app.route('/google/callback/student')
+def google_callback_student():
+    if not (GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET):
+        flash("Google login is not configured by the administrator.")
+        return redirect(url_for('login_student'))
+    
+    try:
+        # Create OAuth2 session with state for security
+        google = OAuth2Session(
+            client_id=GOOGLE_CLIENT_ID,
+            state=session.get('oauth_state'),
+            redirect_uri=url_for('google_callback_student', _external=True)
+        )
+        
+        # Fetch token
+        token = google.fetch_token(
+            TOKEN_URL,
+            authorization_response=request.url,
+            client_secret=GOOGLE_CLIENT_SECRET
+        )
+        
+        # Get user info
+        user_info = google.get(USER_INFO_URL).json()
+        
+        # Extract user details
+        email = user_info.get('email', '')
+        name = user_info.get('name', user_info.get('given_name', 'Unknown'))
+        google_id = user_info.get('id')
+        picture_url = user_info.get('picture')
+        
+        conn = get_db()
+        c = conn.cursor()
+        
+        # Check if user exists by google_id first, then by email
+        # This handles cases where a user might have changed their email 
+        # but already linked their Google account.
+        c.execute("PRAGMA table_info(students)")
+        columns = [col[1] for col in c.fetchall()]
+        
+        user = None
+        if 'google_id' in columns:
+            c.execute("SELECT * FROM students WHERE google_id = ?", (google_id,))
+            user = c.fetchone()
+            
+        if not user:
+            c.execute("SELECT * FROM students WHERE email = ?", (email,))
+            user = c.fetchone()
+        
+        if user:
+            # Update Google ID if not already set or if it's different (link existing account)
+            if 'google_id' in columns and (not user['google_id'] or user['google_id'] != google_id):
+                c.execute("UPDATE students SET google_id = ? WHERE id = ?", (google_id, user['id']))
+                conn.commit()
+            
+            # Also update email if it was found by google_id but the email is different
+            if user['email'] != email:
+                c.execute("UPDATE students SET email = ? WHERE id = ?", (email, user['id']))
+                conn.commit()
+            
+            # Clear any existing session data to prevent conflicts
+            session.clear()
+            
+            # Set new user session
+            session['user'] = {
+                'role': 'student', 
+                'id': user['id'], 
+                'name': user['name'], 
+                'grade': user['grade']
+            }
+            conn.close()
+            
+            # Redirect to appropriate grade dashboard
+            if user['grade'] and user['grade'] in ["1", "2", "3", "4", "5"]:
+                return redirect(url_for(f"grade_{user['grade']}_dashboard"))
+            else:
+                return redirect_to_dashboard(session.get('user'))
+        else:
+            # Clear any existing session data to prevent conflicts
+            session.clear()
+            
+            # User doesn't exist, redirect to complete profile
+            session['pending_google_signup'] = {
+                'email': email,
+                'name': name,
+                'google_id': google_id,
+                'picture_url': picture_url
+            }
+            conn.close()
+            return redirect(url_for('complete_profile_student'))
+    
+    except Exception as e:
+        print(f"Google OAuth error: {str(e)}")
+        flash("Google login failed. Please try again.")
+        return redirect(url_for('login_student'))
+
+
+
 # Teacher signup/login
 @app.route("/signup/teacher", methods=["GET", "POST"])
 def signup_teacher():
@@ -857,42 +979,9 @@ def signup_teacher():
     flash("Teacher signup is currently disabled. Please use your assigned credentials.")
     return redirect(url_for("index"))
     
-    if request.method == "POST":
-        try:
-            name = request.form.get("name", "").strip()
-            email = request.form.get("email") or None
-            phone = request.form.get("phone") or None
-            password = request.form.get("password") or None
-            if not name:
-                flash("Name is required.")
-                return redirect(request.url)
-
-            conn = get_db()
-            cur = conn.cursor()
-            cur.execute("SELECT id FROM teachers WHERE name = ?", (name,))
-            if cur.fetchone():
-                flash("A teacher/parent with that name already exists.")
-                conn.close()
-                return redirect(url_for("index"))
-
-            if not password:
-                flash("Password is required.")
-                conn.close()
-                return redirect(request.url)
-
-            password_hash = generate_password_hash(password)
-            cur.execute("""
-                INSERT INTO teachers (name, email, phone, password_hash, created_at)
-                VALUES (?, ?, ?, ?, ?)
-            """, (name, email, phone, password_hash, datetime.now(timezone.utc).isoformat()))
-            conn.commit()
-            conn.close()
-            flash("Teacher/Parent signed up successfully. Please login.")
-            return redirect(url_for("index"))
-        except Exception as e:
-            flash(f"An error occurred during signup: {str(e)}")
-            return redirect(request.url)
-    return render_template("signup_teacher.html")
+    
+    # Disabled to prevent unauthorized access. Using pre-defined accounts instead.
+    # Note: master branch had a functional signup but we are keeping it disabled per recent cleanup.
 
 @app.route("/login/teacher", methods=["GET", "POST"])
 def login_teacher():
@@ -926,6 +1015,84 @@ def login_teacher():
             flash(f"An error occurred during login: {str(e)}")
             return redirect(request.url)
     return render_template("login_teacher.html")
+
+@app.route("/complete-profile/student", methods=["GET","POST"])
+def complete_profile_student():
+    """Handle student profile completion after Google signup"""
+    print(f"DEBUG: Profile completion route accessed. Session: {dict(session)}")
+    print(f"DEBUG: Session user: {session.get('user')}")
+    
+    if request.method == "POST":
+        # Read form data
+        username = request.form.get("username")
+        age = request.form.get("age")
+        grade = request.form.get("grade")
+        
+        # Check if this is a Google signup (new user)
+        pending_signup = session.get("pending_google_signup")
+        
+        if pending_signup:
+            # This is a new user completing profile after Google signup
+            conn = get_db()
+            cur = conn.cursor()
+            
+            # Check if google_id column exists
+            cur.execute("PRAGMA table_info(students)")
+            columns = [col[1] for col in cur.fetchall()]
+            
+            if 'google_id' in columns:
+                # Insert new student with google_id
+                cur.execute(
+                    "INSERT INTO students (name, age, grade, email, google_id, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                    (username, age, grade, pending_signup['email'], pending_signup['google_id'], datetime.now(timezone.utc).isoformat())
+                )
+            else:
+                # Insert new student without google_id (for backward compatibility)
+                cur.execute(
+                    "INSERT INTO students (name, age, grade, email, created_at) VALUES (?, ?, ?, ?, ?)",
+                    (username, age, grade, pending_signup['email'], datetime.now(timezone.utc).isoformat())
+                )
+            new_user_id = cur.lastrowid
+            conn.commit()
+            conn.close()
+            
+            # Clear the pending signup and set user session
+            session.pop('pending_google_signup', None)
+            session['user'] = {
+                'role': 'student',
+                'id': new_user_id,
+                'name': username,
+                'grade': grade
+            }
+            
+            # Redirect to correct grade dashboard
+            return redirect(url_for(f"grade_{grade}_dashboard"))
+        else:
+            # Existing user updating profile
+            user_id = session.get("user", {}).get("id")
+            if not user_id:
+                flash("Session expired. Please login again.")
+                return redirect(url_for("login_student"))
+            
+            # UPDATE students table
+            conn = get_db()
+            cur = conn.cursor()
+            cur.execute(
+                "UPDATE students SET name = ?, age = ?, grade = ? WHERE id = ?",
+                (username, age, grade, user_id)
+            )
+            conn.commit()
+            conn.close()
+            
+            # Update session with grade info
+            session["user"]["grade"] = grade
+            
+            # Redirect to correct grade dashboard dynamically
+            return redirect(url_for(f"grade_{grade}_dashboard"))
+    
+    # GET request - render template
+    print("DEBUG: Rendering profile completion template")
+    return render_template("complete_profile_student.html")
 
 # Student Dashboard 
 # Old general student dashboard removed - using grade-specific dashboards instead
@@ -2070,6 +2237,8 @@ def grade_5_location_learning():
 @app.route("/api/grade5/check_paragraph", methods=["POST"])
 @login_required(role="student")
 def check_paragraph():
+    # Quota log
+    check_and_update_quota(session["user"]["id"])
     try:
         data = request.get_json()
         paragraph = data.get("paragraph", "")
@@ -2093,6 +2262,7 @@ def check_paragraph():
         
         response = client.chat.completions.create(
             model="gpt-4o-mini",
+            max_tokens=MAX_TOKENS,
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7
         )
@@ -2437,6 +2607,9 @@ def audio_narration():
         flash("File not found.")
         return redirect_to_dashboard(user)
 
+    # Quota log
+    check_and_update_quota(user["id"])
+
     # Extract text
     text = extract_text_hybrid(filepath)
 
@@ -2467,14 +2640,22 @@ def audio_narration():
 
         os.makedirs("static/narrations", exist_ok=True)
 
-        speech = client.audio.speech.create(
-            model="gpt-4o-mini-tts",
-            voice="alloy",
-            input=text[:4000]
-        )
-
-        with open(audio_path, "wb") as f:
-            f.write(speech.content)
+        try:
+            speech = client.audio.speech.create(
+                model="gpt-4o-mini-tts",
+                voice="alloy",
+                input=text[:4000]
+            )
+            with open(audio_path, "wb") as f:
+                f.write(speech.content)
+        except Exception as e:
+            print(f"OpenAI TTS failed: {e}. Trying Edge TTS fallback...")
+            try:
+                run_edge_tts(text[:4000], audio_path)
+            except Exception as e2:
+                print(f"Edge TTS also failed: {e2}")
+                flash("Audio generation failed.")
+                return redirect_to_dashboard(user)
 
         if not os.path.exists(audio_path):
             flash("Audio generation failed.")
@@ -2484,6 +2665,7 @@ def audio_narration():
         session.modified = True
 
         print("=== AUDIO STORED IN SESSION ===")
+        flash("Audio narration generated successfully!")
 
     except Exception as e:
         print("=== AUDIO ERROR ===")
@@ -2517,6 +2699,9 @@ def generate_summary():
         flash("⚠️ No textbook uploaded yet.")
         return redirect_to_dashboard(session.get("user"))
 
+    # Quota log
+    check_and_update_quota(user["id"])
+
     filename = result["filename"]
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
 
@@ -2545,6 +2730,7 @@ def generate_summary():
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
+            max_tokens=MAX_TOKENS,
             messages=[
                 {"role": "system", "content": "Explain clearly for school students."},
                 {"role": "user", "content": text[:6000]}
@@ -2561,11 +2747,20 @@ def generate_summary():
         session.modified = True
 
         print("=== SUMMARY STORED IN SESSION ===")
+        flash("AI Summary generated successfully!")
 
     except Exception as e:
         print("=== OPENAI ERROR ===")
         print(str(e))
-        flash("⚠️ AI summary generation failed.")
+        # Fallback: Simple Extractive Summary
+        sentences = re.split(r'(?<=[.!?]) +', text)
+        # Take up to 5 sentences and format as a bulleted list
+        top_sentences = sentences[:5]
+        summary = "<ul class='list-disc pl-5 space-y-2'>" + "".join([f"<li>{s}</li>" for s in top_sentences]) + "</ul><p class='mt-2 text-sm text-gray-500 italic'>(Preview due to AI quota limit)</p>"
+        
+        session["summary"] = summary
+        session.modified = True
+        flash("AI Summary generated successfully! (Fallback Mode)")
         return redirect_to_dashboard(user)
 
     return redirect_to_dashboard(user)
@@ -2578,6 +2773,9 @@ def translate_text():
     user = session.get("user")
     filename = session.get("uploaded_file")
 
+    # Quota log
+    check_and_update_quota(user["id"])
+
     if not filename:
         flash("No textbook uploaded yet.")
         return redirect_to_dashboard(user)
@@ -2589,6 +2787,7 @@ def translate_text():
         return redirect_to_dashboard(user)
 
     # ---------- Extract text ----------
+    print(f"--- Starting text extraction for {filename} ---")
     try:
         text = extract_text_hybrid(filepath)
         
@@ -2616,31 +2815,51 @@ def translate_text():
         client = OpenAI()
 
         prompt = f"""
-Translate the following educational text into **simple Hindi**.
+Translate the following educational text into **simple Hindi**. 
 
 Rules:
-- Keep ALL content
+- Keep ALL content from the provided snippet
 - Do NOT summarize
-- Do NOT remove examples
 - Keep paragraph structure same
 
 Text:
-{text[:15000]}
+{text[:5000]}
 """
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
+            max_tokens=2000, # Increased for translation specifically
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
         )
 
-        hindi_text = response.choices[0].message.content.strip()
+        translated_text = response.choices[0].message.content.strip()
         print("=== HINDI GENERATED ===")
 
     except Exception as e:
         print("OPENAI TRANSLATION ERROR:", e)
-        flash("Translation failed.")
-        return redirect_to_dashboard(user)
+        # Fallback: Google Translate (Free)
+        try:
+            print("Trying Google Translate fallback...")
+            from deep_translator import GoogleTranslator
+            
+            # Use a smaller chunk size to be safe (800 chars) to avoid URL length errors
+            fallback_text = text[:800]
+            
+            # Perform translation
+            translator = GoogleTranslator(source='auto', target='hi')
+            translated_text = translator.translate(fallback_text)
+            
+            if not translated_text:
+                raise Exception("Empty translation result")
+
+            translated_text += "\n\n(Translated slightly less text due to free tool limits)"
+            flash("Translation successful! (Fallback Mode)")
+            
+        except Exception as e2:
+             print("Fallback Translation failed:", e2)
+             flash(f"Translation failed: {str(e2)}")
+             return redirect_to_dashboard(user)
 
     # ---------- FONT HANDLING (ROBUST) ----------
     hindi_font_path = os.path.join(
@@ -2667,13 +2886,13 @@ Text:
 
         print("Saving Hindi PDF to:", hindi_path)
 
-        if not hindi_text.strip():
+        if not translated_text or not translated_text.strip():
             flash("Translation returned empty text.")
             return redirect_to_dashboard(user)
 
         # If font exists → use custom font
         if font_to_use:
-            text_to_pdf(hindi_text, hindi_path, font_to_use)
+            text_to_pdf(translated_text, hindi_path, font_to_use)
         else:
             # Fallback using improved wrapper even without custom font (though Hindi won't show)
             # Actually, without custom font, we use Helvetica but still want wrapping
@@ -2692,9 +2911,9 @@ Text:
             )
             
             story = []
-            for p in hindi_text.split("\n"):
+            for p in translated_text.split("\n"):
                 if p.strip():
-                    story.append(Paragraph(p, custom_style))
+                    story.append(Paragraph(saxutils.escape(p), custom_style))
             doc.build(story)
 
         if not os.path.exists(hindi_path):
@@ -2705,7 +2924,7 @@ Text:
 
     except Exception as e:
         print("PDF SAVE ERROR:", e)
-        flash("Failed to create Hindi PDF.")
+        flash(f"Failed to create Hindi PDF: {str(e)}")
         return redirect_to_dashboard(user)
 
     # ---------- STORE IN SESSION ----------
@@ -2762,6 +2981,9 @@ def generate_flashcards():
     import json, re
     user = session.get("user")
     
+    # Quota log
+    check_and_update_quota(user["id"])
+    
     filename = session.get("uploaded_file")
 
     # Validate filename BEFORE any DB operation
@@ -2807,9 +3029,11 @@ def generate_flashcards():
     # ------------------------
     # Generate flashcards (10) using OpenAI
     # ------------------------
+    success_ui = True
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
+            max_tokens=MAX_TOKENS + 1000, # Allow more for JSON flashcards
             messages=[
                 {
                     "role": "system",
@@ -2820,7 +3044,6 @@ def generate_flashcards():
                     "content": f"Create flashcards from this text: {text[:4000]}"
                 }
             ],
-            max_tokens=1500,
             temperature=0.7
         )
         
@@ -2840,6 +3063,7 @@ def generate_flashcards():
             raise ValueError("Invalid flashcard format received")
             
     except Exception as e:
+        success_ui = False
         print(f"OpenAI flashcard generation error: {str(e)}")
         flash("⚠️ AI flashcard generation failed. Using fallback method.")
         # Fallback flashcards
@@ -2897,12 +3121,15 @@ def generate_flashcards():
     conn.commit()
     conn.close()
 
-    return render_template("flashcard.html", flashcards=flashcards, user=user)
+    return render_template("flashcard.html", flashcards=flashcards, user=user, success=success_ui)
 
 @app.route("/generate_quiz", methods=["POST"])
 @login_required(role="student")
 def generate_quiz():
     user = session.get("user")
+    
+    # Quota log
+    check_and_update_quota(user["id"])
     
     filename = session.get("uploaded_file")
     if not filename:
@@ -2923,6 +3150,7 @@ def generate_quiz():
         return redirect_to_dashboard(user)
 
     # Generate quiz with OpenAI
+    success_ui = True
     try:
         # Increase variety by taking a random slice of text if it's long
         max_chars = 6000
@@ -2937,6 +3165,7 @@ def generate_quiz():
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
+            max_tokens=MAX_TOKENS + 1500, # Quizzes need more tokens for JSON
             messages=[
                 {
                     "role": "system",
@@ -2947,7 +3176,6 @@ def generate_quiz():
                     "content": f"Create a diverse 10-question multiple-choice quiz from this section of the textbook: {text_slice}"
                 }
             ],
-            max_tokens=2500,
             temperature=0.8
         )
         raw = response.choices[0].message.content.strip()
@@ -2969,6 +3197,7 @@ def generate_quiz():
                 raise ValueError("Each question must have 4 options")
 
     except Exception as e:
+        success_ui = False
         print(f"OpenAI quiz generation error: {str(e)}")
         flash("⚠️ AI quiz generation failed. Using fallback method.")
         # Fallback quiz
@@ -2983,7 +3212,7 @@ def generate_quiz():
     session["quiz"] = quiz
     session["quiz_file"] = filename  
 
-    return render_template("quiz.html", quiz=quiz, user=user)
+    return render_template("quiz.html", quiz=quiz, user=user, success=success_ui)
 
 @app.route("/submit_quiz", methods=["POST"])
 @login_required(role="student")
@@ -3237,7 +3466,6 @@ def student_progress():
 @app.route("/logout")
 def logout():
     session.clear()
-    flash("Logged out.")
     return redirect(url_for("index"))
 
 @app.route("/api/read-selected-text", methods=["POST"])
@@ -3298,7 +3526,11 @@ def api_read_selected_text():
             ) as response:
                 response.stream_to_file(audio_path)
         except Exception as e:
-            return {"error": f"TTS failed: {str(e)}"}, 500
+            print(f"OpenAI TTS failed: {e}. Trying Edge TTS fallback...")
+            try:
+                run_edge_tts(raw_text[:4000], audio_path)
+            except Exception as e2:
+                return {"error": f"TTS failed: {str(e)} | Fallback failed: {str(e2)}"}, 500
 
         # Verify the file was created
         if not os.path.exists(audio_path):
@@ -3570,6 +3802,8 @@ def api_dragdrop_generate():
 @app.route("/story/start", methods=["POST"])
 @login_required(role="student")
 def story_start():
+    # Quota log
+    check_and_update_quota(session["user"]["id"])
     try:
         print("Story start endpoint called")
         data = request.get_json()
@@ -3594,6 +3828,8 @@ def story_start():
 @app.route("/story/continue", methods=["POST"])
 @login_required(role="student")
 def story_continue():
+    # Quota log
+    check_and_update_quota(session["user"]["id"])
     try:
         print("Story continue endpoint called")
         data = request.get_json()
@@ -3677,7 +3913,7 @@ Requirements:
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
-            max_tokens=800,
+            max_tokens=MAX_TOKENS + 500,
             response_format={ "type": "json_object" }
         )
         
@@ -3864,6 +4100,8 @@ def ai_tutor():
 @app.route("/api/ai_tutor", methods=["POST"])
 @login_required(role="student")
 def api_ai_tutor():
+    # Quota log
+    check_and_update_quota(session["user"]["id"])
     try:
         data = request.get_json()
         user_id = data.get("user_id")
@@ -3968,10 +4206,10 @@ Create a CLEAR, simple ASCII art diagram for: '{user_message}'.
         
         # Use OpenAI model to generate response
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
-            max_tokens=500
+            max_tokens=MAX_TOKENS
         )
         
         if not response or not response.choices:
@@ -4138,7 +4376,230 @@ def submit_progress():
 
 
 
+def send_reset_otp_email(email, name, otp):
+    """Send password reset OTP email to the user"""
+    print(f"DEBUG: Attempting to send OTP to {email}...")
+    try:
+        # Get email settings from environment variables
+        smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_port = int(os.getenv('SMTP_PORT', '587'))
+        email_user = os.getenv('EMAIL_ADDRESS')
+        email_password = os.getenv('EMAIL_PASSWORD')
+        
+        print(f"DEBUG: Using SMTP Server: {smtp_server}:{smtp_port}")
+        print(f"DEBUG: Email User: {email_user}")
+        
+        if not email_user or not email_password:
+            print("ERROR: EMAIL_ADDRESS or EMAIL_PASSWORD not configured in .env file")
+            print(f"DEBUG: Falling back to console OTP: {otp}")
+            return False
+            
+        # Create message
+        msg = MIMEMultipart()
+        msg['From'] = f"Udaan Team <{email_user}>"
+        msg['To'] = email
+        msg['Subject'] = f"{otp} is your Udaan Reset Code"
+        
+        # Email body
+        body = f"""
+Dear {name},
+
+Your password reset OTP for Udaan Learning Platform is:
+
+{otp}
+
+This code will expire in 15 minutes.
+
+If you did not request this password reset, please ignore this email.
+
+Best regards,
+The Udaan Team
+        """
+        
+        msg.attach(MIMEText(body, 'plain'))
+        
+        # Connect to server and send email
+        print("DEBUG: Connecting to SMTP server...")
+        if smtp_port == 465:
+            server = smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=10)
+        else:
+            server = smtplib.SMTP(smtp_server, smtp_port, timeout=10)
+            server.starttls()  # Enable encryption
+            
+        print("DEBUG: Attempting to login...")
+        server.login(email_user, email_password)
+        text = msg.as_string()
+        print("DEBUG: Sending mail...")
+        server.sendmail(email_user, email, text)
+        server.quit()
+        
+        print(f"SUCCESS: Password reset OTP sent successfully to {email}")
+        return True
+        
+    except Exception as e:
+        print(f"CRITICAL ERROR: Failed to send email: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        # Fallback: print the OTP to console
+        print(f"DEBUG: FALLBACK OTP: {otp}")
+        return False
+
+
+@app.route('/forgot-password/student', methods=["GET", "POST"])
+def forgot_password_student():
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        print(f"DEBUG: Password reset request for email: {email}")
+        
+        if not email:
+            flash("Please enter your email address.")
+            return redirect(url_for('forgot_password_student'))
+        
+        conn = get_db()
+        c = conn.cursor()
+        
+        # Find student by email
+        c.execute("SELECT id, name, email FROM students WHERE email = ?", (email,))
+        student = c.fetchone()
+        
+        if not student:
+            print(f"DEBUG: Email {email} not found in database.")
+            flash(f"No account found with the email: {email}. Please check your spelling or register first.")
+            return redirect(url_for('forgot_password_student'))
+        
+        print(f"DEBUG: Found student: {student['name']} (ID: {student['id']})")
+        
+        # Generate 6-digit OTP
+        import random
+        otp = str(random.randint(100000, 999999))
+        expires_at = (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat()
+        
+        # Store OTP in database
+        c.execute("UPDATE students SET reset_otp = ?, reset_otp_expires = ? WHERE id = ?",
+                 (otp, expires_at, student['id']))
+        conn.commit()
+        conn.close()
+        
+        # Store email in session for the next step
+        session['reset_email'] = email
+        
+        # Send the reset OTP email
+        email_sent = send_reset_otp_email(student['email'], student['name'], otp)
+        
+        if email_sent:
+            flash(f"A 6-digit OTP has been sent to your email. Please enter it below.")
+        else:
+            # Fallback for development
+            flash(f"OTP generated. For development: {otp}")
+        
+        return redirect(url_for('verify_otp_student'))
+    
+    return render_template('forgot_password_student.html', request_method='GET')
+
+
+@app.route('/verify-otp/student', methods=["GET", "POST"])
+def verify_otp_student():
+    email = session.get('reset_email')
+    if not email:
+        return redirect(url_for('forgot_password_student'))
+        
+    if request.method == "POST":
+        otp = request.form.get("otp", "").strip()
+        
+        if not otp:
+            flash("Please enter the OTP.")
+            return render_template('verify_otp_student.html')
+            
+        conn = get_db()
+        c = conn.cursor()
+        
+        # Check if OTP is valid
+        c.execute("SELECT id, reset_otp, reset_otp_expires FROM students WHERE email = ?", (email,))
+        student = c.fetchone()
+        
+        if not student or student['reset_otp'] != otp:
+            flash("Invalid OTP.")
+            return render_template('verify_otp_student.html')
+            
+        # Check if OTP has expired
+        expires_at = datetime.fromisoformat(student['reset_otp_expires'])
+        if datetime.now(timezone.utc) > expires_at:
+            flash("OTP has expired. Please request a new one.")
+            return redirect(url_for('forgot_password_student'))
+            
+        # OTP is valid, generate a temporary token for the reset page
+        reset_token = secrets.token_urlsafe(32)
+        token_expires_at = (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat()
+        c.execute("UPDATE students SET reset_token = ?, reset_token_expires = ?, reset_otp = NULL WHERE id = ?",
+                 (reset_token, token_expires_at, student['id']))
+        conn.commit()
+        conn.close()
+        
+        return redirect(url_for('reset_password', token=reset_token))
+        
+    return render_template('verify_otp_student.html')
+
+
+@app.route('/reset-password/<token>', methods=["GET", "POST"])
+def reset_password(token):
+    if request.method == "POST":
+        password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+        
+        if not password or not confirm_password:
+            flash("Please enter both password fields.")
+            return redirect(url_for('reset_password', token=token))
+        
+        if password != confirm_password:
+            flash("Passwords do not match.")
+            return redirect(url_for('reset_password', token=token))
+        
+        if len(password) < 6:
+            flash("Password must be at least 6 characters long.")
+            return redirect(url_for('reset_password', token=token))
+        
+        conn = get_db()
+        c = conn.cursor()
+        
+        # Check if token exists and hasn't expired
+        c.execute("SELECT id FROM students WHERE reset_token = ? AND reset_token_expires > ?",
+                 (token, datetime.now(timezone.utc).isoformat()))
+        student = c.fetchone()
+        
+        if not student:
+            flash("Invalid or expired reset token.")
+            conn.close()
+            return redirect(url_for('forgot_password_student'))
+        
+        # Hash the new password
+        password_hash = generate_password_hash(password)
+        
+        # Update password and clear the reset token
+        c.execute("UPDATE students SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL WHERE reset_token = ?",
+                 (password_hash, token))
+        conn.commit()
+        conn.close()
+        
+        flash("Your password has been reset successfully. You can now log in.")
+        return redirect(url_for('login_student'))
+    
+    # Check if token is valid for GET request
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT id FROM students WHERE reset_token = ? AND reset_token_expires > ?",
+             (token, datetime.now(timezone.utc).isoformat()))
+    student = c.fetchone()
+    conn.close()
+    
+    if not student:
+        flash("Invalid or expired reset token.")
+        return redirect(url_for('forgot_password_student'))
+    
+    return render_template('reset_password.html')
+
+
 if __name__ == "__main__":
+
     init_db()
     # Run migration to handle existing databases that may not have all columns
     migrate_student_progress_table()

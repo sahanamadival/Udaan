@@ -2,8 +2,8 @@
 
 {% block title %}AI Tutor - Udaan{% endblock %}
 
-{% block body_class %}relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))]
-from-gray-950 via-[#0a0d21] to-[#020410] text-indigo-900 overflow-x-hidden{% endblock %}
+{% block body_class %}relative min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 text-indigo-900 font-comic
+overflow-x-hidden{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -187,11 +187,11 @@ from-gray-950 via-[#0a0d21] to-[#020410] text-indigo-900 overflow-x-hidden{% end
         -webkit-tap-highlight-color: transparent;
     }
 
-    /* Ensure all elements use dark theme */
+    /* Ensure all elements use light theme */
     html,
     body {
-        background-color: #020410;
-        color: white;
+        background-color: transparent;
+        color: #312E81;
     }
 
     /* Fix for code blocks */
@@ -272,8 +272,8 @@ from-gray-950 via-[#0a0d21] to-[#020410] text-indigo-900 overflow-x-hidden{% end
 
 <div class="max-w-7xl mx-auto p-4 md:p-6 pt-20 relative z-10 min-h-screen flex flex-col">
     <!-- Top Bar -->
-    <div class="flex justify-between items-center mb-6 fade-up flex-wrap gap-4">
-        <h1 class="text-2xl pt-20 md:text-3xl font-bold">AI Tutor</h1>
+    <div class="flex justify-between items-center mb-6 fade-up flex-wrap gap-4 mt-20">
+        <h1 class="text-3xl md:text-3xl font-bold text-indigo-900">AI Tutor</h1>
 
     </div>
 
@@ -299,7 +299,7 @@ from-gray-950 via-[#0a0d21] to-[#020410] text-indigo-900 overflow-x-hidden{% end
                 <h3 class="font-bold mb-4 px-2">Learning Modes</h3>
                 <div class="space-y-3">
                     <button id="teachBtn"
-                        class="w-full text-left bg-white  rounded-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-[1.02] active-mode">
+                        class="w-full text-left bg-white border border-transparent rounded-xl p-4 hover:bg-indigo-50 transition-all duration-300 hover:scale-[1.02] active-mode">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-full bg-[#EEEAF7] flex items-center justify-center">
                                 <span>📚</span>

@@ -2,8 +2,8 @@
 
 {% block title %}Student Progress Dashboard - Udaan{% endblock %}
 
-{% block body_class %}relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))]
-from-gray-950 via-[#0a0d21] to-[#020410] text-indigo-900{% endblock %}
+{% block body_class %}relative min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 text-indigo-900 font-comic{%
+endblock %}
 
 {% block extra_css %}
 <style>
@@ -109,15 +109,16 @@ from-gray-950 via-[#0a0d21] to-[#020410] text-indigo-900{% endblock %}
     }
 
     .card {
-        background: rgba(15, 23, 42, 0.7);
-        border: 1px solid rgba(148, 163, 184, 0.3);
-        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.5);
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(165, 180, 252, 0.3);
+        box-shadow: 0 10px 25px rgba(165, 180, 252, 0.1);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.7);
+        box-shadow: 0 15px 35px rgba(165, 180, 252, 0.2);
     }
 
     .button {
@@ -212,7 +213,7 @@ from-gray-950 via-[#0a0d21] to-[#020410] text-indigo-900{% endblock %}
         position: relative;
         z-index: 1;
         font-weight: 800;
-        color: #e5f2ff;
+        color: #312E81;
     }
 
     .ring .sub {
@@ -233,7 +234,7 @@ from-gray-950 via-[#0a0d21] to-[#020410] text-indigo-900{% endblock %}
 
     .section-title {
         font-weight: 800;
-        color: #e5f2ff;
+        color: #312E81;
     }
 
     .list-group-item {
@@ -317,9 +318,8 @@ from-gray-950 via-[#0a0d21] to-[#020410] text-indigo-900{% endblock %}
 
 <div class="max-w-6xl mx-auto p-4 md:p-6 relative z-10">
     <!-- Top Bar -->
-    <div class="flex justify-between items-center mb-8 fade-up">
-        <h1 class="text-2xl md:text-3xl font-bold">📊 Student Progress Dashboard</h1>
-        <!-- Back Button Removed -->
+    <div class="flex justify-between items-center mb-8 fade-up mt-20">
+        <h1 class="text-3xl md:text-4xl font-bold text-indigo-900">📊 Progress Hub</h1>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-6">
@@ -526,10 +526,4 @@ from-gray-950 via-[#0a0d21] to-[#020410] text-indigo-900{% endblock %}
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-
-</script>
 {% endblock %}

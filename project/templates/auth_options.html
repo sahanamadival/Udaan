@@ -6,52 +6,92 @@
 
 {% block extra_css %}
 <style>
+  .role-switch {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
 
-    .role-switch { display:flex; gap:8px; align-items:center; justify-content:center; margin-bottom:14px; }
-    .chip { padding:8px 14px; border-radius:999px; background:#eef6ff; color:#2563eb; font-weight:600; text-decoration:none; box-shadow:0 2px 8px rgba(37,99,235,0.08); transition:transform .12s ease, box-shadow .12s ease, background .2s; }
-    .chip:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(37,99,235,0.16); }
-    .chip.active { background:#2563eb; color:#fff; }
-    .button { display:inline-flex; align-items:center; justify-content:center; gap:8px; }
-    .button:focus-visible, .chip:focus-visible { outline:3px solid #93c5fd; outline-offset:2px; }
-    .btn-grid { display:flex; flex-direction:column; gap:10px; }
-  
+  .chip {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+    transition: transform .12s ease, box-shadow .12s ease, background .2s;
+  }
+
+  .chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.16);
+  }
+
+  .chip.active {
+    background: #2563eb;
+    color: #fff;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .button:focus-visible,
+  .chip:focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 2px;
+  }
+
+  .btn-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <section class="glass-panel fade-in" style="max-width:520px;margin:48px auto;">
-    <div class="role-switch" aria-label="Choose role">
-      <a class="chip {% if role == 'student' %}active{% endif %}" href="{{ url_for('role_page', role='student') }}">Student</a>
-      <a class="chip {% if role == 'teacher' %}active{% endif %}" href="{{ url_for('role_page', role='teacher') }}">Teacher/Parent</a>
-    </div>
+  <div class="role-switch" aria-label="Choose role">
+    <a class="chip {% if role == 'student' %}active{% endif %}"
+      href="{{ url_for('role_page', role='student') }}">Student</a>
+    <a class="chip {% if role == 'teacher' %}active{% endif %}"
+      href="{{ url_for('role_page', role='teacher') }}">Teacher/Parent</a>
+  </div>
 
-    <h2 style="text-align:center;margin:0 0 6px 0;">Welcome to Udaan</h2>
-    <p style="text-align:center;margin:0 0 16px 0;">Continue as a {{ role|capitalize }}.</p>
+  <h2 style="text-align:center;margin:0 0 6px 0;">Welcome to Udaan</h2>
+  <p style="text-align:center;margin:0 0 16px 0;">Continue as a {{ role|capitalize }}.</p>
 
-    <div class="btn-grid" role="group" aria-label="Authentication actions">
-      {% if role == 'student' %}
-        <a class="button" href="{{ url_for('login_student') }}">🔑 Student Login</a>
-        <a class="button" href="{{ url_for('signup_student') }}" style="background:linear-gradient(90deg,#22c55e 0%, #16a34a 100%);">📝 Student Signup</a>
-      {% elif role == 'teacher' %}
-        <a class="button" href="{{ url_for('login_teacher') }}">🔑 Teacher/Parent Login</a>
-        <a class="button" href="{{ url_for('signup_teacher') }}" style="background:linear-gradient(90deg,#22c55e 0%, #16a34a 100%);">📝 Teacher/Parent Signup</a>
-      {% endif %}
-    </div>
+  <div class="btn-grid" role="group" aria-label="Authentication actions">
+    {% if role == 'student' %}
+    <a class="button" href="{{ url_for('login_student') }}" style="background:#2673ca;">🔑 Student Login</a>
+    <a class="button" href="{{ url_for('signup_student') }}"
+      style="background:linear-gradient(90deg,#22c55e 0%, #16a34a 100%);">📝 Student Signup</a>
+    {% elif role == 'teacher' %}
+    <a class="button" href="{{ url_for('login_teacher') }}">👩‍🏫 Teacher/Parent Login</a>
+    {% endif %}
+  </div>
 
-    <div style="margin-top:18px;text-align:center;">
-      <a href="{{ url_for('index') }}" class="badge" style="display:inline-block;text-decoration:none;">⬅ Back</a>
-    </div>
-  </section>
+  <div style="margin-top:18px;text-align:center;">
+    <a href="{{ url_for('index') }}" class="badge" style="display:inline-block;text-decoration:none;">⬅ Back</a>
+  </div>
+</section>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 
-    // Simple hover micro-interaction: add a subtle scale on auth buttons
-    document.querySelectorAll('.button').forEach(btn => {
-      btn.addEventListener('mouseenter', () => btn.style.transform = 'translateY(-1px) scale(1.01)');
-      btn.addEventListener('mouseleave', () => btn.style.transform = '');
-    });
-  
+  // Simple hover micro-interaction: add a subtle scale on auth buttons
+  document.querySelectorAll('.button').forEach(btn => {
+    btn.addEventListener('mouseenter', () => btn.style.transform = 'translateY(-1px) scale(1.01)');
+    btn.addEventListener('mouseleave', () => btn.style.transform = '');
+  });
+
 </script>
 {% endblock %}

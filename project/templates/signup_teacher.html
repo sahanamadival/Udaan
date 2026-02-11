@@ -2,7 +2,8 @@
 
 {% block title %}Teacher Signup - Udaan{% endblock %}
 
-{% block body_class %}min-h-screen flex items-center justify-center p-4 light-theme teacher-page{% endblock %}
+{% block body_class %}min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4
+font-comic light-theme teacher-page{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -96,23 +97,13 @@
 
 <!-- Glassmorphic Card -->
 <div
-  class="max-w-md w-full mx-auto p-7 bg-white/80 backdrop-blur-2xl rounded-2xl border border-gray-200 shadow-[0_8px_32px_rgba(0,0,0,0.15)] relative z-10">
+  class="max-w-md w-full mx-auto p-7 bg-white/80 backdrop-blur-2xl rounded-2xl border border-gray-200 shadow-[0_8px_32px_rgba(0,0,0,0.15)] relative z-10 signup-card">
   <div class="text-center mb-6">
     <h1 class="text-2xl font-bold text-gray-800 mb-2">Teacher Registration</h1>
     <p class="text-gray-600">Join Udaan as an educator</p>
   </div>
 
-  {% with messages = get_flashed_messages() %}
-  {% if messages %}
-  <div class="mb-6">
-    {% for msg in messages %}
-    <div class="bg-red-100 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm">
-      {{ msg }}
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
-  {% endwith %}
+
 
   <form method="POST" class="space-y-5">
     <div>
@@ -150,8 +141,7 @@
       </label>
     </div>
 
-    <button type="submit"
-      class="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold text-lg hover:scale-[1.02] hover:shadow-lg transition-all">
+    <button type="submit" class="w-full py-3 rounded-xl font-semibold text-lg hover:scale-[1.02] transition-all">
       Create Account
     </button>
   </form>

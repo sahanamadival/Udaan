@@ -2,16 +2,16 @@
 
 {% block title %}Grade 3 Dashboard - Udaan{% endblock %}
 
-{% block body_class %}min-h-screen bg-gradient-to-br from-yellow-50 to-amber-100{% endblock %}
+{% block body_class %}min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8 pt-20">
     <div class="max-w-6xl mx-auto">
         <!-- Header -->
         <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-amber-800 mb-2">Welcome, {{ user.name }}!</h1>
-            <p class="text-xl text-amber-600">Grade 3 Learning Dashboard</p>
-            <div class="mt-4 inline-block bg-amber-100 text-amber-800 px-4 py-2 rounded-full font-semibold">
+            <h1 class="text-4xl font-bold text-indigo-800 mb-2">Welcome, {{ user.name }}!</h1>
+            <p class="text-xl text-indigo-600">Grade 3 Learning Dashboard</p>
+            <div class="mt-4 inline-block bg-indigo-100 text-indigo-800 px-4 py-2 rounded-full font-semibold">
                 Grade 3 Student
             </div>
         </div>
@@ -22,7 +22,7 @@
             <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <span>📘</span> AI Summary
             </h3>
-            <p class="text-gray-700 dyslexic-mode text-lg leading-relaxed">{{ ai_summary }}</p>
+            <p class="text-gray-700 dyslexic-mode text-lg leading-relaxed">{{ ai_summary | safe }}</p>
         </div>
         {% endif %}
 
