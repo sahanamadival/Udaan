@@ -141,6 +141,7 @@ The schema supports Grade 1 to Grade 5 dynamically.
 - Set a strong `app.secret_key` in production
 - Never commit `.env` with real keys
 - Validate & sanitize uploads; limit file size and content type
+- **Google OAuth**: Secure OAuth 2.0 authentication for students and teachers
 - **DB auto-creation**: SQLite database safely created on first run
 - **Safe file handling**: Temporary audio files automatically cleaned
 - **Production ready**: Schema migrations handle version upgrades safely

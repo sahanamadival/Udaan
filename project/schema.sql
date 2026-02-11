@@ -11,7 +11,10 @@ CREATE TABLE IF NOT EXISTS students (
     email TEXT,
     phone TEXT,
     password_hash TEXT,
-    created_at TEXT
+    created_at TEXT,
+    reset_token TEXT,
+    reset_token_expires TEXT,
+    google_id TEXT
 );
 
 -- Teachers table
@@ -22,7 +25,8 @@ CREATE TABLE IF NOT EXISTS teachers (
     phone TEXT,
     password_hash TEXT,
     grade TEXT,
-    created_at TEXT
+    created_at TEXT,
+    google_id TEXT
 );
 
 -- File uploads table
@@ -107,7 +111,7 @@ CREATE TABLE IF NOT EXISTS writing_streak (
 CREATE TABLE IF NOT EXISTS student_progress (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER,
-    grade INTEGER,  -- 1, 2, 3, 4, or 5
+    grade INTEGER,  -- 1, 2, 4, or 5
     books_analyzed INTEGER DEFAULT 0,
     math_solved INTEGER DEFAULT 0,
     science_done INTEGER DEFAULT 0,
@@ -124,7 +128,7 @@ CREATE TABLE IF NOT EXISTS student_progress (
 CREATE TABLE IF NOT EXISTS grade_activities (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER,
-    grade INTEGER,  -- 1, 2, 3, 4, or 5
+    grade INTEGER,  -- 1, 2, 4, or 5
     activity_type TEXT,  -- 'reading', 'writing', 'math', 'science', 'creative'
     activity_count INTEGER DEFAULT 0,
     last_completed DATE,

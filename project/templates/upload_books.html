@@ -1,174 +1,130 @@
 {% extends "base.html" %}
 
-{% block title %}Upload / View Books{% endblock %}
+{% block title %}Upload / View Books - Udaan{% endblock %}
 
-{% block body_class %}relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-950 via-[#0a0d21] to-[#020410] text-white{% endblock %}
+{% block body_class %}min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 light-theme{% endblock %}
 
 {% block extra_css %}
 <style>
-
-    body {
-      font-family: 'Lexend', Arial, sans-serif;
-      background: #f5f5f7;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
     }
 
-    .container {
-      max-width: 950px;
-      margin: 50px auto;
-      padding: 40px 30px;
-      background: #ffffff;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
+  }
 
-    h1 {
-      text-align: center;
-      margin-bottom: 35px;
-      font-size: 2rem;
-      color: #222;
-    }
+  .fade-up {
+    animation: fadeUp 0.8s ease-out forwards;
+  }
 
-    form {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 40px;
-      flex-wrap: wrap;
-    }
+  .upload-card {
+    background: white;
+    border-radius: 1.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    padding: 2.5rem;
+  }
 
-    input[type="file"] {
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.95rem;
-    }
+  .book-card {
+    background: #f9fafb;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid #f3f4f6;
+    transition: all 0.3s ease;
+  }
 
-    button {
-      padding: 12px 25px;
-      border: none;
-      background: #4CAF50;
-      color: white;
-      font-weight: 600;
-      font-size: 0.95rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
+  .book-card:hover {
+    transform: translateY(-4px);
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-color: #e0e7ff;
+  }
 
-    button:hover {
-      background: #45a049;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-    }
-
-    .books-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 30px;
-    }
-
-    .book-card {
-      background: #fdfdfd;
-      padding: 20px 15px;
-      border-radius: 12px;
-      text-align: center;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.05);
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
-
-    .book-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    }
-
-    .book-cover {
-      width: 100px;
-      height: 140px;
-      margin: 0 auto 15px;
-      background: linear-gradient(135deg, #ffe29f, #fecd81);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 600;
-      color: #333;
-      text-align: center;
-      padding: 5px;
-    }
-
-    a {
-      text-decoration: none;
-      color: #2563eb;
-      font-weight: 600;
-      transition: color 0.3s;
-    }
-
-    a:hover {
-      color: #1e40af;
-    }
-
-    .back-btn {
-      display: block;
-      width: fit-content;
-      margin: 40px auto 0;
-      padding: 12px 28px;
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    .back-btn:hover {
-      background: #1e40af;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
-    }
-  
+  .book-icon {
+    width: 60px;
+    height: 80px;
+    background: #e0e7ff;
+    border-radius: 4px;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #4f46e5;
+    border: 2px solid #c7d2fe;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1>📚 Upload / View Books</h1>
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+  <!-- Top Bar -->
+  <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 fade-up">
+    <div>
+      <h1 class="text-3xl font-bold text-indigo-900">📚 Upload Resources</h1>
+      <p class="text-indigo-600">Share textbooks and materials with your students</p>
+    </div>
+    <a href="{{ url_for('teacher_dashboard') }}"
+      class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold py-2.5 px-6 rounded-full transition-all border border-indigo-200">
+      Back to Dashboard
+    </a>
+  </div>
 
-    <!-- Upload form -->
-    <form action="{{ url_for('upload_books') }}" method="POST" enctype="multipart/form-data">
-      <input type="file" name="book" accept="application/pdf" required>
-      <button type="submit">Upload</button>
-    </form>
-
-    <!-- Books grid -->
-    <div class="books-grid">
-      {% for book in books %}
-        <div class="book-card">
-          <div class="book-cover">
-            {{ book.rsplit('.', 1)[0] }}
-          </div>
-          <a href="{{ url_for('static', filename='books/' ~ book) }}" target="_blank">
-            Open PDF
-          </a>
+  <div class="upload-card fade-up" style="animation-delay: 0.1s;">
+    <!-- Upload Form -->
+    <div class="mb-12">
+      <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+        <span>➕</span> New Upload
+      </h2>
+      <form action="{{ url_for('upload_books') }}" method="POST" enctype="multipart/form-data"
+        class="flex flex-col sm:flex-row gap-4 items-center bg-gray-50 p-6 rounded-2xl border border-dashed border-indigo-200">
+        <div class="flex-grow w-full">
+          <input type="file" name="book" accept=".pdf,.doc,.docx,.txt" required
+            class="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 transition-all cursor-pointer">
         </div>
-      {% else %}
-        <p style="grid-column: 1/-1; text-align:center; color:#666;">No books uploaded yet.</p>
-      {% endfor %}
+        <button type="submit"
+          class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-8 rounded-full transition-all shadow-md">
+          Upload File
+        </button>
+      </form>
+      <p class="text-xs text-gray-400 mt-3 text-center sm:text-left">Max file size: 10MB. Supports PDF, DOCX, TXT.</p>
     </div>
 
-    <a href="{{ url_for('teacher_dashboard') }}" class="back-btn">⬅ Back to Dashboard</a>
+    <hr class="border-gray-100 mb-12">
+
+    <!-- Uploaded Files -->
+    <div>
+      <h2 class="text-xl font-bold text-gray-800 mb-8 flex items-center gap-2">
+        <span>📋</span> Your Shared Resources
+      </h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {% for book in books %}
+        <div class="book-card">
+          <div class="book-icon">
+            <span>📖</span>
+          </div>
+          <div class="text-sm font-bold text-gray-800 truncate mb-3" title="{{ book }}">
+            {{ book }}
+          </div>
+          <a href="{{ url_for('static', filename='books/' ~ book) }}" target="_blank"
+            class="inline-block text-xs font-black text-indigo-600 hover:text-indigo-800 bg-white border border-indigo-100 py-1.5 px-3 rounded-lg shadow-sm transition-all hover:shadow-md">
+            OPEN PDF
+          </a>
+        </div>
+        {% else %}
+        <div class="col-span-full py-12 text-center text-gray-400">
+          <span class="text-4xl block mb-2">📭</span>
+          <p class="font-medium">You haven't uploaded any books yet.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
   </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-
-</script>
+</div>
 {% endblock %}
