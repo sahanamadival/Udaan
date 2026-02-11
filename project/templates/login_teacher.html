@@ -2,117 +2,87 @@
 
 {% block title %}Teacher Login - Udaan{% endblock %}
 
-{% block body_class %}min-h-screen flex items-center justify-center p-4 light-theme{% endblock %}
+{% block body_class %}min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-100
+light-theme{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
   @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  .animate-fadeUp { 
-    animation: fadeUp .6s ease-out forwards; 
-  }
-  
-  .stars {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    pointer-events: none;
-    z-index: -1;
-    background-image: 
-      radial-gradient(2px 2px at 20px 30px, #eee, transparent),
-      radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
-      radial-gradient(1px 1px at 90px 40px, #fff, transparent),
-      radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
-      radial-gradient(2px 2px at 160px 30px, #ddd, transparent);
-    background-repeat: repeat;
-    background-size: 200px 100px;
-    animation: zoomInOut 3s ease-in-out infinite alternate;
-  }
-  
-  @keyframes zoomInOut {
-    0% { transform: scale(1); opacity: 0.8; }
-    100% { transform: scale(1.2); opacity: 0.4; }
-  }
-  
-  @keyframes float {
-    0% { transform: translate(0, 0); }
-    50% { transform: translate(10px, 10px); }
-    100% { transform: translate(0, 0); }
-  }
-  
-  .floating {
-    animation: float 15s infinite ease-in-out;
-  }
-  
-  @keyframes twinkle {
-    0% { opacity: 0.2; }
-    50% { opacity: 1; }
-    100% { opacity: 0.2; }
-  }
-  
-  .twinkle {
-    animation: twinkle 4s infinite;
+
+  .animate-fadeUp {
+    animation: fadeUp .6s ease-out forwards;
   }
 </style>
 {% endblock %}
 
 {% block content %}
-  <div class="stars"></div>
-  
-  <!-- Glassmorphic Card -->
-  <div class="max-w-md w-full mx-auto p-7 bg-white/80 backdrop-blur-2xl rounded-2xl border border-gray-200 shadow-[0_8px_32px_rgba(0,0,0,0.15)] relative z-10">
-    <div class="text-center mb-6">
-      <h1 class="text-2xl font-bold text-gray-800 mb-2">Welcome, Teacher 👋</h1>
-      <p class="text-gray-600">Choose an option to continue</p>
+<div class="container mx-auto px-4 max-w-md w-full relative z-10 animate-fadeUp">
+  <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-indigo-100 p-8">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-indigo-800 mb-2">Teacher Login</h1>
+      <p class="text-indigo-600">Enter your credentials to manage your classroom</p>
     </div>
-    
+
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="mb-6">
-          {% for message in messages %}
-            {% if 'password' in message.lower()
-               or 'not found' in message.lower()
-               or 'log in' in message.lower() %}
-               
-                <!-- show styled login error message -->
-                <div class="login-error bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center">
-                  {{ message }}
-                </div>
-
-            {% endif %}
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
-    
-    <a href="{{ url_for('login_teacher') }}"
-      class="w-full py-4 rounded-xl text-white font-semibold bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 hover:scale-[1.02] transition-all duration-300 shadow-lg hover:shadow-xl text-center mb-5">
-      Teacher Login
-    </a>
-    
-    <div class="relative my-6">
-      <div class="absolute inset-0 flex items-center">
-        <div class="w-full border-t border-gray-300"></div>
+    {% if messages %}
+    <div class="mb-6">
+      {% for message in messages %}
+      <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded" role="alert">
+        {{ message }}
       </div>
-      <div class="relative flex justify-center text-sm">
-        <span class="px-2 bg-white text-gray-500">Or continue with</span>
-      </div>
+      {% endfor %}
     </div>
-    
-    <a href="/google/login/teacher" class="google-btn w-full py-3 bg-white border border-gray-300 text-gray-700 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-50 transition-all">
-      <i class="fab fa-google text-red-500"></i>
-      <span>Sign in with Google</span>
-    </a>
-    
-    <div class="mt-6 text-center">
-      <a href="{{ url_for('index') }}" class="text-gray-600 hover:text-gray-800 text-sm block">← Back</a>
+    {% endif %}
+    {% endwith %}
+
+    <form method="POST" class="space-y-6">
+      <div>
+        <label class="block text-sm font-semibold text-indigo-900 mb-2">Name</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-indigo-400">
+            <i class="fas fa-user"></i>
+          </span>
+          <input type="text" name="name"
+            class="block w-full pl-10 pr-3 py-3 border border-indigo-200 rounded-xl leading-5 bg-indigo-50/30 placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all"
+            placeholder="Enter your name" required>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-indigo-900 mb-2">Password</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-indigo-400">
+            <i class="fas fa-lock"></i>
+          </span>
+          <input type="password" name="password"
+            class="block w-full pl-10 pr-3 py-3 border border-indigo-200 rounded-xl leading-5 bg-indigo-50/30 placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all"
+            placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <button type="submit"
+        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-md text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform hover:scale-[1.02]">
+        Sign In
+      </button>
+    </form>
+
+    <div class="mt-8 text-center">
+      <a href="{{ url_for('index') }}" class="text-indigo-500 hover:text-indigo-700 text-sm font-semibold">← Back to
+        Home</a>
     </div>
   </div>
+</div>
 {% endblock %}

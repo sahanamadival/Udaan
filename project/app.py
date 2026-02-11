@@ -23,7 +23,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
-load_dotenv()  # Load environment variables from .env file
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))  # Load environment variables from .env file
 import json
 import re
 from pdf2image import convert_from_path
@@ -39,7 +39,7 @@ import secrets
 
 
 # Load .env file
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 # Initialize OpenAI client
 api_key = os.getenv("OPENAI_API_KEY")
@@ -477,6 +477,16 @@ def migrate_database():
         if "last_activity_date" not in columns:
             cur.execute("ALTER TABLE student_progress ADD COLUMN last_activity_date DATE")
             print("Added last_activity_date column to student_progress table")
+
+        # Add OTP columns to students table if they don't exist
+        cur.execute("PRAGMA table_info(students)")
+        student_columns = [row[1] for row in cur.fetchall()]
+        if "reset_otp" not in student_columns:
+            cur.execute("ALTER TABLE students ADD COLUMN reset_otp TEXT")
+            print("Added reset_otp column to students table")
+        if "reset_otp_expires" not in student_columns:
+            cur.execute("ALTER TABLE students ADD COLUMN reset_otp_expires TEXT")
+            print("Added reset_otp_expires column to students table")
         
         if "streak_count" not in columns:
             cur.execute("ALTER TABLE student_progress ADD COLUMN streak_count INTEGER DEFAULT 0")
@@ -796,16 +806,14 @@ def index():
 def student_portal():
     return render_template("student_portal.html")
 
-@app.route("/teacher")
-def teacher_portal():
-    return render_template("teacher_portal.html")
-
 @app.route("/role/<role>")
 def role_page(role):
     role = role.lower()
     if role not in ["student", "teacher"]:
         flash("Invalid role selected.")
         return redirect(url_for("index"))
+    if role == "teacher":
+        return redirect(url_for("login_teacher"))
     return render_template("auth_options.html", role=role)
 
 # Student signup/login 
@@ -946,17 +954,30 @@ def google_callback_student():
         conn = get_db()
         c = conn.cursor()
         
-        # Check if user exists
-        c.execute("SELECT * FROM students WHERE email = ?", (email,))
-        user = c.fetchone()
+        # Check if user exists by google_id first, then by email
+        # This handles cases where a user might have changed their email 
+        # but already linked their Google account.
+        c.execute("PRAGMA table_info(students)")
+        columns = [col[1] for col in c.fetchall()]
+        
+        user = None
+        if 'google_id' in columns:
+            c.execute("SELECT * FROM students WHERE google_id = ?", (google_id,))
+            user = c.fetchone()
+            
+        if not user:
+            c.execute("SELECT * FROM students WHERE email = ?", (email,))
+            user = c.fetchone()
         
         if user:
-            # Update Google ID if not already set and column exists
-            c.execute("PRAGMA table_info(students)")
-            columns = [col[1] for col in c.fetchall()]
-            
-            if 'google_id' in columns and not user['google_id']:
+            # Update Google ID if not already set or if it's different (link existing account)
+            if 'google_id' in columns and (not user['google_id'] or user['google_id'] != google_id):
                 c.execute("UPDATE students SET google_id = ? WHERE id = ?", (google_id, user['id']))
+                conn.commit()
+            
+            # Also update email if it was found by google_id but the email is different
+            if user['email'] != email:
+                c.execute("UPDATE students SET email = ? WHERE id = ?", (email, user['id']))
                 conn.commit()
             
             # Clear any existing session data to prevent conflicts
@@ -995,20 +1016,6 @@ def google_callback_student():
         flash("Google login failed. Please try again.")
         return redirect(url_for('login_student'))
 
-
-@app.route('/google/login/teacher')
-def google_login_teacher():
-    # For now, redirect to regular teacher login
-    # Google login for teachers can be implemented similarly if needed
-    flash("Please use your teacher credentials to log in.")
-    return redirect(url_for('login_teacher'))
-
-
-@app.route('/google/callback/teacher')
-def google_callback_teacher():
-    # Placeholder for teacher Google callback
-    flash("Teacher Google login is not yet configured.")
-    return redirect(url_for('login_teacher'))
 
 
 # Teacher signup/login
@@ -3427,7 +3434,6 @@ def student_progress():
 @app.route("/logout")
 def logout():
     session.clear()
-    flash("Logged out.")
     return redirect(url_for("index"))
 
 @app.route("/api/read-selected-text", methods=["POST"])
@@ -4326,36 +4332,39 @@ def submit_progress():
 
 
 
-def send_reset_email(email, name, reset_link):
-    """Send password reset email to the user"""
+def send_reset_otp_email(email, name, otp):
+    """Send password reset OTP email to the user"""
+    print(f"DEBUG: Attempting to send OTP to {email}...")
     try:
         # Get email settings from environment variables
         smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
         smtp_port = int(os.getenv('SMTP_PORT', '587'))
-        email_user = os.getenv('EMAIL_ADDRESS') or os.getenv('EMAIL_USER')
+        email_user = os.getenv('EMAIL_ADDRESS')
         email_password = os.getenv('EMAIL_PASSWORD')
         
-        if not email_user or not email_password:
-            print("Warning: EMAIL_USER or EMAIL_PASSWORD not configured in .env file")
-            print(f"Password reset link: {reset_link}")
-            return False
+        print(f"DEBUG: Using SMTP Server: {smtp_server}:{smtp_port}")
+        print(f"DEBUG: Email User: {email_user}")
         
+        if not email_user or not email_password:
+            print("ERROR: EMAIL_ADDRESS or EMAIL_PASSWORD not configured in .env file")
+            print(f"DEBUG: Falling back to console OTP: {otp}")
+            return False
+            
         # Create message
         msg = MIMEMultipart()
-        msg['From'] = email_user
+        msg['From'] = f"Udaan Team <{email_user}>"
         msg['To'] = email
-        msg['Subject'] = "Password Reset Request - Udaan Learning Platform"
+        msg['Subject'] = f"{otp} is your Udaan Reset Code"
         
         # Email body
         body = f"""
 Dear {name},
 
-You have requested to reset your password for your Udaan Learning Platform account.
+Your password reset OTP for Udaan Learning Platform is:
 
-Click the link below to reset your password:
-{reset_link}
+{otp}
 
-This link will expire in 1 hour.
+This code will expire in 15 minutes.
 
 If you did not request this password reset, please ignore this email.
 
@@ -4366,20 +4375,29 @@ The Udaan Team
         msg.attach(MIMEText(body, 'plain'))
         
         # Connect to server and send email
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.starttls()  # Enable encryption
+        print("DEBUG: Connecting to SMTP server...")
+        if smtp_port == 465:
+            server = smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=10)
+        else:
+            server = smtplib.SMTP(smtp_server, smtp_port, timeout=10)
+            server.starttls()  # Enable encryption
+            
+        print("DEBUG: Attempting to login...")
         server.login(email_user, email_password)
         text = msg.as_string()
+        print("DEBUG: Sending mail...")
         server.sendmail(email_user, email, text)
         server.quit()
         
-        print(f"Password reset email sent successfully to {email}")
+        print(f"SUCCESS: Password reset OTP sent successfully to {email}")
         return True
         
     except Exception as e:
-        print(f"Failed to send email: {str(e)}")
-        # Fallback: print the link to console
-        print(f"Password reset link: {reset_link}")
+        print(f"CRITICAL ERROR: Failed to send email: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        # Fallback: print the OTP to console
+        print(f"DEBUG: FALLBACK OTP: {otp}")
         return False
 
 
@@ -4387,6 +4405,7 @@ The Udaan Team
 def forgot_password_student():
     if request.method == "POST":
         email = request.form.get("email", "").strip()
+        print(f"DEBUG: Password reset request for email: {email}")
         
         if not email:
             flash("Please enter your email address.")
@@ -4400,36 +4419,81 @@ def forgot_password_student():
         student = c.fetchone()
         
         if not student:
-            # Don't reveal if email exists to prevent enumeration attacks
-            # But still render the success page to not leak information
-            conn.close()
-            return render_template('forgot_password_student.html', request_method='POST')
+            print(f"DEBUG: Email {email} not found in database.")
+            flash(f"No account found with the email: {email}. Please check your spelling or register first.")
+            return redirect(url_for('forgot_password_student'))
         
-        # Generate secure token
-        reset_token = secrets.token_urlsafe(32)
-        expires_at = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+        print(f"DEBUG: Found student: {student['name']} (ID: {student['id']})")
         
-        # Store token in database
-        c.execute("UPDATE students SET reset_token = ?, reset_token_expires = ? WHERE id = ?",
-                 (reset_token, expires_at, student['id']))
+        # Generate 6-digit OTP
+        import random
+        otp = str(random.randint(100000, 999999))
+        expires_at = (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat()
+        
+        # Store OTP in database
+        c.execute("UPDATE students SET reset_otp = ?, reset_otp_expires = ? WHERE id = ?",
+                 (otp, expires_at, student['id']))
         conn.commit()
         conn.close()
         
-        # Generate the reset link
-        reset_link = url_for('reset_password', token=reset_token, _external=True)
+        # Store email in session for the next step
+        session['reset_email'] = email
         
-        # Send the reset email
-        email_sent = send_reset_email(student['email'], student['name'], reset_link)
+        # Send the reset OTP email
+        email_sent = send_reset_otp_email(student['email'], student['name'], otp)
         
         if email_sent:
-            flash(f"Password reset instructions have been sent to {student['email']}. Please check your inbox.")
+            flash(f"A 6-digit OTP has been sent to your email. Please enter it below.")
         else:
-            # Fallback: show the link directly to the user in development
-            flash(f"Password reset link generated. For development: {reset_link}")
+            # Fallback for development
+            flash(f"OTP generated. For development: {otp}")
         
-        return render_template('forgot_password_student.html', request_method='POST')
+        return redirect(url_for('verify_otp_student'))
     
     return render_template('forgot_password_student.html', request_method='GET')
+
+
+@app.route('/verify-otp/student', methods=["GET", "POST"])
+def verify_otp_student():
+    email = session.get('reset_email')
+    if not email:
+        return redirect(url_for('forgot_password_student'))
+        
+    if request.method == "POST":
+        otp = request.form.get("otp", "").strip()
+        
+        if not otp:
+            flash("Please enter the OTP.")
+            return render_template('verify_otp_student.html')
+            
+        conn = get_db()
+        c = conn.cursor()
+        
+        # Check if OTP is valid
+        c.execute("SELECT id, reset_otp, reset_otp_expires FROM students WHERE email = ?", (email,))
+        student = c.fetchone()
+        
+        if not student or student['reset_otp'] != otp:
+            flash("Invalid OTP.")
+            return render_template('verify_otp_student.html')
+            
+        # Check if OTP has expired
+        expires_at = datetime.fromisoformat(student['reset_otp_expires'])
+        if datetime.now(timezone.utc) > expires_at:
+            flash("OTP has expired. Please request a new one.")
+            return redirect(url_for('forgot_password_student'))
+            
+        # OTP is valid, generate a temporary token for the reset page
+        reset_token = secrets.token_urlsafe(32)
+        token_expires_at = (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat()
+        c.execute("UPDATE students SET reset_token = ?, reset_token_expires = ?, reset_otp = NULL WHERE id = ?",
+                 (reset_token, token_expires_at, student['id']))
+        conn.commit()
+        conn.close()
+        
+        return redirect(url_for('reset_password', token=reset_token))
+        
+    return render_template('verify_otp_student.html')
 
 
 @app.route('/reset-password/<token>', methods=["GET", "POST"])

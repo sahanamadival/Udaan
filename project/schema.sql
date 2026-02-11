@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS teachers (
     phone TEXT,
     password_hash TEXT,
     grade TEXT,
-    created_at TEXT
+    created_at TEXT,
+    google_id TEXT
 );
 
 -- File uploads table
