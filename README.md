@@ -9,178 +9,140 @@
 ---
 
 ## 🌟 About Udaan
-**Udaan** is a **Flask-based web app** designed to empower students with diverse learning needs.  
-It leverages **AI** to provide grade-wise learning, interactive science modules, AI-powered writing labs, summaries, translations, dyslexia-friendly reading, audio narration, flashcards, quizzes, and dashboards for both students and teachers.
+**Udaan** is a comprehensive, **Flask-based educational platform** designed to empower students from **Grade 1 to Grade 5**, with a special focus on accessibility and diverse learning needs. 
+
+It leverages **Generative AI** to provide personalized tutoring, grade-specific gamified learning, dyslexia-friendly reading tools, and deeper teacher insights.
 
 ---
 
-## 🚀 Features
+## 🚀 Key Features
 
-### 👩‍🎓 Student Dashboard
-- 📚 Upload textbooks (PDF/DOCX/TXT → text extraction + OCR fallback)
-- 🎧 Audio narration (TTS)
-- 🤖 AI-generated summaries (GPT)
-- 🌐 Translations: Hindi PDFs with **Noto fonts**
-- 📝 Dyslexia-friendly reader: adjustable spacing, overlays, in-page TTS
-- 🃏 Flashcards & MCQ quizzes powered by GPT
-- 📖 Library of uploaded books
-- 🎓 **Grade-wise learning**: Separate dashboards for Grade 1 and Grade 5
-- 📊 **Dynamic progress tracking**: Real SQLite-based stats instead of dummy data
-- 📈 **Subject modules**: Reading, Writing, Math, Science, Creative per grade
+### 👩‍🎓 For Students
+#### **1. Personalized Learning Dashboards (Grades 1-5)**
+Tailored interfaces and content for each grade level:
+- **Grade 1:** Alphabets, Shapes, Basic Math, Fun Quizzes.
+- **Grade 2:** Reading, Sentences, Nature, Numbers, Science.
+- **Grade 3:** Grammar (Nouns/Verbs), Logic Puzzles, Math, Environmental Science.
+- **Grade 4:** Advanced Reading, Writing, Phonics, "Word Wizzle" Games, Interactive Science.
+- **Grade 5:** Vocabulary, History, Multiplication, Paragraph Writing.
 
-### 👨‍🏫 Teacher Dashboard
-- 📚 Upload & view books
-- 📊 Dynamic class stats
-- 🏆 Recent students (activity-ranked)
-- 📈 Student progress view: uploads, flashcards, quizzes, average scores
-- 👀 **Real activity visibility**: Teacher can see actual student engagement
+#### **2. AI & Accessibility Tools**
+- **🤖 AI Tutor:** Context-aware chat assistant that helps explain topics from uploaded textbooks.
+- **📝 Dyslexia-Friendly Reader:** Customizable text display (OpenDyslexic font, spacing, color overlays) + specific "Read Aloud" functionality.
+- **🎧 Natural Text-to-Speech:** High-quality narration using Edge TTS.
+- **🌐 Language Support:** Instant translation of PDFs and text (English -> Hindi) with proper font rendering.
+- **📚 Smart Library:** Upload textbooks (PDF/DOCX/TXT) -> Auto-extract text -> Generate Summaries & Flashcards.
 
-### 💾 Storage
-- SQLite database for users, uploads, flashcards, quiz attempts, and grade-specific progress
-- Automatic schema migration for safe upgrades
+#### **3. Gamified Learning**
+- **Mental Math & Logic:** Interactive puzzles and speed math.
+- **Language Games:** Word building, sentence arrangement, and spelling challenges.
+- **Immersive Stories:** Interactive storytelling modules.
+
+---
+
+### 👨‍🏫 For Teachers
+- **📊 Class Analytics:** Monitor student engagement, quizzes taken, and books read.
+- **📂 Resource Management:** Upload books and study materials for specific grades.
+- **📈 Progress Tracking:** View detailed stats for individual students or the whole class.
+- **🏆 Leaderboards:** Encourage participation through activity tracking.
 
 ---
 
 ## 🛠️ Tech Stack
-- **Backend:** Python, Flask, SQLite  
-- **AI:** OpenAI API (GPT, TTS)  
-- **PDF/Image Handling:** PyPDF2, pdf2image, PyMuPDF (fitz), Pillow  
-- **OCR:** Tesseract (pytesseract)  
-- **PDF Generation:** reportlab  
-- **Frontend:** Jinja templates, vanilla JS, modern responsive CSS
-- **Speech:** Web Speech API for browser-based TTS/STT
+- **Backend:** Python, Flask
+- **Database:** SQLite (Auto-migrating schema)
+- **AI services:** 
+  - OpenAI API (GPT-4o/3.5 for Logic, Summaries, Quiz Generation)
+  - Edge TTS (High-quality speech synthesis)
+- **Frontend:** HTML5, CSS3, JavaScript, Jinja2 Templates
+- **Data Processing:** 
+  - `PyPDF2`, `pdf2image`, `pytesseract` (OCR) for file parsing.
+  - `reportlab` for generating accessibility-optimized PDFs.
+  - `deep_translator` for localization.
 
 ---
 
-## 📁 Repository Structure
+## 📂 Project Structure
 ```
-app/                    # Global styles (Next.js-like structure)
-project/
-  app.py                # Flask app entrypoint
-  requirements.txt      # Python dependencies
-  database.db           # SQLite DB (auto-created)
-  static/
-    books/              # Teacher-uploaded books
-    translations/       # Generated translated PDFs
-    narrations/         # Generated audio files
-    audio/              # Temporary AI-generated audio (git-ignored)
-    styles.css          # Shared CSS
-    bot.jpg             # Friendly robot image 🤖
-  templates/            # Jinja2 templates (auth, dashboards, readers, etc.)
-  uploads/              # Student uploads
-  Noto_Sans_Devanagari/ # Fonts for Hindi PDF output
+Udaan/
+├── app/                    # Global styles/assets
+├── project/
+│   ├── app.py              # Main Flask Application
+│   ├── database.db         # SQLite Database (Auto-created)
+│   ├── requirements.txt    # Dependencies
+│   ├── templates/          # HTML Templates (organized by feature/grade)
+│   │   ├── grade_1_*.html  # Grade 1 Modules
+│   │   ├── ...
+│   │   ├── grade_5_*.html  # Grade 5 Modules
+│   │   ├── ai_tutor.html   # AI Chat Interface
+│   │   └── teacher_*.html  # Teacher Dashboards
+│   └── static/
+│       ├── books/          # Uploaded resources
+│       ├── audio/          # Generated TTS files
+│       ├── translations/   # Translated documents
+│       └── styles.css      # Core Stylesheet
+└── README.md
 ```
 
 ---
 
-## ⚙️ Setup
+## ⚙️ Setup & Installation
 
-1️⃣ **Create & activate a virtual environment**
+### 1. Clone & Prepare
 ```bash
-cd project
+git clone https://github.com/sahanamadival/Udaan.git
+cd Udaan/project
+```
+
+### 2. Create Virtual Environment
+```bash
+# Windows
 python -m venv venv
 venv\Scripts\activate
+
+# Mac/Linux
+python3 -m venv venv
+source venv/bin/activate
 ```
 
-2️⃣ **Install dependencies**
+### 3. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
+*Note: You may need to install [Tesseract OCR](https://github.com/UB-Mannheim/tesseract/wiki) and [Poppler](https://github.com/oschwartz10612/poppler-windows/releases/) separately and add them to your system PATH if you plan to use the OCR features on Windows.*
 
-3️⃣ **Configure environment variables**
-Create a `.env` file in `project/`:
+### 4. Configuration
+Create a `.env` file in the `project/` directory:
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
+SECRET_KEY=your_secret_key_here
+GOOGLE_CLIENT_ID=your_google_client_id (Optional for OAuth)
+GOOGLE_CLIENT_SECRET=your_google_client_secret (Optional)
 ```
 
-4️⃣ **Verify asset paths**
-- Ensure Tesseract path in `app.py` matches your installation
-- Optional: Confirm Poppler is installed and on PATH
-
-5️⃣ **Run the app**
+### 5. Run the Application
 ```bash
 python app.py
 ```
-🌐 App runs at http://127.0.0.1:5000/
-
-### Database Initialization
-The SQLite database is automatically created on first run using `schema.sql`.
-No database file is stored in the repository.
-The schema supports Grade 1 to Grade 5 dynamically.
+Visit **http://127.0.0.1:5000** in your browser.
 
 ---
 
-## 🎯 Usage Overview
-
-### 🧑 Student
-- Sign up/login → Grade-specific Dashboard
-- Upload textbooks → OCR fallback for scans/images
-- Use features: Audio, Summary, Translation, Dyslexic Reader, Flashcards, Quizzes
-- Access teacher-uploaded PDFs via library
-- **Grade 4**: Interactive science body exploration + AI writing lab
-- **Progress tracking**: View real stats and daily streaks
-
-### 👩‍🏫 Teacher
-- Sign up/login → Dashboard
-- Upload/view books
-- Monitor student progress: uploads, flashcards, quizzes, average scores
-- **Real activity data**: See actual student engagement per grade
+## 🔒 Security & Privacy
+- **Authentication:** Secure session-based auth with optional Google OAuth.
+- **Data Safety:** Passwords are hashed. Uploaded files are processed locally or via secure APIs.
+- **Privacy:** Temporary audio files are cleaned up automatically.
 
 ---
 
-## 📌 Important Paths & Fonts
-- 🈵 **Hindi PDFs:** `Noto Sans Devanagari` (`project/Noto_Sans_Devanagari/`)
-  - Ensure `NotoSansDevanagari-Regular.ttf` exists
-- 📂 **Translations:** `project/static/translations/`
-- 🔊 **Narrations:** `project/static/narrations/`
-- 🎵 **Temp Audio:** `project/static/audio/` (auto-created, git-ignored)
-
----
-
-## 🔒 Security Notes
-- Set a strong `app.secret_key` in production
-- Never commit `.env` with real keys
-- Validate & sanitize uploads; limit file size and content type
-- **Google OAuth**: Secure OAuth 2.0 authentication for students and teachers
-- **DB auto-creation**: SQLite database safely created on first run
-- **Safe file handling**: Temporary audio files automatically cleaned
-- **Production ready**: Schema migrations handle version upgrades safely
-
----
-
-## ⚠️ Troubleshooting
-- **Tesseract not found:** Update path in `app.py`, confirm `tesseract.exe` works in terminal
-- **pdf2image errors on Windows:** Install Poppler & add `bin` to PATH
-- **OpenAI errors:** Verify `OPENAI_API_KEY` & network/proxy
-- **Missing fonts:** Ensure `NotoSansDevanagari-Regular.ttf` exists
-- **Schema conflicts:** Automatic migration handles database upgrades
-
----
-
-## 🌟 Extending
-- Replace placeholder charts with JS chart library (Chart.js)
-- Add per-student pages & deeper analytics
-- Persist dyslexic reader preferences via localStorage
-- Add server-side MP3 generation (currently pyttsx3 is client-side)
-- **Grade expansion**: Easy to add Grade 1, 3, 5 with similar patterns
-- **Feature modules**: Plug-and-play architecture for new subjects
-
----
-
-## 📝 Notes
-- Default `app.secret_key` is for development only; set a secure key in production
-- File uploads: Consider limiting size and validating content type to avoid misuse
-- Fonts & translations: Ensure Noto Sans Devanagari is present to avoid broken Hindi PDFs
-- **Database**: Auto-migration system handles schema changes safely
-- **Audio files**: Generated in `static/audio/` and automatically git-ignored
-- **UI consistency**: Clean navigation without emojis, responsive design across grades
+## 🤝 Contributing
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
 ## 📜 License
-- **Fonts:** Licensed per included OFL
-- **App code:** MIT (customizable)
-
----
-
-
+Values accessibility and education. Distributed under the MIT License.
