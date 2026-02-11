@@ -1,420 +1,411 @@
 {% extends "base.html" %}
 
-{% block title %}Flashcard Memory Game - Udaan{% endblock %}
+{% block title %}Memory Game – Udaan{% endblock %}
 
-{% block body_class %}relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-950 via-[#0a0d21] to-[#020410] text-white overflow-x-hidden{% endblock %}
+{% block body_class %}relative min-h-screen bg-[#FFFDF9] text-[#5B5B5B] overflow-x-hidden{% endblock %}
 
 {% block extra_css %}
 <style>
+    @import url('https://fonts.cdnfonts.com/css/opendyslexic');
 
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+    .dyslexic-font {
+        font-family: 'OpenDyslexic', sans-serif !important;
+    }
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
         }
-        .fade-up { animation: fadeUp 0.8s ease-out forwards; }
-        
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: -1;
-            background-image: 
-                radial-gradient(2px 2px at 20px 30px, #a78bfa, transparent),
-                radial-gradient(2px 2px at 40px 70px, rgba(167, 139, 250, 0.8), transparent),
-                radial-gradient(1px 1px at 90px 40px, #c4b5fd, transparent),
-                radial-gradient(1px 1px at 130px 80px, rgba(196, 181, 253, 0.6), transparent),
-                radial-gradient(2px 2px at 160px 30px, #ddd6fe, transparent);
-            background-repeat: repeat;
-            background-size: 200px 100px;
-            animation: zoomInOut 3s ease-in-out infinite alternate;
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
-        
-        @keyframes zoomInOut {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.2); opacity: 0.4; }
-        }
-        
-        @keyframes float {
-            0% { transform: translate(0, 0); }
-            50% { transform: translate(10px, 10px); }
-            100% { transform: translate(0, 0); }
-        }
-        
-        .floating {
-            animation: float 15s infinite ease-in-out;
-        }
-        
-        @keyframes twinkle {
-            0% { opacity: 0.2; }
-            50% { opacity: 1; }
-            100% { opacity: 0.2; }
-        }
-        
-        .twinkle {
-            animation: twinkle 4s infinite;
-        }
-        
-        /* Fixed background that doesn't scroll */
-        .fixed-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-        }
-        
-        /* Card flip animation */
-        .memory-card {
-            perspective: 1000px;
-            height: 150px;
-        }
-        
-        .memory-card-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-        }
-        
-        .memory-card.flipped .memory-card-inner {
-            transform: rotateY(180deg);
-        }
-        
-        .memory-card-front, .memory-card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-            border-radius: 16px;
-            background: rgba(15, 23, 42, 0.7);
-            border: 1px solid rgba(148, 163, 184, 0.3);
-            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.5);
-        }
-        
-        .memory-card-back {
-            transform: rotateY(180deg);
-        }
-        
-        .memory-card.matched {
-            opacity: 0.5;
-            filter: grayscale(1);
-        }
-        
-        /* Game stats */
-        .stat-box {
-            background: rgba(15, 23, 42, 0.7);
-            border: 1px solid rgba(148, 163, 184, 0.3);
-            border-radius: 12px;
-            padding: 12px 20px;
-            text-align: center;
-        }
-        
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-content {
-            background: rgba(15, 23, 42, 0.95);
-            border: 1px solid rgba(148, 163, 184, 0.5);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-        }
-        
-        /* Responsive grid */
+    }
+
+    .fade-up {
+        animation: fadeUp 0.8s ease-out forwards;
+    }
+
+    /* Card flip animation */
+    .memory-card {
+        perspective: 1000px;
+        height: 160px;
+        cursor: pointer;
+    }
+
+    .memory-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+    }
+
+    .memory-card.flipped .memory-card-inner {
+        transform: rotateY(180deg);
+    }
+
+    .memory-card-front,
+    .memory-card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        border-radius: 24px;
+        background: white;
+        border: 3px solid #F0EBF8;
+        /* Light pastel violet border */
+        box-shadow: 0 8px 24px rgba(139, 92, 246, 0.04);
+    }
+
+    .memory-card-front {
+        background: #F8F9FA;
+        border: 3px dashed #E2E8F0;
+    }
+
+    .memory-card-back {
+        transform: rotateY(180deg);
+        background: white;
+        border-color: #EBF8F0;
+        /* Soft green */
+    }
+
+    .memory-card.matched {
+        opacity: 0.5;
+        filter: sepia(0.2) grayscale(0.2);
+    }
+
+    /* Game stats */
+    .stat-box {
+        background: white;
+        border: 3px solid #F0EBF8;
+        border-radius: 20px;
+        padding: 16px 24px;
+        text-align: center;
+        box-shadow: 0 4px 0 #F4F1FA;
+    }
+
+    /* Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(93, 80, 134, 0.3);
+        /* Softer backdrop */
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        z-index: 100;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background: white;
+        border: 4px solid #F4F0FF;
+        border-radius: 32px;
+        padding: 40px;
+        max-width: 500px;
+        width: 95%;
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.1);
+    }
+
+    /* Responsive grid */
+    .game-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 25px;
+        margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
         .game-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-top: 20px;
+            grid-template-columns: repeat(3, 1fr);
         }
-        
-        @media (max-width: 768px) {
-            .game-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
+    }
+
+    @media (max-width: 480px) {
+        .game-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
         }
-        
-        @media (max-width: 480px) {
-            .game-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+
+        .memory-card {
+            height: 130px;
         }
-    
+    }
+
+    .btn-primary {
+        background: #F8F7FF;
+        color: #7B6FA6;
+        border: 3px solid #EBE4FF;
+        box-shadow: 0 4px 0 #E3DBF8;
+        font-weight: 800;
+    }
+
+    .btn-primary:hover {
+        background: #FFFFFF;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 0 #E3DBF8;
+    }
+
+    .btn-secondary {
+        background: #F8F9FA;
+        color: #718096;
+        border: 3px solid #E2E8F0;
+        box-shadow: 0 4px 0 #EDF2F7;
+        font-weight: 800;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Fixed background elements that don't scroll -->
-    <div class="fixed-background">
-        <div class="stars"></div>
-        
-        <!-- Space Elements -->
-        <div class="absolute top-10 left-10 w-2 h-2 bg-purple-300 rounded-full twinkle"></div>
-        <div class="absolute top-1/4 right-20 w-1 h-1 bg-blue-300 rounded-full twinkle" style="animation-delay: 1s;"></div>
-        <div class="absolute bottom-20 left-1/3 w-1 h-1 bg-purple-300 rounded-full twinkle" style="animation-delay: 2s;"></div>
-        <div class="absolute top-1/3 left-1/4 w-1 h-1 bg-cyan-200 rounded-full twinkle" style="animation-delay: 0.5s;"></div>
-        <div class="absolute bottom-40 right-1/4 w-2 h-2 bg-purple-300 rounded-full twinkle" style="animation-delay: 1.5s;"></div>
-        
-        <!-- Nebula Blobs -->
-        <div class="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-blue-800/40 mix-blend-screen blur-[100px] floating"></div>
-        <div class="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-purple-800/40 mix-blend-screen blur-[100px] floating" style="animation-delay: 3s;"></div>
+<div class="max-w-7xl mx-auto p-4 md:p-6 pt-8 md:pt-12 relative z-10 min-h-screen dyslexic-font">
+    <!-- Top Bar -->
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-10 gap-6 fade-up">
+        <h1 class="text-4xl font-black text-[#7B6FA6]">Memory Match</h1>
+        <a href="{{ url_for('games_dashboard') }}"
+            class="bg-white border-3 border-[#F0EBF8] text-[#7B6FA6] hover:bg-[#F8F7FF] rounded-2xl px-8 py-3 shadow-[0_4px_0_#F4F1FA] font-black transition-all">
+            ← Back to Games
+        </a>
     </div>
-    
-    <div class="max-w-7xl mx-auto p-4 md:p-6 relative z-10 min-h-screen">
-        <!-- Top Bar -->
-        <div class="flex justify-between items-center mb-6 fade-up">
-            <h1 class="text-2xl md:text-3xl font-bold">Flashcard Memory Game</h1>
-            <a href="{{ url_for('games_dashboard') }}" class="bg-white/10 hover:bg-white/20 rounded-full px-5 py-2 transition-all">
-                Back to Games
-            </a>
+
+    <!-- Game Stats -->
+    <div class="flex justify-center flex-wrap gap-6 mb-12 fade-up">
+        <div class="stat-box min-w-[120px]">
+            <div class="text-xs uppercase tracking-wider font-black text-[#A49CB6] mb-1">Time</div>
+            <div id="timer" class="text-3xl font-black text-[#7B6FA6]">00:00</div>
         </div>
-        
-        <!-- Game Stats -->
-        <div class="flex justify-between mb-6 fade-up">
-            <div class="stat-box">
-                <div class="text-sm text-gray-400">Time</div>
-                <div id="timer" class="text-xl font-bold">00:00</div>
-            </div>
-            <div class="stat-box">
-                <div class="text-sm text-gray-400">Moves</div>
-                <div id="moves" class="text-xl font-bold">0</div>
-            </div>
-            <div class="stat-box">
-                <div class="text-sm text-gray-400">Matches</div>
-                <div id="matches" class="text-xl font-bold">0/{{ (flashcards|length) }}</div>
-            </div>
+        <div class="stat-box min-w-[120px]">
+            <div class="text-xs uppercase tracking-wider font-black text-[#A49CB6] mb-1">Moves</div>
+            <div id="moves" class="text-3xl font-black text-[#7B6FA6]">0</div>
         </div>
-        
-        <!-- Game Grid -->
-        <div class="bg-white/10 backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] rounded-3xl p-6 fade-up">
-            <div id="game-board" class="game-grid">
-                <!-- Cards will be generated by JavaScript -->
-            </div>
-        </div>
-        
-        <!-- Restart Button -->
-        <div class="text-center mt-6 fade-up">
-            <button id="restart-btn" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-full py-3 px-8 text-white font-medium transition-all hover:scale-105">
-                Restart Game
-            </button>
+        <div class="stat-box min-w-[120px]">
+            <div class="text-xs uppercase tracking-wider font-black text-[#A49CB6] mb-1">Pairs</div>
+            <div id="matches" class="text-3xl font-black text-[#7B6FA6]">0/{{ (flashcards|length) }}</div>
         </div>
     </div>
-    
-    <!-- Win Modal -->
-    <div id="win-modal" class="modal">
-        <div class="modal-content">
-            <h2 class="text-2xl font-bold mb-4">Congratulations! 🎉</h2>
-            <p class="text-gray-300 mb-2">You've matched all the flashcards!</p>
-            <p class="text-lg mb-4">Time: <span id="final-time"></span> | Moves: <span id="final-moves"></span></p>
-            <button id="play-again-btn" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-full py-2 px-6 text-white font-medium transition-all hover:scale-105">
+
+    <!-- Game Board Container -->
+    <div class="bg-white border-4 border-[#F0EBF8] shadow-[0_12px_0_#F4F1FA] rounded-[3rem] p-6 md:p-12 fade-up mb-12">
+        <div id="game-board" class="game-grid">
+            <!-- Cards will be generated by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Restart Button -->
+    <div class="text-center fade-up pb-12">
+        <button id="restart-btn"
+            class="btn-primary rounded-2xl py-5 px-12 text-xl transition-all active:translate-y-1 active:shadow-none">
+            🔄 Start New Game
+        </button>
+    </div>
+</div>
+
+<!-- Win Modal -->
+<div id="win-modal" class="modal">
+    <div class="modal-content dyslexic-font">
+        <div
+            class="w-24 h-24 bg-[#F4F0FF] rounded-full flex items-center justify-center mx-auto mb-8 border-4 border-[#E3DBF8]">
+            <span class="text-5xl">🏆</span>
+        </div>
+        <h2 class="text-4xl font-black text-[#5D5086] mb-3">Amazing Job!</h2>
+        <p class="text-xl font-bold text-[#847B9B] mb-8">You matched all the cards!</p>
+
+        <div class="grid grid-cols-2 gap-6 mb-10">
+            <div class="bg-[#F4F0FF]/30 rounded-2xl p-6 border-2 border-[#E3DBF8]">
+                <div class="text-sm font-black text-[#847B9B] uppercase mb-2">Total Time</div>
+                <div id="final-time" class="text-2xl font-black text-[#5D5086]"></div>
+            </div>
+            <div class="bg-[#F4F0FF]/30 rounded-2xl p-6 border-2 border-[#E3DBF8]">
+                <div class="text-sm font-black text-[#847B9B] uppercase mb-2">Total Moves</div>
+                <div id="final-moves" class="text-2xl font-black text-[#5D5086]"></div>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            <button id="play-again-btn" class="btn-primary rounded-2xl py-5 text-xl transition-all">
                 Play Again
             </button>
-            <button id="back-to-games-btn" class="ml-4 bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 rounded-full py-2 px-6 text-white font-medium transition-all hover:scale-105">
-                Back to Games
+            <button id="back-to-games-btn" class="btn-secondary rounded-2xl py-5 text-xl transition-all">
+                Exit to Games
             </button>
         </div>
     </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
+<script id="flashcards-data" type="application/json">{{ flashcards|tojson|safe }}</script>
 <script>
+    const rawFlashcards = JSON.parse(document.getElementById('flashcards-data').textContent);
 
+    // Game state
+    let cards = [];
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let moves = 0;
+    let timer = 0;
+    let timerInterval = null;
+    let gameStarted = false;
 
-        // Pass flashcards from Flask to JavaScript
-        const rawFlashcards = {{ flashcards|tojson }};
-        
-        // Game state
-        let cards = [];
-        let flippedCards = [];
-        let matchedPairs = 0;
-        let moves = 0;
-        let timer = 0;
-        let timerInterval = null;
-        let gameStarted = false;
-        
-        // Initialize game
-        function initGame() {
-            // Reset game state
-            flippedCards = [];
-            matchedPairs = 0;
-            moves = 0;
-            timer = 0;
-            gameStarted = false;
-            
-            // Clear timer
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-            
-            // Update UI
-            document.getElementById('moves').textContent = moves;
-            document.getElementById('matches').textContent = `${matchedPairs}/${rawFlashcards.length}`;
-            document.getElementById('timer').textContent = '00:00';
-            
-            // Hide win modal
-            document.getElementById('win-modal').style.display = 'none';
-            
-            // Convert flashcards to memory game format
-            cards = [];
-            rawFlashcards.forEach((fc, index) => {
-                cards.push(
-                    { id: index, type: "Q", text: fc.question },
-                    { id: index, type: "A", text: fc.answer }
-                );
-            });
-            
-            // Shuffle cards
-            shuffleCards();
-            
-            // Render cards
-            renderCards();
+    // Initialize game
+    function initGame() {
+        // Reset game state
+        flippedCards = [];
+        matchedPairs = 0;
+        moves = 0;
+        timer = 0;
+        gameStarted = false;
+
+        // Clear timer
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
         }
-        
-        // Shuffle cards using Fisher-Yates algorithm
-        function shuffleCards() {
-            for (let i = cards.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [cards[i], cards[j]] = [cards[j], cards[i]];
-            }
+
+        // Update UI
+        document.getElementById('moves').textContent = moves;
+        const matchesEl = document.getElementById('matches');
+        if (matchesEl) matchesEl.textContent = `${matchedPairs}/${rawFlashcards.length}`;
+        document.getElementById('timer').textContent = '00:00';
+
+        // Hide win modal
+        document.getElementById('win-modal').style.display = 'none';
+
+        // Convert flashcards to memory game format
+        cards = [];
+        rawFlashcards.forEach((fc, index) => {
+            cards.push(
+                { id: index, type: "Q", text: fc.question },
+                { id: index, type: "A", text: fc.answer }
+            );
+        });
+
+        // Shuffle cards
+        shuffleCards();
+
+        // Render cards
+        renderCards();
+    }
+
+    // Shuffle cards using Fisher-Yates algorithm
+    function shuffleCards() {
+        for (let i = cards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cards[i], cards[j]] = [cards[j], cards[i]];
         }
-        
-        // Render cards to the board
-        function renderCards() {
-            const gameBoard = document.getElementById('game-board');
-            gameBoard.innerHTML = '';
-            
-            cards.forEach((card, index) => {
-                const cardElement = document.createElement('div');
-                cardElement.className = 'memory-card';
-                cardElement.dataset.index = index;
-                cardElement.dataset.id = card.id;
-                cardElement.dataset.type = card.type;
-                
-                cardElement.innerHTML = `
+    }
+
+    // Render cards to the board
+    function renderCards() {
+        const gameBoard = document.getElementById('game-board');
+        if (!gameBoard) return;
+        gameBoard.innerHTML = '';
+
+        cards.forEach((card, index) => {
+            const cardElement = document.createElement('div');
+            cardElement.className = 'memory-card dyk-font';
+            cardElement.dataset.index = index;
+            cardElement.dataset.id = card.id;
+            cardElement.dataset.type = card.type;
+
+            cardElement.innerHTML = `
                     <div class="memory-card-inner">
                         <div class="memory-card-front">
-                            <div class="text-2xl">${card.type === 'Q' ? '❓' : '💡'}</div>
+                            <div class="text-5xl font-black text-[#E3DBF8]">${card.type === 'Q' ? '?' : '!'}</div>
                         </div>
                         <div class="memory-card-back">
-                            <div class="text-sm font-bold mb-1">${card.type === 'Q' ? 'Question' : 'Answer'}</div>
-                            <div class="text-center text-sm">${card.text}</div>
+                            <div class="text-xs font-black uppercase text-[#847B9B] mb-2">${card.type === 'Q' ? 'Question' : 'Answer'}</div>
+                            <div class="text-center text-sm font-black text-[#5D5086] leading-relaxed">${card.text}</div>
                         </div>
                     </div>
                 `;
-                
-                cardElement.addEventListener('click', () => flipCard(cardElement));
-                gameBoard.appendChild(cardElement);
-            });
-        }
-        
-        // Flip a card
-        function flipCard(cardElement) {
-            // Don't flip if already matched or already flipped
-            if (cardElement.classList.contains('matched') || 
-                cardElement.classList.contains('flipped') ||
-                flippedCards.length >= 2) {
-                return;
-            }
-            
-            // Start timer on first move
-            if (!gameStarted) {
-                startTimer();
-                gameStarted = true;
-            }
-            
-            // Flip the card
-            cardElement.classList.add('flipped');
-            flippedCards.push(cardElement);
-            
-            // Check for match when two cards are flipped
-            if (flippedCards.length === 2) {
-                moves++;
-                document.getElementById('moves').textContent = moves;
-                
-                const card1 = flippedCards[0];
-                const card2 = flippedCards[1];
-                
-                // Check if cards match (same id but different types)
-                if (card1.dataset.id === card2.dataset.id && 
-                    card1.dataset.type !== card2.dataset.type) {
-                    // Match found
-                    setTimeout(() => {
-                        card1.classList.add('matched');
-                        card2.classList.add('matched');
-                        flippedCards = [];
-                        matchedPairs++;
-                        document.getElementById('matches').textContent = `${matchedPairs}/${rawFlashcards.length}`;
-                        
-                        // Check for win
-                        if (matchedPairs === rawFlashcards.length) {
-                            endGame();
-                        }
-                    }, 500);
-                } else {
-                    // No match, flip cards back
-                    setTimeout(() => {
-                        card1.classList.remove('flipped');
-                        card2.classList.remove('flipped');
-                        flippedCards = [];
-                    }, 1000);
-                }
-            }
-        }
-        
-        // Start the game timer
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                timer++;
-                const minutes = Math.floor(timer / 60).toString().padStart(2, '0');
-                const seconds = (timer % 60).toString().padStart(2, '0');
-                document.getElementById('timer').textContent = `${minutes}:${seconds}`;
-            }, 1000);
-        }
-        
-        // End the game
-        function endGame() {
-            clearInterval(timerInterval);
-            
-            // Show win modal
-            document.getElementById('final-time').textContent = document.getElementById('timer').textContent;
-            document.getElementById('final-moves').textContent = moves;
-            document.getElementById('win-modal').style.display = 'flex';
-        }
-        
-        // Event listeners
-        document.getElementById('restart-btn').addEventListener('click', initGame);
-        document.getElementById('play-again-btn').addEventListener('click', initGame);
-        document.getElementById('back-to-games-btn').addEventListener('click', () => {
-            window.location.href = "{{ url_for('games_dashboard') }}";
+
+            cardElement.addEventListener('click', () => flipCard(cardElement));
+            gameBoard.appendChild(cardElement);
         });
-        
-        // Initialize game when page loads
-        document.addEventListener('DOMContentLoaded', initGame);
-    
+    }
+
+    // Flip a card
+    function flipCard(cardElement) {
+        if (cardElement.classList.contains('matched') ||
+            cardElement.classList.contains('flipped') ||
+            flippedCards.length >= 2) {
+            return;
+        }
+
+        if (!gameStarted) {
+            startTimer();
+            gameStarted = true;
+        }
+
+        cardElement.classList.add('flipped');
+        flippedCards.push(cardElement);
+
+        if (flippedCards.length === 2) {
+            moves++;
+            document.getElementById('moves').textContent = moves;
+
+            const card1 = flippedCards[0];
+            const card2 = flippedCards[1];
+
+            if (card1.dataset.id === card2.dataset.id &&
+                card1.dataset.type !== card2.dataset.type) {
+                setTimeout(() => {
+                    card1.classList.add('matched');
+                    card2.classList.add('matched');
+                    flippedCards = [];
+                    matchedPairs++;
+                    const matchesEl = document.getElementById('matches');
+                    if (matchesEl) matchesEl.textContent = `${matchedPairs}/${rawFlashcards.length}`;
+
+                    if (matchedPairs === rawFlashcards.length) {
+                        endGame();
+                    }
+                }, 500);
+            } else {
+                setTimeout(() => {
+                    card1.classList.remove('flipped');
+                    card2.classList.remove('flipped');
+                    flippedCards = [];
+                }, 1200);
+            }
+        }
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timer++;
+            const minutes = Math.floor(timer / 60).toString().padStart(2, '0');
+            const seconds = (timer % 60).toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+        }, 1000);
+    }
+
+    function endGame() {
+        if (timerInterval) clearInterval(timerInterval);
+        document.getElementById('final-time').textContent = document.getElementById('timer').textContent;
+        document.getElementById('final-moves').textContent = moves;
+        document.getElementById('win-modal').style.display = 'flex';
+    }
+
+    document.getElementById('restart-btn')?.addEventListener('click', initGame);
+    document.getElementById('play-again-btn')?.addEventListener('click', initGame);
+    document.getElementById('back-to-games-btn')?.addEventListener('click', () => {
+        window.location.href = "{{ url_for('games_dashboard') }}";
+    });
+
+    document.addEventListener('DOMContentLoaded', initGame);
 </script>
 {% endblock %}

@@ -16,6 +16,7 @@
     cursor: pointer;
     transition: all 0.2s;
   }
+
   .game-option:hover {
     transform: scale(1.02);
   }
@@ -32,10 +33,12 @@
     font-weight: bold;
     color: #4338ca;
   }
+
   .word-letter:hover {
     background-color: #c7d2fe;
     transform: translateY(-2px);
   }
+
   .word-letter.selected {
     background-color: #4f46e5;
     color: white;
@@ -63,7 +66,7 @@
     <!-- Game Selection Tabs -->
     <div class="flex flex-wrap justify-center gap-4 mb-8">
       <button onclick="switchGame('context')" id="tab-context"
-        class="active-tab bg-indigo-600 text-white px-6 py-3 rounded-full font-bold text-lg shadow-lg hover:scale-105 transition-transform">
+        class="active-tab bg-[#EEEAF7] text-indigo-900 px-6 py-3 rounded-full font-bold text-lg shadow-lg hover:scale-105 transition-transform">
         🕵️ Context Clues
       </button>
       <button onclick="switchGame('silent')" id="tab-silent"
@@ -84,10 +87,11 @@
     <div id="game-context" class="game-panel bg-white rounded-3xl shadow-xl p-8 mb-8 border-4 border-indigo-100">
       <div class="text-center">
         <h2 class="text-2xl font-bold text-indigo-800 mb-6">Context Clue Captain</h2>
-        <p class="text-gray-600 mb-6 text-lg">What does the <span class="font-bold text-indigo-600">highlighted</span> word mean in this sentence?</p>
-        
+        <p class="text-gray-600 mb-6 text-lg">What does the <span class="font-bold text-indigo-600">highlighted</span>
+          word mean in this sentence?</p>
+
         <div class="bg-indigo-50 p-6 rounded-2xl mb-8">
-            <p id="context-sentence" class="text-2xl leading-relaxed text-gray-800"></p>
+          <p id="context-sentence" class="text-2xl leading-relaxed text-gray-800"></p>
         </div>
 
         <div id="context-options" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
@@ -96,7 +100,8 @@
 
         <div id="context-feedback" class="feedback-msg"></div>
         <button onclick="nextContextLevel()" id="next-context-btn"
-          class="hidden mt-4 bg-indigo-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-600 transition-colors">Next Challenge ➡️</button>
+          class="hidden mt-4 bg-[#EEEAF7] text-indigo-900 px-6 py-2 rounded-lg font-bold hover:bg-[#d6cceb] transition-colors">Next
+          Challenge ➡️</button>
       </div>
     </div>
 
@@ -104,7 +109,8 @@
     <div id="game-silent" class="game-panel hidden bg-white rounded-3xl shadow-xl p-8 mb-8 border-4 border-indigo-100">
       <div class="text-center">
         <h2 class="text-2xl font-bold text-indigo-800 mb-6">Silent Letter Scout</h2>
-        <p class="text-gray-600 mb-8 text-lg">Click on the <span class="text-red-500 font-bold">SILENT</span> letter in this word!</p>
+        <p class="text-gray-600 mb-8 text-lg">Click on the <span class="text-red-500 font-bold">SILENT</span> letter in
+          this word!</p>
 
         <div id="silent-word-container" class="flex flex-wrap justify-center gap-2 mb-8 min-h-[80px] items-center">
           <!-- Letters inserted here -->
@@ -112,7 +118,8 @@
 
         <div id="silent-feedback" class="feedback-msg"></div>
         <button onclick="nextSilentLevel()" id="next-silent-btn"
-          class="hidden mt-4 bg-indigo-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-600 transition-colors">Next Word ➡️</button>
+          class="hidden mt-4 bg-[#EEEAF7] text-indigo-900 px-6 py-2 rounded-lg font-bold hover:bg-[#d6cceb] transition-colors">Next
+          Word ➡️</button>
       </div>
     </div>
 
@@ -120,19 +127,22 @@
     <div id="game-idioms" class="game-panel hidden bg-white rounded-3xl shadow-xl p-8 mb-8 border-4 border-indigo-100">
       <div class="text-center">
         <h2 class="text-2xl font-bold text-indigo-800 mb-6">Idiom Invasion</h2>
-        <p class="text-gray-600 mb-6 text-lg">What is the <span class="font-bold text-purple-600">figurative meaning</span> of this phrase?</p>
+        <p class="text-gray-600 mb-6 text-lg">What is the <span class="font-bold text-purple-600">figurative
+            meaning</span> of this phrase?</p>
 
-        <div class="bg-purple-50 p-6 rounded-2xl mb-8 transform -rotate-1 hover:rotate-0 transition-transform duration-300">
-            <h3 id="idiom-text" class="text-3xl font-bold text-purple-800"></h3>
+        <div
+          class="bg-purple-50 p-6 rounded-2xl mb-8 transform -rotate-1 hover:rotate-0 transition-transform duration-300">
+          <h3 id="idiom-text" class="text-3xl font-bold text-purple-800"></h3>
         </div>
 
         <div id="idiom-options" class="flex flex-col gap-4 max-w-xl mx-auto mb-8">
-            <!-- Options inserted here -->
+          <!-- Options inserted here -->
         </div>
 
         <div id="idiom-feedback" class="feedback-msg"></div>
         <button onclick="nextIdiomLevel()" id="next-idiom-btn"
-          class="hidden mt-4 bg-indigo-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-600 transition-colors">Next Idiom ➡️</button>
+          class="hidden mt-4 bg-[#EEEAF7] text-indigo-900 px-6 py-2 rounded-lg font-bold hover:bg-[#d6cceb] transition-colors">Next
+          Idiom ➡️</button>
       </div>
     </div>
 
@@ -174,60 +184,55 @@
 
         <div class="flex justify-center gap-4">
           <button onclick="checkWordBuilder()"
-            class="bg-indigo-500 hover:bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold text-xl shadow-md transition-colors">
+            class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-8 py-3 rounded-xl font-bold text-xl shadow-md transition-colors">
             Check Word
           </button>
           <button onclick="resetWordBuilder()"
-            class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-3 rounded-xl font-bold shadow-md transition-colors">
+            class="bg-gray-400 hover:bg-gray-500 text-indigo-900 px-6 py-3 rounded-xl font-bold shadow-md transition-colors">
             Reset
           </button>
         </div>
 
         <div id="builder-feedback" class="feedback-msg"></div>
         <button onclick="nextBuilderWord()" id="next-builder-btn"
-          class="hidden mt-4 bg-indigo-500 text-white px-6 py-2 rounded-lg font-bold">Next Word ➡️</button>
+          class="hidden mt-4 bg-[#EEEAF7] text-indigo-900 px-6 py-2 rounded-lg font-bold">Next Word ➡️</button>
       </div>
     </div>
 
     <!-- Back Button -->
-    <div class="text-center">
-      <a href="{{ url_for('grade_4_dashboard') }}"
-        class="inline-block bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md">
-        Back to Dashboard
-      </a>
-    </div>
+    <!-- Back Button Removed -->
 
   </div>
 </div>
 
 <script>
   // --- Game Data ---
-  
+
   // Context Clues Data
   const contextData = [
-    { 
-        sentence: "The <span class='text-indigo-600 font-bold border-b-2 border-indigo-400'>ancient</span> tree had been in the park for over 200 years.", 
-        word: "ancient",
-        options: ["Very old", "Brand new", "Small", "Invisible"], 
-        correct: "Very old" 
+    {
+      sentence: "The <span class='text-indigo-600 font-bold border-b-2 border-indigo-400'>ancient</span> tree had been in the park for over 200 years.",
+      word: "ancient",
+      options: ["Very old", "Brand new", "Small", "Invisible"],
+      correct: "Very old"
     },
-    { 
-        sentence: "The detective was <span class='text-indigo-600 font-bold border-b-2 border-indigo-400'>baffled</span> by the missing cookie mystery.", 
-        word: "baffled",
-        options: ["Happy", "Confused", "Hungry", "Asleep"], 
-        correct: "Confused" 
+    {
+      sentence: "The detective was <span class='text-indigo-600 font-bold border-b-2 border-indigo-400'>baffled</span> by the missing cookie mystery.",
+      word: "baffled",
+      options: ["Happy", "Confused", "Hungry", "Asleep"],
+      correct: "Confused"
     },
-    { 
-        sentence: "The king was a <span class='text-indigo-600 font-bold border-b-2 border-indigo-400'>benevolent</span> ruler who shared his wealth.", 
-        word: "benevolent",
-        options: ["Mean", "Kind and generous", "Scary", "Poor"], 
-        correct: "Kind and generous" 
+    {
+      sentence: "The king was a <span class='text-indigo-600 font-bold border-b-2 border-indigo-400'>benevolent</span> ruler who shared his wealth.",
+      word: "benevolent",
+      options: ["Mean", "Kind and generous", "Scary", "Poor"],
+      correct: "Kind and generous"
     },
-    { 
-        sentence: "Please <span class='text-indigo-600 font-bold border-b-2 border-indigo-400'>omit</span> the onions from my salad; I don't like them.", 
-        word: "omit",
-        options: ["Add extra", "Cook", "Leave out", "Chop up"], 
-        correct: "Leave out" 
+    {
+      sentence: "Please <span class='text-indigo-600 font-bold border-b-2 border-indigo-400'>omit</span> the onions from my salad; I don't like them.",
+      word: "omit",
+      options: ["Add extra", "Cook", "Leave out", "Chop up"],
+      correct: "Leave out"
     }
   ];
 
@@ -254,7 +259,7 @@
   const builderData = [
     { target: "Unhappiness", parts: { prefix: "Un", root: "happy", suffix: "ness" }, meaning: "Not being happy" },
     { target: "Replaying", parts: { prefix: "Re", root: "play", suffix: "ing" }, meaning: "Playing again" },
-    { target: "Disagree", parts: { prefix: "Dis", root: "agree", suffix: "" }, meaning: "Not agreeing" }, 
+    { target: "Disagree", parts: { prefix: "Dis", root: "agree", suffix: "" }, meaning: "Not agreeing" },
     { target: "Teacher", parts: { prefix: "", root: "Teach", suffix: "er" }, meaning: "Someone who teaches" },
     { target: "Impossible", parts: { prefix: "Im", root: "possible", suffix: "" }, meaning: "Not possible" }
   ];
@@ -285,13 +290,13 @@
 
     // Update tabs
     document.querySelectorAll('button[id^="tab-"]').forEach(b => {
-      b.classList.remove('active-tab', 'bg-indigo-600', 'text-white');
+      b.classList.remove('active-tab', 'bg-[#EEEAF7]', 'text-indigo-900');
       b.classList.add('bg-white', 'text-indigo-600');
     });
     const activeBtn = document.getElementById('tab-' + game);
     if (activeBtn) {
-        activeBtn.classList.remove('bg-white', 'text-indigo-600');
-        activeBtn.classList.add('bg-indigo-600', 'text-white');
+      activeBtn.classList.remove('bg-white', 'text-indigo-600');
+      activeBtn.classList.add('bg-[#EEEAF7]', 'text-indigo-900');
     }
   }
 
@@ -301,7 +306,7 @@
     document.getElementById('context-sentence').innerHTML = data.sentence;
     document.getElementById('context-feedback').textContent = "";
     document.getElementById('next-context-btn').classList.add('hidden');
-    
+
     const container = document.getElementById('context-options');
     container.innerHTML = "";
 
@@ -309,35 +314,35 @@
     const shuffled = [...data.options].sort(() => Math.random() - 0.5);
 
     shuffled.forEach(opt => {
-        const btn = document.createElement('div');
-        btn.className = "game-option bg-indigo-50 border-2 border-indigo-200 p-4 rounded-xl text-center text-lg font-bold text-indigo-800 hover:bg-indigo-100";
-        btn.textContent = opt;
-        btn.onclick = () => checkContext(opt, btn, data.correct);
-        container.appendChild(btn);
+      const btn = document.createElement('div');
+      btn.className = "game-option bg-indigo-50 border-2 border-indigo-200 p-4 rounded-xl text-center text-lg font-bold text-indigo-800 hover:bg-indigo-100";
+      btn.textContent = opt;
+      btn.onclick = () => checkContext(opt, btn, data.correct);
+      container.appendChild(btn);
     });
   }
 
   function checkContext(selected, btnElement, correct) {
     const feedback = document.getElementById('context-feedback');
-    
+
     // Reset styles
     const allBtns = document.getElementById('context-options').children;
     for (let b of allBtns) {
-        b.classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
-        b.classList.add('bg-indigo-50', 'border-indigo-200');
+      b.classList.remove('bg-green-200', 'border-green-400', 'bg-red-200', 'border-red-400');
+      b.classList.add('bg-indigo-50', 'border-indigo-200');
     }
 
     if (selected === correct) {
-        feedback.textContent = "🎉 Correct! That fits the context!";
-        feedback.className = "feedback-msg text-green-600";
-        btnElement.classList.remove('bg-indigo-50', 'border-indigo-200');
-        btnElement.classList.add('bg-green-200', 'border-green-400');
-        document.getElementById('next-context-btn').classList.remove('hidden');
+      feedback.textContent = "🎉 Correct! That fits the context!";
+      feedback.className = "feedback-msg text-green-600";
+      btnElement.classList.remove('bg-indigo-50', 'border-indigo-200');
+      btnElement.classList.add('bg-green-200', 'border-green-400');
+      document.getElementById('next-context-btn').classList.remove('hidden');
     } else {
-        feedback.textContent = "❌ Not quite. Look at the other words for clues.";
-        feedback.className = "feedback-msg text-orange-500";
-        btnElement.classList.remove('bg-indigo-50', 'border-indigo-200');
-        btnElement.classList.add('bg-red-200', 'border-red-400');
+      feedback.textContent = "❌ Not quite. Look at the other words for clues.";
+      feedback.className = "feedback-msg text-orange-500";
+      btnElement.classList.remove('bg-indigo-50', 'border-indigo-200');
+      btnElement.classList.add('bg-red-200', 'border-red-400');
     }
   }
 
@@ -352,38 +357,38 @@
     const data = silentData[silentIndex];
     document.getElementById('silent-feedback').textContent = "";
     document.getElementById('next-silent-btn').classList.add('hidden');
-    
+
     const container = document.getElementById('silent-word-container');
     container.innerHTML = "";
 
     for (let i = 0; i < data.word.length; i++) {
-        const letterDiv = document.createElement('div');
-        letterDiv.textContent = data.word[i];
-        letterDiv.className = "word-letter";
-        letterDiv.onclick = () => checkSilent(i, letterDiv, data.silentIndex);
-        container.appendChild(letterDiv);
+      const letterDiv = document.createElement('div');
+      letterDiv.textContent = data.word[i];
+      letterDiv.className = "word-letter";
+      letterDiv.onclick = () => checkSilent(i, letterDiv, data.silentIndex);
+      container.appendChild(letterDiv);
     }
   }
 
   function checkSilent(index, element, correctIndex) {
     const feedback = document.getElementById('silent-feedback');
-    
+
     if (index === correctIndex) {
-        feedback.textContent = "🤫 shhh! Good job found the silent letter!";
-        feedback.className = "feedback-msg text-green-600";
-        element.style.backgroundColor = "#22c55e"; // Green
-        element.style.color = "white";
-        document.getElementById('next-silent-btn').classList.remove('hidden');
+      feedback.textContent = "🤫 shhh! Good job found the silent letter!";
+      feedback.className = "feedback-msg text-green-600";
+      element.style.backgroundColor = "#22c55e"; // Green
+      element.style.color = "white";
+      document.getElementById('next-silent-btn').classList.remove('hidden');
     }
     // Prevent clicking non-silent when already found? 
     // Or just feedback for wrong attempts
     else {
-        feedback.textContent = "🔊 That letter makes a sound!";
-        feedback.className = "feedback-msg text-orange-500";
-        element.style.backgroundColor = "#fca5a5"; // Red
-        setTimeout(() => {
-             element.style.backgroundColor = "#e0e7ff"; // Reset
-        }, 500);
+      feedback.textContent = "🔊 That letter makes a sound!";
+      feedback.className = "feedback-msg text-orange-500";
+      element.style.backgroundColor = "#fca5a5"; // Red
+      setTimeout(() => {
+        element.style.backgroundColor = "#e0e7ff"; // Reset
+      }, 500);
     }
   }
 
@@ -399,41 +404,41 @@
     document.getElementById('idiom-text').textContent = `"${data.idiom}"`;
     document.getElementById('idiom-feedback').textContent = "";
     document.getElementById('next-idiom-btn').classList.add('hidden');
-    
+
     const container = document.getElementById('idiom-options');
     container.innerHTML = "";
 
     const shuffled = [...data.options].sort(() => Math.random() - 0.5);
     shuffled.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = "w-full text-left px-6 py-4 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 font-bold border-2 border-purple-100 transition-all";
-        btn.textContent = opt;
-        btn.onclick = () => checkIdiom(opt, btn, data.correct);
-        container.appendChild(btn);
+      const btn = document.createElement('button');
+      btn.className = "w-full text-left px-6 py-4 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 font-bold border-2 border-purple-100 transition-all";
+      btn.textContent = opt;
+      btn.onclick = () => checkIdiom(opt, btn, data.correct);
+      container.appendChild(btn);
     });
   }
 
   function checkIdiom(selected, btn, correct) {
-     const feedback = document.getElementById('idiom-feedback');
-     const allBtns = document.getElementById('idiom-options').children;
+    const feedback = document.getElementById('idiom-feedback');
+    const allBtns = document.getElementById('idiom-options').children;
 
-     for (let b of allBtns) {
-         b.disabled = true;
-         if (b.textContent === correct) {
-             b.classList.remove('bg-purple-50', 'border-purple-100');
-             b.classList.add('bg-green-100', 'border-green-400');
-         }
-     }
+    for (let b of allBtns) {
+      b.disabled = true;
+      if (b.textContent === correct) {
+        b.classList.remove('bg-purple-50', 'border-purple-100');
+        b.classList.add('bg-green-100', 'border-green-400');
+      }
+    }
 
-     if (selected === correct) {
-        feedback.textContent = "🌟 You got it! That's what it really means.";
-        feedback.className = "feedback-msg text-green-600";
-        document.getElementById('next-idiom-btn').classList.remove('hidden');
-     } else {
-        feedback.textContent = "❌ Oops! That's the literal meaning (or wrong).";
-        feedback.className = "feedback-msg text-red-500";
-        btn.classList.add('bg-red-100', 'border-red-400');
-     }
+    if (selected === correct) {
+      feedback.textContent = "🌟 You got it! That's what it really means.";
+      feedback.className = "feedback-msg text-green-600";
+      document.getElementById('next-idiom-btn').classList.remove('hidden');
+    } else {
+      feedback.textContent = "❌ Oops! That's the literal meaning (or wrong).";
+      feedback.className = "feedback-msg text-red-500";
+      btn.classList.add('bg-red-100', 'border-red-400');
+    }
   }
 
   function nextIdiomLevel() {
@@ -482,11 +487,11 @@
     // Clear previous selection
     const container = document.getElementById(type + '-options');
     container.querySelectorAll('.morph-btn').forEach(b => {
-      b.classList.remove('bg-indigo-500', 'text-white', 'border-indigo-600');
+      b.classList.remove('bg-[#EEEAF7]', 'text-indigo-900', 'border-indigo-600');
       b.classList.add('bg-white', 'text-indigo-700', 'border-indigo-200');
       if (b.textContent === "(None)") {
         b.classList.add('bg-gray-100', 'text-gray-500', 'border-gray-300');
-        b.classList.remove('bg-gray-600', 'text-white');
+        b.classList.remove('bg-gray-600', 'text-indigo-900');
       }
     });
 
@@ -495,7 +500,7 @@
     if (value === "") {
       btnElement.classList.add('bg-gray-600', 'text-white', 'border-gray-700');
     } else {
-      btnElement.classList.add('bg-indigo-500', 'text-white', 'border-indigo-600');
+      btnElement.classList.add('bg-[#EEEAF7]', 'text-indigo-900', 'border-indigo-600');
     }
 
     if (type === 'prefix') selectedPrefix = value;

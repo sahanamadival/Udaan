@@ -231,7 +231,7 @@
         `;
 
         q.options.forEach(opt => {
-            html += `<button onclick="checkAnswer('sorting', '${opt}', '${q.category}')" class="dyslexic-btn hover:bg-orange-600 bg-orange-500 border-orange-700">${opt}</button>`;
+            html += `<button onclick="checkAnswer('sorting', '${opt}', '${q.category}')" class="dyslexic-btn hover:bg-[#d6cceb] bg-[#EEEAF7] border-orange-700">${opt}</button>`;
         });
         html += `</div>`;
         container.innerHTML = html;
@@ -254,7 +254,7 @@
             <div class="grid grid-cols-2 gap-3">
         `;
         q.options.forEach(opt => {
-            html += `<button onclick="checkAnswer('healthy', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-green-600 bg-green-500 border-green-700">${opt}</button>`;
+            html += `<button onclick="checkAnswer('healthy', '${opt}', '${q.correct}')" class="dyslexic-btn hover:bg-[#d6cceb] bg-[#EEEAF7] border-green-700">${opt}</button>`;
         });
         html += `</div>`;
         container.innerHTML = html;

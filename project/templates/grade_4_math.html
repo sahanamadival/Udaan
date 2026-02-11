@@ -213,7 +213,7 @@
     <!-- Game Tabs -->
     <div class="flex flex-wrap justify-center gap-4 mb-8">
       <button onclick="switchTab('division')" id="tab-division"
-        class="game-tab active-tab bg-cyan-600 text-white px-8 py-4 rounded-2xl font-bold text-xl shadow-lg border-b-4 border-cyan-800">
+        class="game-tab active-tab bg-cyan-600 text-indigo-900 px-8 py-4 rounded-2xl font-bold text-xl shadow-lg border-b-4 border-cyan-800">
         ➗ Division
       </button>
       <button onclick="switchTab('time')" id="tab-time"
@@ -286,20 +286,20 @@
           </div>
 
           <!-- Planet (Decoration) -->
-          <div class="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-indigo-500 opacity-20 blur-xl"></div>
+          <div class="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-[#EEEAF7] opacity-20 blur-xl"></div>
 
           <div id="rocket-display"
             class="relative z-10 transition-transform duration-1000 ease-in will-change-transform">
             <div class="text-8xl filter drop-shadow-2xl relative z-10">🚀</div>
             <div id="rocket-flame"
               class="hidden absolute -bottom-10 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
-              <div class="w-4 h-12 bg-orange-500 rounded-full blur-sm animate-pulse origin-top"></div>
+              <div class="w-4 h-12 bg-[#EEEAF7] rounded-full blur-sm animate-pulse origin-top"></div>
               <div class="w-8 h-8 bg-yellow-400 rounded-full blur-md -mt-10 animate-ping"></div>
             </div>
           </div>
 
           <div id="division-feedback"
-            class="mt-8 relative z-10 text-center font-bold text-xl h-16 flex items-center justify-center text-white transition-opacity duration-300">
+            class="mt-8 relative z-10 text-center font-bold text-xl h-16 flex items-center justify-center text-indigo-900 transition-opacity duration-300">
             Waiting for launch codes...
           </div>
         </div>
@@ -307,7 +307,7 @@
 
       <div class="text-center mt-6">
         <button onclick="initDivision()" id="next-div-btn"
-          class="hidden bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition-transform hover:scale-105">
+          class="hidden bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-8 py-3 rounded-xl font-bold shadow-lg transition-transform hover:scale-105">
           Next Mission ➡️
         </button>
       </div>
@@ -338,7 +338,7 @@
         <div class="text-center w-full max-w-md">
           <p class="text-gray-600 mb-2 font-bold uppercase tracking-wide">Target Time</p>
           <div
-            class="bg-blue-600 text-white px-10 py-5 rounded-2xl mb-8 inline-block shadow-lg transform hover:scale-105 transition-transform">
+            class="bg-blue-600 text-indigo-900 px-10 py-5 rounded-2xl mb-8 inline-block shadow-lg transform hover:scale-105 transition-transform">
             <span id="target-time" class="text-5xl font-mono font-bold">3:00</span>
           </div>
 
@@ -363,7 +363,7 @@
           </div>
 
           <button onclick="checkTime()"
-            class="w-full bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-bold text-xl shadow-lg transform active:scale-95 transition-all">
+            class="w-full bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-8 py-4 rounded-xl font-bold text-xl shadow-lg transform active:scale-95 transition-all">
             ✅ Check Time
           </button>
 
@@ -430,7 +430,7 @@
               <div class="absolute inset-0 rounded-full border border-white/50"></div>
             </button>
             <button onclick="addCoin(5)"
-              class="coin-btn w-28 h-28 rounded-full bg-yellow-500 border-4 border-yellow-700 flex items-center justify-center font-bold text-yellow-900 shadow-lg text-2xl relative">
+              class="coin-btn w-28 h-28 rounded-full bg-[#EEEAF7] border-4 border-yellow-700 flex items-center justify-center font-bold text-yellow-900 shadow-lg text-2xl relative">
               <span class="z-10">₹5</span>
               <div class="absolute inset-0 rounded-full border border-white/50"></div>
             </button>
@@ -449,13 +449,7 @@
 
 
     <!-- Back Button -->
-    <div class="text-center mt-12 pb-8">
-      <a href="{{ url_for('grade_4_dashboard') }}"
-        class="inline-flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md group">
-        <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
-        Back to Dashboard
-      </a>
-    </div>
+    <!-- Back Button Removed -->
 
   </div>
 </div>
@@ -472,7 +466,7 @@
     ['division', 'time', 'money'].forEach(t => {
       document.getElementById('panel-' + t).classList.add('hidden');
       const btn = document.getElementById('tab-' + t);
-      btn.classList.remove('active-tab', 'bg-cyan-600', 'text-white', 'border-cyan-800');
+      btn.classList.remove('active-tab', 'bg-cyan-600', 'text-indigo-900', 'border-cyan-800');
       btn.classList.add('bg-white', 'text-cyan-600', 'border-gray-200');
     });
 
@@ -480,7 +474,7 @@
     document.getElementById('panel-' + tab).classList.remove('hidden');
     const activeBtn = document.getElementById('tab-' + tab);
     activeBtn.classList.remove('bg-white', 'text-cyan-600', 'border-gray-200');
-    activeBtn.classList.add('active-tab', 'bg-cyan-600', 'text-white', 'border-cyan-800');
+    activeBtn.classList.add('active-tab', 'bg-cyan-600', 'text-indigo-900', 'border-cyan-800');
 
     // Init game if needed
 
@@ -670,7 +664,7 @@
       feedback.textContent = "✅ Correct! You're a Time Master!";
       feedback.className = "mt-6 font-bold text-xl text-green-600";
       document.getElementById('target-time').parentElement.classList.remove('bg-blue-600');
-      document.getElementById('target-time').parentElement.classList.add('bg-green-500');
+      document.getElementById('target-time').parentElement.classList.add('bg-[#EEEAF7]');
       setTimeout(() => {
         setRandomTimeTarget();
       }, 2000);
@@ -713,7 +707,7 @@
       const coin = document.createElement('div');
       let colorClasses = val === 1 ? 'bg-yellow-400 border-yellow-600 text-yellow-900'
         : val === 2 ? 'bg-gray-300 border-gray-500 text-gray-800'
-          : val === 5 ? 'bg-yellow-500 border-yellow-700 text-yellow-900'
+          : val === 5 ? 'bg-[#EEEAF7] border-yellow-700 text-yellow-900'
             : 'bg-white border-yellow-600 text-yellow-900'; // 10
 
       coin.className = `w-12 h-12 rounded-full border-2 flex items-center justify-center text-sm font-bold shadow-sm ${colorClasses} transform transition-all hover:scale-110`;

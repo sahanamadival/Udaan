@@ -1,23 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Udaan – Transform Learning{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='grade1-enhancements.css') }}">
-  
+
   {% block extra_css %}{% endblock %}
 </head>
-<body class="{% block body_class %}relative min-h-screen bg-[#020410] text-white{% endblock %}">
-  <!-- Theme Toggle Button -->
-  <button id="theme-toggle" class="theme-toggle">
-    <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path id="sun-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-      <path id="moon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" style="display: none;" />
-    </svg>
-  </button>
+
+<body class="{% block body_class %}relative min-h-screen text-gray-900{% endblock %}">
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  <div class="fixed top-20 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4 pointer-events-none">
+    {% for message in messages %}
+    <div
+      class="bg-white/95 backdrop-blur-md border border-indigo-100 shadow-2xl rounded-2xl p-4 mb-3 flex items-center gap-3 animate-bounce-in pointer-events-auto">
+      <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+        <i class="fas fa-info-circle text-sm"></i>
+      </div>
+      <p class="text-gray-800 font-medium text-sm">{{ message }}</p>
+      <button onclick="this.parentElement.remove()" class="ml-auto text-gray-400 hover:text-gray-600 transition-colors">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  {% if session.get('user') %}
+  <!-- Fixed Logout Button -->
+  <a href="{{ url_for('logout') }}"
+    class="fixed top-4 right-4 z-50 bg-white/90 backdrop-blur-sm border border-gray-200 text-red-500 hover:text-red-600 hover:bg-red-50 px-4 py-2 rounded-full shadow-lg transition-all hover:scale-105 flex items-center gap-2 font-medium group">
+    <span>Logout</span>
+    <i class="fas fa-sign-out-alt group-hover:translate-x-1 transition-transform"></i>
+  </a>
+
+  <!-- Fixed Back to Dashboard Button -->
+  {% if request.endpoint and 'dashboard' not in request.endpoint and 'index' not in request.endpoint %}
+  <a href="{{ url_for('teacher_dashboard') if session.user.role == 'teacher' else url_for('grade_' ~ session.user.grade ~ '_dashboard') }}"
+    class="fixed top-4 left-4 z-50 bg-white/90 backdrop-blur-sm border border-gray-200 text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-4 py-2 rounded-full shadow-lg transition-all hover:scale-105 flex items-center gap-2 font-medium group">
+    <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+    <span>Back to Dashboard</span>
+  </a>
+  {% endif %}
+  {% endif %}
+  <!-- Theme Toggle Removed -->
 
   <!-- Light Theme Background Elements -->
   <div class="stars">
@@ -27,21 +62,21 @@
     <div class="cloud"></div>
     <div class="cloud"></div>
     <div class="cloud"></div>
-    
+
     <!-- Enhanced Balloons -->
     <div class="balloon"></div>
     <div class="balloon"></div>
     <div class="balloon"></div>
     <div class="balloon"></div>
     <div class="balloon"></div>
-    
+
     <!-- Enhanced Light Stars -->
     <div class="light-star"></div>
     <div class="light-star"></div>
     <div class="light-star"></div>
     <div class="light-star"></div>
     <div class="light-star"></div>
-    
+
     <!-- Floating Particles -->
     <div class="particle"></div>
     <div class="particle"></div>
@@ -54,60 +89,11 @@
   {% block content %}{% endblock %}
 
   <script>
-    // Theme toggle functionality
-    function initializeTheme() {
-      const themeToggle = document.getElementById('theme-toggle');
-      const sunPath = document.getElementById('sun-path');
-      const moonPath = document.getElementById('moon-path');
-      
-      if (!themeToggle || !sunPath || !moonPath) {
-        console.warn('Theme toggle elements not found');
-        return;
-      }
-
-      // Check for saved theme preference or respect OS setting
-      const savedTheme = localStorage.getItem('theme');
-      const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-
-      // Set initial theme
-      if (savedTheme === 'light' || (!savedTheme && !prefersDarkScheme.matches)) {
-        document.body.classList.add('light-theme');
-        sunPath.style.display = 'none';
-        moonPath.style.display = 'block';
-        console.log('Applied light theme');
-      } else {
-        document.body.classList.remove('light-theme');
-        sunPath.style.display = 'block';
-        moonPath.style.display = 'none';
-        console.log('Applied dark theme');
-      }
-
-      themeToggle.addEventListener('click', function() {
-        document.body.classList.toggle('light-theme');
-        
-        // Toggle icons
-        if (document.body.classList.contains('light-theme')) {
-          sunPath.style.display = 'none';
-          moonPath.style.display = 'block';
-          localStorage.setItem('theme', 'light');
-          console.log('Switched to light theme');
-        } else {
-          sunPath.style.display = 'block';
-          moonPath.style.display = 'none';
-          localStorage.setItem('theme', 'dark');
-          console.log('Switched to dark theme');
-        }
-      });
-    }
-
-    // Initialize theme when DOM is loaded
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initializeTheme);
-    } else {
-      initializeTheme();
-    }
+    // Theme logic removed - Enforced Light Theme
+    document.body.classList.remove('light-theme'); // Clean just in case
   </script>
-  
+
   {% block extra_js %}{% endblock %}
 </body>
+
 </html>

@@ -35,7 +35,8 @@
                         </div>
 
                         <div class="mb-4">
-                            <button onclick="speakSentence()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium">
+                            <button onclick="speakSentence()"
+                                class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-6 py-2 rounded-lg font-medium">
                                 <i class="fas fa-volume-up mr-2"></i>Hear Sentence
                             </button>
                         </div>
@@ -61,7 +62,7 @@
                         </div>
 
                         <button onclick="speakWord()"
-                            class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-medium">
+                            class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-6 py-2 rounded-lg font-medium">
                             <i class="fas fa-volume-up mr-2"></i>Hear Word
                         </button>
 
@@ -75,16 +76,17 @@
                 <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">🗣️ Sentence Pronunciation Practice</h2>
                 <div class="text-center">
                     <div class="bg-blue-50 rounded-xl p-6 mb-6">
-                        <div class="text-xl text-gray-700 mb-4" id="pronunciation-sentence">The cat is sleeping in the sun.</div>
+                        <div class="text-xl text-gray-700 mb-4" id="pronunciation-sentence">The cat is sleeping in the
+                            sun.</div>
                         <div class="text-gray-600 mb-4">Listen and repeat the sentence:</div>
                     </div>
 
-                    <button onclick="speakPronunciationSentence()" 
-                        class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg font-medium mr-3">
+                    <button onclick="speakPronunciationSentence()"
+                        class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-8 py-3 rounded-lg font-medium mr-3">
                         <i class="fas fa-volume-up mr-2"></i>Listen to Sentence
                     </button>
-                    <button onclick="nextPronunciationSentence()" 
-                        class="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-medium">
+                    <button onclick="nextPronunciationSentence()"
+                        class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-8 py-3 rounded-lg font-medium">
                         <i class="fas fa-arrow-right mr-2"></i>Next Sentence
                     </button>
                 </div>
@@ -108,8 +110,8 @@
                     </div>
 
                     <div class="mt-4 text-center hidden" id="new-story-button">
-                        <button onclick="generateComprehension()" 
-                            class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium">
+                        <button onclick="generateComprehension()"
+                            class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-6 py-2 rounded-lg font-medium">
                             <i class="fas fa-sync-alt mr-2"></i>New Story
                         </button>
                     </div>
@@ -145,13 +147,7 @@
                 </div>
             </div>
 
-            <!-- Back Button -->
-            <div class="text-center mt-8">
-                <a href="{{ url_for('grade_2_dashboard') }}"
-                    class="inline-block bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
-                </a>
-            </div>
+            <!-- Back Button Removed -->
         </div>
     </div>
 </div>
@@ -291,7 +287,7 @@
     ];
 
     // Initialize the page
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         generateSentenceBuilder();
         generateSpellingPractice();
         generatePronunciationSentence();
@@ -301,10 +297,10 @@
     function generateSentenceBuilder() {
         // Select a random sentence template
         const randomTemplate = sentenceTemplates[Math.floor(Math.random() * sentenceTemplates.length)];
-        
+
         // Update template display
         document.getElementById('sentence-template').textContent = randomTemplate.template;
-        
+
         // Update visuals
         const visualsContainer = document.getElementById('sentence-visuals');
         visualsContainer.innerHTML = '';
@@ -314,7 +310,7 @@
             span.className = 'text-2xl';
             visualsContainer.appendChild(span);
         });
-        
+
         // Update options
         const optionsContainer = document.getElementById('sentence-options');
         optionsContainer.innerHTML = '';
@@ -325,7 +321,7 @@
             button.onclick = () => buildSentence(option);
             optionsContainer.appendChild(button);
         });
-        
+
         currentSentence = randomTemplate.options[0]; // Store current sentence for pronunciation
     }
 
@@ -377,36 +373,36 @@
         // Generate spelling options with ALL letters of the word guaranteed to be present
         const optionsContainer = document.getElementById('spelling-options');
         optionsContainer.innerHTML = '';
-        
+
         // Get all letters from the current word (with duplicates preserved)
         const wordLetters = currentSpellingWord.toUpperCase().split('');
-        
+
         // Select additional random letters to fill up to 8 options
         let selectedLetters = [...wordLetters]; // Start with all letters from the word
-        
+
         // Fill remaining slots with random letters from the alphabet
         while (selectedLetters.length < 8) {
             const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
             selectedLetters.push(randomLetter);
         }
-        
+
         // Remove duplicates while keeping all original letters from the word
         // First, separate the letters that came from the word vs random additions
         const wordLetterCounts = {};
         for (const letter of wordLetters) {
             wordLetterCounts[letter] = (wordLetterCounts[letter] || 0) + 1;
         }
-        
+
         // Create the final array with all required word letters and additional random letters
         let finalLetters = [];
-        
+
         // Add all letters from the word (preserving duplicates)
         for (const letter of wordLetters) {
             finalLetters.push(letter);
         }
-        
+
         // Add random letters to reach 8 total, avoiding duplicates of word letters where possible
-        const usedLetters = {...wordLetterCounts};
+        const usedLetters = { ...wordLetterCounts };
         while (finalLetters.length < 8) {
             const randomLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
             // Only add if the letter isn't already in the word or we've added it less than its occurrence in the word
@@ -415,10 +411,10 @@
                 usedLetters[randomLetter] = (usedLetters[randomLetter] || 0) + 1;
             }
         }
-        
+
         // Shuffle the selected letters
         finalLetters = finalLetters.sort(() => Math.random() - 0.5);
-        
+
         // Add the letters to the options
         finalLetters.forEach(letter => {
             const button = document.createElement('button');
@@ -478,7 +474,7 @@
     function generatePronunciationSentence() {
         // Select a random sentence
         currentPronunciationSentence = pronunciationSentences[Math.floor(Math.random() * pronunciationSentences.length)];
-        
+
         // Update display
         document.getElementById('pronunciation-sentence').textContent = currentPronunciationSentence;
     }
@@ -486,7 +482,7 @@
     function generatePronunciationSentence() {
         // Select a random sentence
         currentPronunciationSentence = pronunciationSentences[Math.floor(Math.random() * pronunciationSentences.length)];
-        
+
         // Update display
         document.getElementById('pronunciation-sentence').textContent = currentPronunciationSentence;
     }
@@ -507,60 +503,60 @@
     function generateComprehension() {
         // Clear any previously answered questions
         answeredQuestions.clear();
-        
+
         // Hide the "New Story" button
         document.getElementById('new-story-button').classList.add('hidden');
-        
+
         // Select a random story
         const randomStory = stories[Math.floor(Math.random() * stories.length)];
         currentStory = randomStory;
-        
+
         // Update story content
         document.getElementById('story-title').textContent = randomStory.title;
         document.getElementById('story-text').textContent = randomStory.text;
-        
+
         // Generate questions
         const questionsContainer = document.getElementById('comprehension-questions');
         questionsContainer.innerHTML = '';
-        
+
         // Shuffle questions to make the order dynamic
         const shuffledQuestions = [...randomStory.questions].sort(() => Math.random() - 0.5);
-        
+
         shuffledQuestions.forEach(question => {
             const questionDiv = document.createElement('div');
             questionDiv.className = 'bg-white border border-gray-200 rounded-lg p-4 mb-4';
-            
+
             const questionText = document.createElement('p');
             questionText.className = 'font-medium text-gray-800 mb-2';
             questionText.textContent = question.text;
-            
+
             // Shuffle options to make the order dynamic
             const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
-            
+
             const optionsContainer = document.createElement('div');
             optionsContainer.className = 'grid grid-cols-2 gap-2';
-            
+
             shuffledOptions.forEach(option => {
                 const optionButton = document.createElement('button');
                 optionButton.className = 'bg-gray-100 hover:bg-gray-200 p-2 rounded text-left';
-                
+
                 // Add a data attribute to track the correct answer
                 optionButton.setAttribute('data-question-id', question.id);
                 optionButton.setAttribute('data-option-text', option);
                 optionButton.setAttribute('data-correct-answer', question.answer);
-                
+
                 optionButton.textContent = option;
-                
+
                 // Create a closure to properly capture the question parameters
-                optionButton.onclick = (function(qId, optText, correctAns) {
-                    return function() {
+                optionButton.onclick = (function (qId, optText, correctAns) {
+                    return function () {
                         checkComprehension(qId, optText, correctAns);
                     };
                 })(question.id, option, question.answer);
-                
+
                 optionsContainer.appendChild(optionButton);
             });
-            
+
             questionDiv.appendChild(questionText);
             questionDiv.appendChild(optionsContainer);
             questionsContainer.appendChild(questionDiv);

@@ -2,265 +2,218 @@
 
 {% block title %}MCQ Quiz – Udaan{% endblock %}
 
-{% block body_class %}relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-950 via-[#0a0d21] to-[#020410] text-white{% endblock %}
+{% block body_class %}relative min-h-screen bg-[#FFFDF9] text-[#4A4A4A]{% endblock %}
 
 {% block extra_css %}
 <style>
+  @import url('https://fonts.cdnfonts.com/css/opendyslexic');
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+  .dyslexic-font {
+    font-family: 'OpenDyslexic', sans-serif !important;
+    line-height: 1.8 !important;
+    letter-spacing: 0.03em !important;
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
     }
-    .fade-up { animation: fadeUp 0.8s ease-out forwards; }
-    .fade-up-delay-1 { animation-delay: 0.2s; }
-    .fade-up-delay-2 { animation-delay: 0.4s; }
-    
-    .stars {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: -1;
-      background-image: 
-        radial-gradient(2px 2px at 20px 30px, #eee, transparent),
-        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
-        radial-gradient(1px 1px at 90px 40px, #fff, transparent),
-        radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
-        radial-gradient(2px 2px at 160px 30px, #ddd, transparent);
-      background-repeat: repeat;
-      background-size: 200px 100px;
-      animation: zoomInOut 3s ease-in-out infinite alternate;
-    }
-    
-    @keyframes zoomInOut {
-      0% { transform: scale(1); opacity: 0.8; }
-      100% { transform: scale(1.2); opacity: 0.4; }
-    }
-    
-    @keyframes float {
-      0% { transform: translate(0, 0); }
-      50% { transform: translate(10px, 10px); }
-      100% { transform: translate(0, 0); }
-    }
-    
-    .floating {
-      animation: float 15s infinite ease-in-out;
-    }
-    
-    @keyframes twinkle {
-      0% { opacity: 0.2; }
-      50% { opacity: 1; }
-      100% { opacity: 0.2; }
-    }
-    
-    .twinkle {
-      animation: twinkle 4s infinite;
-    }
-    
-    /* Fixed background that doesn't scroll */
-    .fixed-background {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: -1;
-    }
-    
-    .question-card {
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.5);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    .question-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 35px rgba(15, 23, 42, 0.7);
-    }
-    
-    .option-label {
-      display: block;
-      margin: 12px 0;
-      padding: 14px 18px;
-      border-radius: 12px;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      background: rgba(15, 23, 42, 0.5);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .option-label:hover {
-      background: rgba(37, 99, 235, 0.3);
-      border-color: rgba(37, 99, 235, 0.6);
-    }
-    
-    .option-input:checked + .option-label {
-      background: rgba(37, 99, 235, 0.5);
-      border-color: #2563eb;
-    }
-    
-    .submit-button {
-      display: block;
-      margin: 40px auto 0;
-      padding: 16px 32px;
-      font-size: 18px;
-      font-weight: 600;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      background: linear-gradient(to right, #2563eb, #7c3aed);
-      color: white;
-      box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
-      transition: all 0.3s ease;
-    }
-    
-    .submit-button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 30px rgba(37, 99, 235, 0.6);
-    }
-    
-    .submit-button:active {
+
+    to {
+      opacity: 1;
       transform: translateY(0);
     }
-    
-    @media (max-width: 600px) {
-      .question-card h3 {
-        font-size: 1.1rem;
-      }
-      
-      .submit-button {
-        width: 100%;
-      }
-    }
-  
+  }
+
+  .fade-up {
+    animation: fadeUp 0.8s ease-out forwards;
+  }
+
+  /* Question Card Styling */
+  .question-card {
+    background: #FFFFFF;
+    border: 3px solid #F5F1E9;
+    border-radius: 28px;
+    padding: 35px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    margin-bottom: 35px;
+    transition: transform 0.2s ease;
+  }
+
+  /* Option Styling */
+  .option-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .option-label {
+    display: flex;
+    align-items: center;
+    padding: 18px 24px;
+    border-radius: 20px;
+    border: 2px solid #F1F5F9;
+    background: #FAFAFD;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 700;
+  }
+
+  .option-label:hover {
+    background: #FFFFFF;
+    border-color: #E2E8F0;
+    transform: translateX(6px);
+  }
+
+  .option-input {
+    display: none;
+  }
+
+  .option-input:checked+.option-label {
+    background: #F4F7FF;
+    border-color: #7B6FA6;
+    color: #5D5086;
+    box-shadow: 0 4px 12px rgba(123, 111, 166, 0.08);
+  }
+
+  /* Button Styling */
+  .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 36px;
+    border-radius: 20px;
+    background: #F8F9FF;
+    color: #6D6491;
+    font-size: 1.1rem;
+    font-weight: 800;
+    box-shadow: 0 5px 0 #EBE7F5;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 2px solid #EEEAFF;
+  }
+
+  .button:hover {
+    transform: translateY(-2px);
+    background: #FFFFFF;
+    box-shadow: 0 7px 0 #EBE7F5;
+  }
+
+  .button:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 #EBE7F5;
+  }
+
+  .sidebar-box {
+    background: white;
+    border: 3px solid #F5F1E9;
+    border-radius: 28px;
+    padding: 30px;
+    box-shadow: 0 10px 0 #FBF9F6;
+  }
+
+  .badge {
+    padding: 10px 20px;
+    border-radius: 14px;
+    background: #F8F7FF;
+    color: #6D6491;
+    border: 2px solid #EBE4FF;
+    font-weight: 800;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Fixed background elements that don't scroll -->
-  <div class="fixed-background">
-    <div class="stars"></div>
-    
-    <!-- Space Elements -->
-    <div class="absolute top-10 left-10 w-2 h-2 bg-white rounded-full twinkle"></div>
-    <div class="absolute top-1/4 right-20 w-1 h-1 bg-blue-300 rounded-full twinkle" style="animation-delay: 1s;"></div>
-    <div class="absolute bottom-20 left-1/3 w-1 h-1 bg-purple-300 rounded-full twinkle" style="animation-delay: 2s;"></div>
-    <div class="absolute top-1/3 left-1/4 w-1 h-1 bg-cyan-200 rounded-full twinkle" style="animation-delay: 0.5s;"></div>
-    <div class="absolute bottom-40 right-1/4 w-2 h-2 bg-white rounded-full twinkle" style="animation-delay: 1.5s;"></div>
-    
-    <!-- Nebula Blobs -->
-    <div class="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-blue-800/40 mix-blend-screen blur-[100px] floating"></div>
-    <div class="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-purple-800/40 mix-blend-screen blur-[100px] floating" style="animation-delay: 3s;"></div>
+<div class="max-w-7xl mx-auto p-4 md:p-6 pt-12 md:pt-16 relative z-10 min-h-screen dyslexic-font">
+  <!-- Top Bar -->
+  <div class="flex justify-between items-center mb-12 fade-up">
+    <h1 class="text-4xl font-black text-[#544B7A]">Quiz Challenge</h1>
   </div>
-  
-  <div class="max-w-6xl mx-auto p-4 md:p-6 relative z-10">
-    <!-- Top Bar -->
-    <div class="flex justify-between items-center mb-8 fade-up">
-      <h1 class="text-2xl md:text-3xl font-bold">🧠 Quiz Challenge</h1>
-      {% if user and user.grade and user.grade in ['1', '2', '3', '4', '5'] %}
-        <a href="{{ url_for('grade_' + user.grade + '_dashboard') }}" class="bg-white/10 hover:bg-white/20 rounded-full px-5 py-2 transition-all">
-          Back to Dashboard
-        </a>
-      {% else %}
-        <a href="{% if user and user.grade and user.grade in ['1', '2', '3', '4', '5'] %}{{ url_for('grade_' + user.grade + '_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}" class="bg-white/10 hover:bg-white/20 rounded-full px-5 py-2 transition-all">
-          Back to Dashboard
-        </a>
-      {% endif %}
-    </div>
-    
-    <div class="flex flex-col lg:flex-row gap-6">
-      <!-- Left Sidebar -->
-      <div class="w-full lg:w-1/4 fade-up">
-        <div class="bg-white/5 backdrop-blur-xl border-r border-white/10 rounded-2xl p-6 mb-6">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-              <span class="text-xl">📝</span>
-            </div>
-            <div>
-              <div class="font-bold">Quiz Challenge</div>
-              <div class="text-gray-400 text-sm">Test your knowledge</div>
-            </div>
+
+  <div class="flex flex-col lg:flex-row gap-10">
+    <!-- Left Sidebar -->
+    <div class="w-full lg:w-1/3 fade-up">
+      <div class="sidebar-box mb-8">
+        <div class="flex items-center gap-5 mb-10">
+          <div class="w-16 h-16 rounded-2xl bg-[#F8F9FF] flex items-center justify-center border-2 border-[#EEEAFF]">
+            <span class="text-3xl">📝</span>
           </div>
-          
-          <div class="space-y-4">
-            <a href="{% if user and user.grade and user.grade in ['1', '2', '3', '4', '5'] %}{{ url_for('grade_' + user.grade + '_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}" class="block bg-white/10 backdrop-blur-xl rounded-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-[1.02]">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center">
-                  <span>🏠</span>
-                </div>
-                <span>Dashboard</span>
-              </div>
-            </a>
-            
-            <a href="{{ url_for('library') }}" class="block bg-white/10 backdrop-blur-xl rounded-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-[1.02]">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-                  <span>📚</span>
-                </div>
-                <span>My Textbooks</span>
-              </div>
-            </a>
+          <div>
+            <div class="font-black text-xl text-[#6D6491]">Knowledge Check</div>
+            <div class="text-[#A49CB6] font-bold">Deepen your learning</div>
           </div>
         </div>
-        
-        <div class="bg-white/5 backdrop-blur-xl border-r border-white/10 rounded-2xl p-6">
-          <h3 class="font-bold mb-4">Quiz Tips</h3>
-          <ul class="text-sm text-gray-300 space-y-2">
-            <li>• Read each question carefully</li>
-            <li>• Select the best answer</li>
-            <li>• Review before submitting</li>
-          </ul>
+
+        <div class="space-y-5">
+          <a href="{{ url_for('library') }}" class="button w-full justify-center">
+            <span>📚</span>
+            <span>My Textbooks</span>
+          </a>
         </div>
       </div>
-      
-      <!-- Main Content -->
-      <div class="w-full lg:w-3/4">
-        <!-- Welcome Section -->
-        <div class="bg-white/10 backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] rounded-3xl p-8 md:p-10 mb-6 fade-up-delay-1">
-          <h2 class="text-xl md:text-2xl font-bold mb-2">Knowledge Check</h2>
-          <p class="text-gray-300">Test your understanding with this AI-generated quiz.</p>
-        </div>
-        
-        <!-- Quiz Section -->
-        <section class="bg-white/10 backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] rounded-3xl p-8 md:p-10 fade-up-delay-2">
-          <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl md:text-2xl font-bold" style="margin:0;">Multiple Choice Questions</h2>
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20">
-              <span>❓</span>
-              <span>{{ quiz|length }} Questions</span>
-            </div>
-          </div>
-          
-          <form action="{{ url_for('submit_quiz') }}" method="POST">
-            {% for q in quiz %}
-              {% set q_index = loop.index %}
-              <div class="question-card rounded-2xl p-6 mb-6 fade-up">
-                <h3 class="text-lg font-bold mb-4">Q{{ q_index }}. {{ q.question }}</h3>
-                <div class="options">
-                  {% for option in q.options %}
-                    <div class="flex items-start">
-                      <input type="radio" id="q{{ q_index }}_opt{{ loop.index }}" name="q{{ q_index }}" value="{{ option }}" required class="mt-1 mr-3 h-5 w-5 text-blue-500">
-                      <label for="q{{ q_index }}_opt{{ loop.index }}" class="option-label flex-grow">
-                        {{ option }}
-                      </label>
-                    </div>
-                  {% endfor %}
-                </div>
-              </div>
-            {% endfor %}
-            <button type="submit" class="submit-button">Submit Quiz</button>
-          </form>
-        </section>
+
+      <div class="sidebar-box" style="background: #FFFDF5; border-color: #FEF3C7; box-shadow: 0 10px 0 #FEF9D9;">
+        <h3 class="font-black text-xl mb-6 text-[#92400E] flex items-center gap-3">
+          <span>💡</span> Helpful Tips
+        </h3>
+        <ul class="font-bold space-y-6 text-[#B45309]">
+          <li class="flex gap-4"><span>✨</span> <span>Read each question carefully.</span></li>
+          <li class="flex gap-4"><span>✨</span> <span>Trust your knowledge!</span></li>
+          <li class="flex gap-4"><span>✨</span> <span>You can always try again.</span></li>
+        </ul>
       </div>
     </div>
+
+    <!-- Main Content -->
+    <div class="w-full lg:w-2/3">
+      <!-- Welcome Section -->
+      <div class="sidebar-box mb-8 fade-up" style="border-color: #E6F4EA; box-shadow: 0 10px 0 #F1F9F3;">
+        <h2 class="text-2xl font-black text-[#3B7A5A] mb-3">Ready?</h2>
+        <p class="text-lg font-bold text-[#5B7B6B]">We have {{ quiz|length }} interesting questions for you today!</p>
+      </div>
+
+      <section class="sidebar-box fade-up">
+        <div class="flex justify-between items-center mb-10">
+          <h2 class="text-2xl font-black text-[#6D6491]">Multiple Choice</h2>
+          <div class="badge">{{ quiz|length }} Questions</div>
+        </div>
+
+        <form action="{{ url_for('submit_quiz') }}" method="POST" class="space-y-4">
+          {% for q in quiz %}
+          {% set q_index = loop.index %}
+          <div class="question-card">
+            <h3 class="text-xl font-black text-[#544B7A] mb-8">Q{{ q_index }}. {{ q.question }}</h3>
+            <div class="option-container">
+              {% for option in q.options %}
+              <div>
+                <input type="radio" id="q{{ q_index }}_opt{{ loop.index }}" name="q{{ q_index }}" value="{{ option }}"
+                  required class="option-input">
+                <label for="q{{ q_index }}_opt{{ loop.index }}" class="option-label">
+                  {{ option }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+
+          <div class="flex justify-center pt-8">
+            <button type="submit" class="button">
+              <span>🚀</span>
+              <span>Submit My Quiz</span>
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
   </div>
+</div>
 {% endblock %}
+
 
 {% block extra_js %}
 <script>
-
+  // Dynamic interaction feedback can be added here
 </script>
 {% endblock %}

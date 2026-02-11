@@ -22,9 +22,8 @@
           <p class="text-gray-700 mb-4">Click the microphone and speak! Your words will appear in the text box.</p>
 
           <div class="flex justify-center mb-6">
-            <button id="micButton"
-              onclick="toggleRecording()"
-              class="w-20 h-20 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center text-white text-4xl shadow-lg transition-transform transform hover:scale-110">
+            <button id="micButton" onclick="toggleRecording()"
+              class="w-20 h-20 bg-[#EEEAF7] hover:bg-[#d6cceb] rounded-full flex items-center justify-center text-indigo-900 text-4xl shadow-lg transition-transform transform hover:scale-110">
               🎤
             </button>
           </div>
@@ -38,14 +37,13 @@
         <div class="bg-orange-50 p-6 rounded-xl">
           <h2 class="text-xl font-semibold text-orange-800 mb-4">Your Written Story</h2>
 
-          <textarea id="writingBox" rows="8"
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none"
+          <textarea id="writingBox" rows="8" class="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none"
             placeholder="Your transcribed text will appear here..."></textarea>
 
           <div class="flex flex-col space-y-3 mt-4">
             <div class="flex space-x-3">
               <button onclick="saveSentence()"
-                class="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold py-3 px-6 rounded-xl transition-all">
+                class="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-indigo-900 font-bold py-3 px-6 rounded-xl transition-all">
                 Save Sentence 💾
               </button>
 
@@ -54,16 +52,16 @@
                 Clear Text 🧹
               </button>
             </div>
-            
+
             <button onclick="listenToStory()"
               class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center">
               🔊 Listen to My Story
             </button>
           </div>
-          
+
           <div id="audioFeedback" class="mt-4 text-center hidden">
             <div class="inline-flex items-center bg-blue-100 text-blue-700 px-4 py-2 rounded-full">
-              <div class="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
+              <div class="w-2 h-2 bg-[#EEEAF7] rounded-full mr-2 animate-pulse"></div>
               <span>🔊 Speaking...</span>
             </div>
           </div>
@@ -77,7 +75,7 @@
       <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">
         💡 AI Writing Assistant
       </h2>
-      
+
       <div id="streakDisplay" class="mb-4 text-center text-orange-600 font-bold text-lg">
         <!-- Streak will be loaded here -->
       </div>
@@ -89,251 +87,245 @@
       </div>
     </div>
 
-    <!-- ================= BACK BUTTON ================= -->
-    <div class="text-center">
-      <a href="{{ url_for('grade_4_dashboard') }}"
-        class="inline-block bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold py-3 px-8 rounded-xl transition-all">
-        Back to Dashboard
-      </a>
-    </div>
+    <!-- Back Button Removed -->
 
   </div>
 </div>
 
 <!-- ================= JAVASCRIPT ================= -->
 <script>
-let recognition;
-let isRecording = false;
+  let recognition;
+  let isRecording = false;
 
-/* ---------- TOGGLE RECORDING ---------- */
-function toggleRecording() {
+  /* ---------- TOGGLE RECORDING ---------- */
+  function toggleRecording() {
 
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-  if (!SpeechRecognition) {
-    alert("Speech recognition not supported in this browser.");
-    return;
+    if (!SpeechRecognition) {
+      alert("Speech recognition not supported in this browser.");
+      return;
+    }
+
+    if (!recognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = "en-IN";
+      recognition.continuous = true;
+      recognition.interimResults = false;
+
+      recognition.onresult = (event) => {
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript + " ";
+        }
+
+        const box = document.getElementById("writingBox");
+        box.value += transcript;
+
+        provideFeedback(box.value);
+      };
+
+      recognition.onend = () => {
+        if (isRecording) recognition.start();
+      };
+    }
+
+    if (!isRecording) {
+      recognition.start();
+      isRecording = true;
+      document.getElementById("recordingStatus").classList.remove("hidden");
+    } else {
+      recognition.stop();
+      isRecording = false;
+      document.getElementById("recordingStatus").classList.add("hidden");
+    }
   }
 
-  if (!recognition) {
-    recognition = new SpeechRecognition();
-    recognition.lang = "en-IN";
-    recognition.continuous = true;
-    recognition.interimResults = false;
+  /* ---------- AI FEEDBACK ---------- */
+  function provideFeedback(text) {
+    const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+    const count = words.length;
+    const box = document.getElementById("aiFeedback");
 
-    recognition.onresult = (event) => {
-      let transcript = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript + " ";
+    if (count < 10) {
+      box.innerHTML = '<p class="text-green-600 font-bold">Nice start! Add more details.</p>';
+    } else if (count < 30) {
+      box.innerHTML = '<p class="text-blue-600 font-bold">Great! Try descriptive words.</p>';
+    } else {
+      box.innerHTML = '<p class="text-purple-600 font-bold">Amazing story! 🌟</p>';
+    }
+  }
+
+  /* ---------- AI GRAMMAR CORRECTION ---------- */
+  async function correctGrammar() {
+    const text = document.getElementById("writingBox").value.trim();
+
+    if (!text) {
+      alert("Please write something first!");
+      return;
+    }
+
+    try {
+      const response = await fetch('/ai-correct', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: text })
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        console.error('AI Correction Error:', data.error);
+        document.getElementById("aiFeedback").innerHTML = `<p class="text-red-600">Error: ${data.error}</p>`;
+        return;
       }
 
-      const box = document.getElementById("writingBox");
-      box.value += transcript;
-
-      provideFeedback(box.value);
-    };
-
-    recognition.onend = () => {
-      if (isRecording) recognition.start();
-    };
-  }
-
-  if (!isRecording) {
-    recognition.start();
-    isRecording = true;
-    document.getElementById("recordingStatus").classList.remove("hidden");
-  } else {
-    recognition.stop();
-    isRecording = false;
-    document.getElementById("recordingStatus").classList.add("hidden");
-  }
-}
-
-/* ---------- AI FEEDBACK ---------- */
-function provideFeedback(text) {
-  const words = text.trim().split(/\s+/).filter(w => w.length > 0);
-  const count = words.length;
-  const box = document.getElementById("aiFeedback");
-
-  if (count < 10) {
-    box.innerHTML = '<p class="text-green-600 font-bold">Nice start! Add more details.</p>';
-  } else if (count < 30) {
-    box.innerHTML = '<p class="text-blue-600 font-bold">Great! Try descriptive words.</p>';
-  } else {
-    box.innerHTML = '<p class="text-purple-600 font-bold">Amazing story! 🌟</p>';
-  }
-}
-
-/* ---------- AI GRAMMAR CORRECTION ---------- */
-async function correctGrammar() {
-  const text = document.getElementById("writingBox").value.trim();
-  
-  if (!text) {
-    alert("Please write something first!");
-    return;
-  }
-
-  try {
-    const response = await fetch('/ai-correct', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ text: text })
-    });
-
-    const data = await response.json();
-    
-    if (data.error) {
-      console.error('AI Correction Error:', data.error);
-      document.getElementById("aiFeedback").innerHTML = `<p class="text-red-600">Error: ${data.error}</p>`;
-      return;
-    }
-
-    // Update the text area with corrected text
-    document.getElementById("writingBox").value = data.corrected;
-    
-    // Show feedback in AI feedback box
-    document.getElementById("aiFeedback").innerHTML = `<p class="text-green-600 font-bold">${data.feedback}</p>`;
-  } catch (error) {
-    console.error('Error correcting text:', error);
-    document.getElementById("aiFeedback").innerHTML = '<p class="text-red-600">Error connecting to AI service.</p>';
-  }
-}
-
-/* ---------- SAVE WITH PROGRESS TRACKING ---------- */
-async function saveSentence() {
-  const text = document.getElementById("writingBox").value.trim();
-
-  if (!text) {
-    alert("Please record or write something first!");
-    return;
-  }
-
-  try {
-    // First, correct the grammar using AI
-    const response = await fetch('/ai-correct', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ text: text })
-    });
-
-    const data = await response.json();
-    
-    if (!data.error) {
-      // Update text with AI corrected version
+      // Update the text area with corrected text
       document.getElementById("writingBox").value = data.corrected;
+
+      // Show feedback in AI feedback box
       document.getElementById("aiFeedback").innerHTML = `<p class="text-green-600 font-bold">${data.feedback}</p>`;
+    } catch (error) {
+      console.error('Error correcting text:', error);
+      document.getElementById("aiFeedback").innerHTML = '<p class="text-red-600">Error connecting to AI service.</p>';
     }
-
-    // Save to progress tracking
-    const progressResponse = await fetch('/save-writing-progress', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ text: document.getElementById("writingBox").value.trim() })
-    });
-
-    const progressData = await progressResponse.json();
-    
-    if (progressData.success) {
-      // Update streak display
-      loadStreak();
-      alert("Saved successfully! 🌟");
-    } else {
-      alert("Saved locally, but progress tracking had an issue.");
-    }
-  } catch (error) {
-    console.error('Error saving:', error);
-    // Fallback to local storage if API fails
-    localStorage.setItem("grade4_writing", text);
-    alert("Saved locally!");
-  }
-}
-
-/* ---------- LISTEN TO STORY (TTS) ---------- */
-async function listenToStory() {
-  const text = document.getElementById("writingBox").value.trim();
-  
-  if (!text) {
-    alert("Please write something first!");
-    return;
   }
 
-  // Show speaking indicator
-  document.getElementById("audioFeedback").classList.remove("hidden");
+  /* ---------- SAVE WITH PROGRESS TRACKING ---------- */
+  async function saveSentence() {
+    const text = document.getElementById("writingBox").value.trim();
 
-  try {
-    const response = await fetch('/ai-tts', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ text: text })
-    });
-
-    const data = await response.json();
-    
-    if (data.error) {
-      console.error('TTS Error:', data.error);
-      document.getElementById("aiFeedback").innerHTML = `<p class="text-red-600">TTS Error: ${data.error}</p>`;
-      document.getElementById("audioFeedback").classList.add("hidden");
+    if (!text) {
+      alert("Please record or write something first!");
       return;
     }
 
-    // Create audio element and play
-    const audio = new Audio(data.audio_url);
-    audio.play();
-    
-    // Hide speaking indicator when audio finishes
-    audio.onended = function() {
-      document.getElementById("audioFeedback").classList.add("hidden");
-    };
-    
-    // Also hide on error
-    audio.onerror = function() {
-      document.getElementById("audioFeedback").classList.add("hidden");
-    };
-  } catch (error) {
-    console.error('Error with TTS:', error);
-    document.getElementById("aiFeedback").innerHTML = '<p class="text-red-600">Error with text-to-speech service.</p>';
-    document.getElementById("audioFeedback").classList.add("hidden");
-  }
-}
+    try {
+      // First, correct the grammar using AI
+      const response = await fetch('/ai-correct', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: text })
+      });
 
-/* ---------- LOAD STREAK ---------- */
-async function loadStreak() {
-  try {
-    const response = await fetch('/progress-summary');
-    const data = await response.json();
-    
-    if (data.error) {
-      console.error('Progress summary error:', data.error);
+      const data = await response.json();
+
+      if (!data.error) {
+        // Update text with AI corrected version
+        document.getElementById("writingBox").value = data.corrected;
+        document.getElementById("aiFeedback").innerHTML = `<p class="text-green-600 font-bold">${data.feedback}</p>`;
+      }
+
+      // Save to progress tracking
+      const progressResponse = await fetch('/save-writing-progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: document.getElementById("writingBox").value.trim() })
+      });
+
+      const progressData = await progressResponse.json();
+
+      if (progressData.success) {
+        // Update streak display
+        loadStreak();
+        alert("Saved successfully! 🌟");
+      } else {
+        alert("Saved locally, but progress tracking had an issue.");
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
+      // Fallback to local storage if API fails
+      localStorage.setItem("grade4_writing", text);
+      alert("Saved locally!");
+    }
+  }
+
+  /* ---------- LISTEN TO STORY (TTS) ---------- */
+  async function listenToStory() {
+    const text = document.getElementById("writingBox").value.trim();
+
+    if (!text) {
+      alert("Please write something first!");
       return;
     }
 
-    document.getElementById("streakDisplay").innerHTML = `<p class="text-orange-600 font-bold">🔥 Your Writing Streak: ${data.streak_count} days | Entries: ${data.total_entries}</p>`;
-  } catch (error) {
-    console.error('Error loading streak:', error);
+    // Show speaking indicator
+    document.getElementById("audioFeedback").classList.remove("hidden");
+
+    try {
+      const response = await fetch('/ai-tts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: text })
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        console.error('TTS Error:', data.error);
+        document.getElementById("aiFeedback").innerHTML = `<p class="text-red-600">TTS Error: ${data.error}</p>`;
+        document.getElementById("audioFeedback").classList.add("hidden");
+        return;
+      }
+
+      // Create audio element and play
+      const audio = new Audio(data.audio_url);
+      audio.play();
+
+      // Hide speaking indicator when audio finishes
+      audio.onended = function () {
+        document.getElementById("audioFeedback").classList.add("hidden");
+      };
+
+      // Also hide on error
+      audio.onerror = function () {
+        document.getElementById("audioFeedback").classList.add("hidden");
+      };
+    } catch (error) {
+      console.error('Error with TTS:', error);
+      document.getElementById("aiFeedback").innerHTML = '<p class="text-red-600">Error with text-to-speech service.</p>';
+      document.getElementById("audioFeedback").classList.add("hidden");
+    }
   }
-}
 
-/* ---------- CLEAR ---------- */
-function clearText() {
-  if (!confirm("Clear your text?")) return;
+  /* ---------- LOAD STREAK ---------- */
+  async function loadStreak() {
+    try {
+      const response = await fetch('/progress-summary');
+      const data = await response.json();
 
-  document.getElementById("writingBox").value = "";
-  document.getElementById("aiFeedback").innerHTML =
-    '<p class="text-gray-700 italic">"Record something and I\'ll help you!"</p>';
-}
+      if (data.error) {
+        console.error('Progress summary error:', data.error);
+        return;
+      }
 
-// Load streak when page loads
-document.addEventListener('DOMContentLoaded', function() {
-  loadStreak();
-});
+      document.getElementById("streakDisplay").innerHTML = `<p class="text-orange-600 font-bold">🔥 Your Writing Streak: ${data.streak_count} days | Entries: ${data.total_entries}</p>`;
+    } catch (error) {
+      console.error('Error loading streak:', error);
+    }
+  }
+
+  /* ---------- CLEAR ---------- */
+  function clearText() {
+    if (!confirm("Clear your text?")) return;
+
+    document.getElementById("writingBox").value = "";
+    document.getElementById("aiFeedback").innerHTML =
+      '<p class="text-gray-700 italic">"Record something and I\'ll help you!"</p>';
+  }
+
+  // Load streak when page loads
+  document.addEventListener('DOMContentLoaded', function () {
+    loadStreak();
+  });
 </script>
 
 {% endblock %}

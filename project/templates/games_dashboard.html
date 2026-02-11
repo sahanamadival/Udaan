@@ -1,220 +1,187 @@
 {% extends "base.html" %}
 
-{% block title %}Learning Games - Udaan{% endblock %}
+{% block title %}Learning Games – Udaan{% endblock %}
 
-{% block body_class %}relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-950 via-[#0a0d21] to-[#020410] text-white overflow-x-hidden{% endblock %}
+{% block body_class %}relative min-h-screen bg-[#FFFDF9] text-[#4A4A4A]{% endblock %}
 
 {% block extra_css %}
 <style>
+    @import url('https://fonts.cdnfonts.com/css/opendyslexic');
 
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+    .dyslexic-font {
+        font-family: 'OpenDyslexic', sans-serif !important;
+        line-height: 1.8 !important;
+        letter-spacing: 0.03em !important;
+    }
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
         }
-        .fade-up { animation: fadeUp 0.8s ease-out forwards; }
-        .fade-up-delay-1 { animation-delay: 0.2s; }
-        .fade-up-delay-2 { animation-delay: 0.4s; }
-        
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: -1;
-            background-image: 
-                radial-gradient(2px 2px at 20px 30px, #a78bfa, transparent),
-                radial-gradient(2px 2px at 40px 70px, rgba(167, 139, 250, 0.8), transparent),
-                radial-gradient(1px 1px at 90px 40px, #c4b5fd, transparent),
-                radial-gradient(1px 1px at 130px 80px, rgba(196, 181, 253, 0.6), transparent),
-                radial-gradient(2px 2px at 160px 30px, #ddd6fe, transparent);
-            background-repeat: repeat;
-            background-size: 200px 100px;
-            animation: zoomInOut 3s ease-in-out infinite alternate;
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
-        
-        @keyframes zoomInOut {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(1.2); opacity: 0.4; }
-        }
-        
-        @keyframes float {
-            0% { transform: translate(0, 0); }
-            50% { transform: translate(10px, 10px); }
-            100% { transform: translate(0, 0); }
-        }
-        
-        .floating {
-            animation: float 15s infinite ease-in-out;
-        }
-        
-        @keyframes twinkle {
-            0% { opacity: 0.2; }
-            50% { opacity: 1; }
-            100% { opacity: 0.2; }
-        }
-        
-        .twinkle {
-            animation: twinkle 4s infinite;
-        }
-        
-        /* Fixed background that doesn't scroll */
-        .fixed-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: -1;
-        }
-        
-        /* Game card hover effect */
-        .game-card {
-            transition: all 0.3s ease;
-        }
-        
-        .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(167, 139, 250, 0.3);
-        }
-        
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(107, 114, 128, 0.3);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: rgba(167, 139, 250, 0.5);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(167, 139, 250, 0.7);
-        }
-        
-        /* Ensure no white backgrounds */
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        /* Ensure all elements use dark theme */
-        html, body {
-            background-color: #020410;
-            color: white;
-        }
-    
+    }
+
+    .fade-up {
+        animation: fadeUp 0.8s ease-out forwards;
+    }
+
+    .game-card {
+        background: #FFFFFF;
+        border: 3px solid #F5F1E9;
+        border-radius: 28px;
+        padding: 35px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .game-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(123, 111, 166, 0.1);
+        border-color: #EBE7F5;
+    }
+
+    .welcome-banner {
+        background: white;
+        border: 3px solid #F5F1E9;
+        border-radius: 32px;
+        padding: 40px;
+        box-shadow: 0 10px 0 #FBF9F6;
+    }
+
+    .button {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 30px;
+        border-radius: 20px;
+        background: #F8F9FF;
+        color: #6D6491;
+        font-size: 1.05rem;
+        font-weight: 800;
+        box-shadow: 0 5px 0 #EBE7F5;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        border: 2px solid #EEEAFF;
+        margin-top: auto;
+    }
+
+    .button:hover {
+        transform: translateY(-2px);
+        background: #FFFFFF;
+        box-shadow: 0 7px 0 #EBE7F5;
+    }
+
+    .button:active {
+        transform: translateY(2px);
+        box-shadow: 0 0 0 #EBE7F5;
+    }
+
+    .icon-box {
+        width: 64px;
+        height: 64px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 25px;
+        border: 2px solid rgba(0, 0, 0, 0.03);
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Fixed background elements that don't scroll -->
-    <div class="fixed-background">
-        <div class="stars"></div>
-        
-        <!-- Space Elements -->
-        <div class="absolute top-10 left-10 w-2 h-2 bg-purple-300 rounded-full twinkle"></div>
-        <div class="absolute top-1/4 right-20 w-1 h-1 bg-blue-300 rounded-full twinkle" style="animation-delay: 1s;"></div>
-        <div class="absolute bottom-20 left-1/3 w-1 h-1 bg-purple-300 rounded-full twinkle" style="animation-delay: 2s;"></div>
-        <div class="absolute top-1/3 left-1/4 w-1 h-1 bg-cyan-200 rounded-full twinkle" style="animation-delay: 0.5s;"></div>
-        <div class="absolute bottom-40 right-1/4 w-2 h-2 bg-purple-300 rounded-full twinkle" style="animation-delay: 1.5s;"></div>
-        
-        <!-- Nebula Blobs -->
-        <div class="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-blue-800/40 mix-blend-screen blur-[100px] floating"></div>
-        <div class="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-purple-800/40 mix-blend-screen blur-[100px] floating" style="animation-delay: 3s;"></div>
+<div class="max-w-7xl mx-auto p-4 md:p-6 pt-12 md:pt-16 relative z-10 min-h-screen dyslexic-font">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-12 fade-up">
+        <h1 class="text-4xl font-black text-[#544B7A]">Learning Arcade</h1>
     </div>
-    
-    <div class="max-w-7xl mx-auto p-4 md:p-6 relative z-10 min-h-screen">
-        <!-- Top Bar -->
-        <div class="flex justify-between items-center mb-8 fade-up flex-wrap gap-4">
-            <h1 class="text-2xl md:text-3xl font-bold">Learning Games</h1>
-            {% if user and user.grade and user.grade in ['1', '2', '3', '4', '5'] %}
-              <a href="{{ url_for('grade_' + user.grade + '_dashboard') }}" class="bg-white/10 hover:bg-white/20 rounded-full px-5 py-2 transition-all">
-                  Back to Dashboard
-              </a>
-            {% else %}
-              <a href="{% if user and user.grade and user.grade in ['1', '2', '3', '4', '5'] %}{{ url_for('grade_' + user.grade + '_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}" class="bg-white/10 hover:bg-white/20 rounded-full px-5 py-2 transition-all">
-                  Back to Dashboard
-              </a>
-            {% endif %}
-        </div>
-        
-        <!-- Welcome Section -->
-        <div class="bg-white/10 backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] rounded-3xl p-8 md:p-10 mb-8 fade-up">
-            <h2 class="text-xl md:text-2xl font-bold mb-2">Welcome to Learning Games, {{ name }}!</h2>
-            <p class="text-gray-300">Play fun and educational games to reinforce your learning concepts.</p>
-        </div>
-        
-        <!-- Games Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-up-delay-1">
-            <!-- Flashcard Memory Game -->
-            <div class="game-card bg-white/10 backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] rounded-3xl p-6">
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
-                        <span class="text-xl">🃏</span>
-                    </div>
-                    <h3 class="text-lg font-bold">Flashcard Memory</h3>
-                </div>
-                <p class="text-gray-300 text-sm mb-6">Test your memory skills with flashcard matching games.</p>
-                <a href="{{ url_for('game_memory') }}" class="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 rounded-full py-2 px-6 text-white font-medium text-sm transition-all hover:scale-105 inline-block">
-                    Play Now
-                </a>
-            </div>
-            
-            <!-- Word Highlight Speed Game -->
-            <div class="game-card bg-white/10 backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] rounded-3xl p-6">
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
-                        <span class="text-xl">🔍</span>
-                    </div>
-                    <h3 class="text-lg font-bold">Word Highlight Speed Game</h3>
-                </div>
-                <p class="text-gray-300 text-sm mb-6">Find and highlight repeated words in sentences as fast as you can.</p>
-                <a href="{{ url_for('game_wordspeed') }}" class="bg-gradient-to-r from-emerald-500 to-emerald-700 hover:from-emerald-600 hover:to-emerald-800 rounded-full py-2 px-6 text-white font-medium text-sm transition-all hover:scale-105 inline-block">
-                    Play Now
-                </a>
-            </div>
-            
-            <!-- Drag & Drop Labels -->
-            <div class="game-card bg-white/10 backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] rounded-3xl p-6">
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center">
-                        <span class="text-xl">🎯</span>
-                    </div>
-                    <h3 class="text-lg font-bold">Drag & Drop Labels</h3>
-                </div>
-                <p class="text-gray-300 text-sm mb-6">Match labels to their correct positions.</p>
-                <a href="{{ url_for('game_dragdrop') }}" class="bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 rounded-full py-2 px-6 text-white font-medium text-sm transition-all hover:scale-105 inline-block">
-                    Play Now
-                </a>
-            </div>
-            
 
+    <!-- Welcome Section -->
+    <div class="welcome-banner mb-12 fade-up">
+        <div class="flex items-center gap-6">
+            <div class="text-6xl hidden md:block">🕹️</div>
+            <div>
+                <h2 class="text-3xl font-black text-[#544B7A] mb-3">Welcome to the Arcade, {{ name }}!</h2>
+                <p class="text-xl font-bold text-[#8E86A8]">Pick a challenge and boost your skills through play.</p>
+            </div>
+        </div>
+    </div>
 
-            <!-- AI Story Adventure Game -->
-            <div class="game-card bg-white/10 backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] rounded-3xl p-6 md:col-span-2 lg:col-span-1">
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-700 flex items-center justify-center">
-                        <span class="text-xl">📖</span>
-                    </div>
-                    <h3 class="text-lg font-bold">AI Story Adventure</h3>
-                </div>
-                <p class="text-gray-300 text-sm mb-6">Embark on an interactive story adventure powered by AI.</p>
-                <a href="{{ url_for('game_story') }}" class="bg-gradient-to-r from-cyan-500 to-cyan-700 hover:from-cyan-600 hover:to-cyan-800 rounded-full py-2 px-6 text-white font-medium text-sm transition-all hover:scale-105 inline-block">
-                    Play Now
+    <!-- Games Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Flashcard Memory Game -->
+        <div class="fade-up" style="animation-delay: 0.1s;">
+            <div class="game-card">
+                <div class="icon-box bg-[#F0F4FF] text-blue-600">🃏</div>
+                <h3 class="text-2xl font-black text-[#544B7A] mb-4">Memory Challenge</h3>
+                <p class="text-[#8E86A8] font-bold mb-8 leading-relaxed">Match pairs of cards to sharpen your visual
+                    memory skills.</p>
+                <a href="{{ url_for('game_memory') }}" class="button justify-center">
+                    <span>🚀</span>
+                    <span>Play Now</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Word Highlight Speed Game -->
+        <div class="fade-up" style="animation-delay: 0.2s;">
+            <div class="game-card">
+                <div class="icon-box bg-[#E6F9F0] text-emerald-600">🔍</div>
+                <h3 class="text-2xl font-black text-[#544B7A] mb-4">Word Master</h3>
+                <p class="text-[#8E86A8] font-bold mb-8 leading-relaxed">Spot and highlight hidden words as fast as you
+                    can. Stay sharp!</p>
+                <a href="{{ url_for('game_wordspeed') }}" class="button justify-center"
+                    style="background: #E6F9F0; border-color: #D1F2E1; color: #2D6A4F; box-shadow: 0 5px 0 #B7E4C7;">
+                    <span>⚡</span>
+                    <span>Play Now</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Drag & Drop Labels -->
+        <div class="fade-up" style="animation-delay: 0.3s;">
+            <div class="game-card">
+                <div class="icon-box bg-[#F8F2FF] text-purple-600">🎯</div>
+                <h3 class="text-2xl font-black text-[#544B7A] mb-4">Label Matcher</h3>
+                <p class="text-[#8E86A8] font-bold mb-8 leading-relaxed">Drag labels to their correct spots to master
+                    vocabulary.</p>
+                <a href="{{ url_for('game_dragdrop') }}" class="button justify-center"
+                    style="background: #F8F2FF; border-color: #EEE0FF; color: #6930C3; box-shadow: 0 5px 0 #E0C3FC;">
+                    <span>🔥</span>
+                    <span>Play Now</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- AI Story Adventure Game -->
+        <div class="fade-up lg:col-span-1" style="animation-delay: 0.4s;">
+            <div class="game-card">
+                <div class="icon-box bg-[#E0FAFF] text-cyan-600">📖</div>
+                <h3 class="text-2xl font-black text-[#544B7A] mb-4">Story Quest</h3>
+                <p class="text-[#8E86A8] font-bold mb-8 leading-relaxed">Embark on an epic adventure where your choices
+                    shape the story!</p>
+                <a href="{{ url_for('game_story') }}" class="button justify-center"
+                    style="background: #E0FAFF; border-color: #B2F2FF; color: #0077B6; box-shadow: 0 5px 0 #90E0EF;">
+                    <span>🌈</span>
+                    <span>Play Now</span>
                 </a>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-
+    // Dynamic interaction animations can be added here
 </script>
 {% endblock %}

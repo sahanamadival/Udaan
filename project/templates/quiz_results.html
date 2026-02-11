@@ -1,37 +1,160 @@
 {% extends "base.html" %}
 
-{% block title %}Quiz Results{% endblock %}
+{% block title %}Quiz Results – Udaan{% endblock %}
 
-{% block body_class %}relative min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-950 via-[#0a0d21] to-[#020410] text-white{% endblock %}
+{% block body_class %}relative min-h-screen bg-[#FFFDF9] text-[#4A4A4A]{% endblock %}
 
 {% block extra_css %}
 <style>
+  @import url('https://fonts.cdnfonts.com/css/opendyslexic');
 
-    body { font-family: Arial, sans-serif; margin: 30px; }
-    .result-box { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 10px; }
-    .correct { color: green; }
-    .wrong { color: red; }
-  
+  .dyslexic-font {
+    font-family: 'OpenDyslexic', sans-serif !important;
+    line-height: 1.8 !important;
+    letter-spacing: 0.03em !important;
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .fade-up {
+    animation: fadeUp 0.8s ease-out forwards;
+  }
+
+  .result-card {
+    background: #FFFFFF;
+    border: 3px solid #F5F1E9;
+    border-radius: 28px;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
+  }
+
+  .result-card.correct {
+    border-color: #E6F4EA;
+    background: #FAFEFB;
+  }
+
+  .result-card.wrong {
+    border-color: #FDF2F2;
+    background: #FFFAF1;
+    /* Soft cream instead of harsh pink */
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 30px;
+    border-radius: 20px;
+    background: #F8F9FF;
+    color: #6D6491;
+    font-size: 1.05rem;
+    font-weight: 800;
+    box-shadow: 0 5px 0 #EBE7F5;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 2px solid #EEEAFF;
+  }
+
+  .button:hover {
+    transform: translateY(-2px);
+    background: #FFFFFF;
+    box-shadow: 0 7px 0 #EBE7F5;
+  }
+
+  .button:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 #EBE7F5;
+  }
+
+  .score-badge {
+    font-size: 3rem;
+    font-weight: 900;
+    color: #6D6491;
+    margin: 25px 0;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.05);
+  }
+
+  .sidebar-box {
+    background: white;
+    border: 3px solid #F5F1E9;
+    border-radius: 28px;
+    padding: 32px;
+    box-shadow: 0 10px 0 #FBF9F6;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<h2>📊 Quiz Results</h2>
-  <p><b>Score: {{ score }}/{{ total }}</b></p>
+<div class="max-w-7xl mx-auto p-4 md:p-6 pt-12 md:pt-16 relative z-10 min-h-screen dyslexic-font">
+  <div class="flex flex-col lg:flex-row gap-10">
+    <!-- Left Sidebar -->
+    <div class="w-full lg:w-1/3 fade-up">
+      <div class="sidebar-box text-center mb-8">
+        <div class="text-7xl mb-6">🏆</div>
+        <h2 class="text-3xl font-black text-[#544B7A]">Your Success</h2>
+        <div class="score-badge">{{ score }} / {{ total }}</div>
+        <p class="font-bold text-[#8E86A8] mb-10 text-lg">
+          {% if score == total %}
+          Amazing work! You got every single one right! 🌟
+          {% elif score >= total // 2 %}
+          Great effort! You're really learning fast! 👍
+          {% else %}
+          Every step is progress. Let's try once more! 💪
+          {% endif %}
+        </p>
 
-  {% for r in results %}
-    <div class="result-box">
-      <p><b>Q{{ loop.index }}. {{ r.question }}</b></p>
-      <p>Your Answer: <span class="{{ 'correct' if r.is_correct else 'wrong' }}">{{ r.your_answer }}</span></p>
-      <p>Correct Answer: <b>{{ r.correct_answer }}</b></p>
+        <div class="space-y-5">
+          <form action="{{ url_for('generate_quiz') }}" method="POST">
+            <button type="submit" class="button w-full justify-center"
+              style="background: #F0F9FF; border-color: #E0F2FE; color: #5D9CBF; box-shadow: 0 5px 0 #BAE6FD;">
+              <span>🌱</span>
+              <span>Try New Quiz</span>
+            </button>
+          </form>
+
+          <a href="{{ url_for('library') }}" class="button w-full justify-center">
+            <span>📚</span>
+            <span>Study More</span>
+          </a>
+        </div>
+      </div>
     </div>
-  {% endfor %}
 
-  <a href="{% if user and user.grade and user.grade in ['1', '2', '3', '4', '5'] %}{{ url_for('grade_' + user.grade + '_dashboard') }}{% else %}{{ url_for('student_dashboard') }}{% endif %}">⬅ Back to Dashboard</a>
-{% endblock %}
+    <!-- Main Content -->
+    <div class="w-full lg:w-2/3">
+      <div class="fade-up">
+        {% for r in results %}
+        <div class="result-card {{ 'correct' if r.is_correct else 'wrong' }}">
+          <div class="flex justify-between items-start mb-6">
+            <h3 class="text-xl font-black {{ 'text-[#3B7A5A]' if r.is_correct else 'text-[#9B4D4D]' }}">Q{{ loop.index
+              }}. {{ r.question }}</h3>
+            <span class="text-3xl">{{ '⭐' if r.is_correct else '✨' }}</span>
+          </div>
 
-{% block extra_js %}
-<script>
-
-</script>
+          <div class="space-y-4 font-bold text-lg">
+            <p>Your Pick: <span class="{{ 'text-[#3B7A5A]' if r.is_correct else 'text-[#9B4D4D]' }}">{{ r.your_answer
+                }}</span></p>
+            {% if not r.is_correct %}
+            <p class="text-[#3B7A5A] bg-[#F4F9F6] p-4 rounded-xl border-2 border-[#E6F4EA]">The Best Answer: {{
+              r.correct_answer }}</p>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

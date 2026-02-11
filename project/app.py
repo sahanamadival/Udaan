@@ -156,28 +156,57 @@ def extract_text_hybrid(file_path):
     return text
 
 
-def text_to_pdf(text, output_pdf, font_path, font_size=12):
-    print("Registering font:", font_path)  # Debug
-    pdfmetrics.registerFont(TTFont("CustomFont", font_path))
-    c = canvas.Canvas(output_pdf, pagesize=A4)
-    width, height = A4
-    left_margin = 50
-    top_margin = height - 50
-    bottom_margin = 50
-    line_height = font_size + 4  # Add a little spacing
+def text_to_pdf(text, output_pdf, font_path, font_size=16):
+    """
+    Enhanced PDF generation for dyslexic learners:
+    - Automatic word wrapping using ReportLab Platypus.
+    - Increased font size and line spacing (leading).
+    - Generous margins.
+    """
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.lib.units import inch
 
-    textobject = c.beginText(left_margin, top_margin)
-    textobject.setFont("CustomFont", font_size)
+    print("Registering font:", font_path)
+    font_name = "CustomFont"
+    pdfmetrics.registerFont(TTFont(font_name, font_path))
 
-    for line in text.split("\n"):
-        if textobject.getY() < bottom_margin:
-            c.drawText(textobject)
-            c.showPage()
-            textobject = c.beginText(left_margin, top_margin)
-            textobject.setFont("CustomFont", font_size)
-        textobject.textLine(line)
-    c.drawText(textobject)
-    c.save()
+    doc = SimpleDocTemplate(
+        output_pdf,
+        pagesize=A4,
+        rightMargin=72,
+        leftMargin=72,
+        topMargin=72,
+        bottomMargin=72
+    )
+
+    styles = getSampleStyleSheet()
+    # Create a custom style for dyslexic readability
+    custom_style = ParagraphStyle(
+        'DyslexicStyle',
+        parent=styles['Normal'],
+        fontName=font_name,
+        fontSize=font_size,
+        textColor='#333333',  # Dark gray for better readability than pure black
+        leading=font_size * 1.8,  # Force 1.8 line spacing
+        spaceAfter=12,
+        alignment=0, # Left aligned
+    )
+
+    story = []
+    
+    # Process text into paragraphs
+    for p in text.split("\n"):
+        if p.strip():
+            story.append(Paragraph(p, custom_style))
+        else:
+            story.append(Spacer(1, 12))
+
+    doc.build(story)
+    print(f"PDF saved to: {output_pdf}")
 
 # Translation 
 def translate_pdf_to_pdf(input_pdf, output_pdf, target_lang, font_path):
@@ -702,9 +731,13 @@ def get_student_progress(student_id):
     cur.execute("SELECT SUM(score) FROM quiz_attempts WHERE student_id = ? AND (quiz_id LIKE 'g%_grammar_%' OR quiz_id LIKE 'g%_sentences%' OR quiz_id LIKE 'g%_alphabets%' OR quiz_id LIKE 'g%_reading%')", (student_id,))
     grammar_points = cur.fetchone()[0] or 0
 
-    # Logic/Brain Gym & Creative Points
-    cur.execute("SELECT SUM(score) FROM quiz_attempts WHERE student_id = ? AND (quiz_id LIKE 'g%_logic_%' OR quiz_id LIKE 'g%_art%')", (student_id,))
+    # Logic/Brain Gym Points
+    cur.execute("SELECT SUM(score) FROM quiz_attempts WHERE student_id = ? AND quiz_id LIKE 'g%_logic_%'", (student_id,))
     logic_points = cur.fetchone()[0] or 0
+
+    # Creative/Art Points
+    cur.execute("SELECT SUM(score) FROM quiz_attempts WHERE student_id = ? AND quiz_id LIKE 'g%_art%'", (student_id,))
+    creative_points = cur.fetchone()[0] or 0
     
     conn.close()
     
@@ -715,7 +748,8 @@ def get_student_progress(student_id):
         "math_solved": math_points,
         "science_done": science_points,
         "grammar_done": grammar_points,
-        "logic_done": logic_points
+        "logic_done": logic_points,
+        "creative_done": creative_points
     }
 
 @app.route("/")
@@ -2641,22 +2675,27 @@ Text:
         if font_to_use:
             text_to_pdf(hindi_text, hindi_path, font_to_use)
         else:
-            # Fallback simple PDF writer without custom font
-            from reportlab.pdfgen import canvas
+            # Fallback using improved wrapper even without custom font (though Hindi won't show)
+            # Actually, without custom font, we use Helvetica but still want wrapping
             from reportlab.lib.pagesizes import A4
-
-            c = canvas.Canvas(hindi_path, pagesize=A4)
-            width, height = A4
-
-            y = height - 50
-            for line in hindi_text.split("\n"):
-                c.drawString(50, y, line[:90])
-                y -= 15
-                if y < 50:
-                    c.showPage()
-                    y = height - 50
-
-            c.save()
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+            
+            doc = SimpleDocTemplate(hindi_path, pagesize=A4)
+            styles = getSampleStyleSheet()
+            custom_style = ParagraphStyle(
+                'DyslexicStyle', 
+                parent=styles['Normal'], 
+                fontSize=16, 
+                textColor='#333333',
+                leading=16 * 1.8
+            )
+            
+            story = []
+            for p in hindi_text.split("\n"):
+                if p.strip():
+                    story.append(Paragraph(p, custom_style))
+            doc.build(story)
 
         if not os.path.exists(hindi_path):
             flash("Failed to generate Hindi PDF.")
@@ -2692,12 +2731,12 @@ def dyslexic_friendly():
     # Check if there's a PDF uploaded
     filename = session.get("uploaded_file")
     if not filename:
-        flash("No textbook uploaded yet. Please upload a textbook first.")
+        flash("📖 Please upload a textbook first to use the Dyslexic Reader.")
         return redirect_to_dashboard(user)
 
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     if not os.path.exists(filepath):
-        flash("File not found on server. Please upload the file again.")
+        flash("⚠️ The uploaded file could not be found. Please upload it again.")
         return redirect_to_dashboard(user)
 
     # Use the existing hybrid extractor (PyPDF2 + OCR fallback)
@@ -2774,14 +2813,14 @@ def generate_flashcards():
             messages=[
                 {
                     "role": "system",
-                    "content": "You are an educational assistant that creates flashcards. Generate exactly 10 flashcards from the given text. Return ONLY a JSON array in this exact format: [{\"question\":\"...\", \"answer\":\"...\"}]"
+                    "content": "You are an educational assistant. Generate between 10 and 20 flashcards from the text, depending on its depth. Be concise to save tokens. Return ONLY a JSON array: [{\"question\":\"...\", \"answer\":\"...\"}]"
                 },
                 {
                     "role": "user",
-                    "content": f"Create 10 flashcards from this text: {text[:4000]}"
+                    "content": f"Create flashcards from this text: {text[:4000]}"
                 }
             ],
-            max_tokens=2000,
+            max_tokens=1500,
             temperature=0.7
         )
         
@@ -2885,20 +2924,31 @@ def generate_quiz():
 
     # Generate quiz with OpenAI
     try:
+        # Increase variety by taking a random slice of text if it's long
+        max_chars = 6000
+        text_content = text.strip()
+        if len(text_content) > max_chars:
+            import random
+            # Pick a random starting point, ensuring we have enough text left
+            start_idx = random.randint(0, len(text_content) - max_chars)
+            text_slice = text_content[start_idx : start_idx + max_chars]
+        else:
+            text_slice = text_content
+
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
-                    "content": "You are an educational assistant that creates multiple-choice quizzes. Generate exactly 10 MCQ questions from the given text. Return ONLY a JSON array in this exact format: [{\"question\":\"...\", \"options\":[\"A. ...\", \"B. ...\", \"C. ...\", \"D. ...\"], \"answer\":\"B\"}] where answer is A, B, C, or D. Each option must start with a letter and dot."
+                    "content": "You are an educational assistant that creates multiple-choice quizzes. Generate exactly 10 MCQ questions based on the provided text. Ensure the questions cover various topics found in the excerpt to provide a diverse learning experience. Return ONLY a JSON array in this exact format: [{\"question\":\"...\", \"options\":[\"A. ...\", \"B. ...\", \"C. ...\", \"D. ...\"], \"answer\":\"B\"}] where answer is A, B, C, or D. Each option must start with a letter and dot."
                 },
                 {
                     "role": "user",
-                    "content": f"Create a 10-question multiple-choice quiz from this text: {text[:4000]}"
+                    "content": f"Create a diverse 10-question multiple-choice quiz from this section of the textbook: {text_slice}"
                 }
             ],
             max_tokens=2500,
-            temperature=0.7
+            temperature=0.8
         )
         raw = response.choices[0].message.content.strip()
         raw = re.sub(r"```(?:json)?", "", raw).replace("```", "").strip()
@@ -3481,10 +3531,11 @@ def api_dragdrop_generate():
         """
         
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3,
-            max_tokens=800
+            max_tokens=1000,
+            response_format={ "type": "json_object" }
         )
         
         response_text = response.choices[0].message.content
@@ -3623,10 +3674,11 @@ Requirements:
     try:
         # Generate response using OpenAI
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.7,
-            max_tokens=500
+            max_tokens=800,
+            response_format={ "type": "json_object" }
         )
         
         response_text = response.choices[0].message.content

@@ -138,11 +138,7 @@
 
         </div>
 
-        <div class="text-center mt-12">
-            <a href="{{ url_for('grade_3_dashboard') }}" class="nav-btn inline-flex items-center">
-                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
-            </a>
-        </div>
+        <!-- Back Button Removed -->
     </div>
 </div>
 
@@ -241,7 +237,7 @@
 
         let html = `<div class="grid grid-cols-2 gap-3 mb-2">`;
         q.options.forEach(opt => {
-            html += `<button onclick="checkAnswer('odd', '${opt}', '${q.correct}')" class="dyslexic-btn bg-pink-400 border-pink-600 hover:bg-pink-500">${opt}</button>`;
+            html += `<button onclick="checkAnswer('odd', '${opt}', '${q.correct}')" class="dyslexic-btn bg-pink-400 border-pink-600 hover:bg-indigo-700">${opt}</button>`;
         });
         html += `</div>`;
         con.innerHTML = html;
@@ -262,7 +258,7 @@
             <div class="grid grid-cols-2 gap-3">
         `;
         q.options.forEach(opt => {
-            html += `<button onclick="checkAnswer('analogy', '${opt}', '${q.correct}')" class="dyslexic-btn bg-purple-400 border-purple-600 hover:bg-purple-500">${opt}</button>`;
+            html += `<button onclick="checkAnswer('analogy', '${opt}', '${q.correct}')" class="dyslexic-btn bg-purple-400 border-purple-600 hover:bg-indigo-700">${opt}</button>`;
         });
         html += `</div>`;
         con.innerHTML = html;

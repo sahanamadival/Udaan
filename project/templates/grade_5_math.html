@@ -7,13 +7,10 @@
 {% block content %}
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto">
-        <a href="{{ url_for('grade_5_dashboard') }}"
-            class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors">
-            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
-        </a>
+        <!-- Back Button Removed -->
 
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div class="bg-blue-600 p-6 text-white">
+            <div class="bg-blue-600 p-6 text-indigo-900">
                 <h1 class="text-3xl font-bold flex items-center gap-3">
                     <i class="fas fa-calculator"></i> Math Word Problem Solver
                 </h1>
@@ -49,7 +46,7 @@
                             class="flex-1 p-3 border border-gray-300 rounded-lg text-lg font-bold"
                             placeholder="Enter answer...">
                         <button onclick="checkAnswer()"
-                            class="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-bold shadow-md transition-transform hover:scale-105">
+                            class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-8 py-3 rounded-lg font-bold shadow-md transition-transform hover:scale-105">
                             Verify
                         </button>
                     </div>

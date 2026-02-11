@@ -302,13 +302,7 @@
                 </div>
             </div>
 
-            <!-- Back Button -->
-            <div class="text-center mt-8">
-                <a href="{{ url_for('grade_2_dashboard') }}"
-                    class="inline-block bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
-                </a>
-            </div>
+            <!-- Back Button Removed -->
         </div>
     </div>
 </div>
@@ -357,7 +351,7 @@
         const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
         document.getElementById('animal-emoji').textContent = randomAnimal.emoji;
         document.getElementById('animal-clue').textContent = randomAnimal.clue;
-        
+
         // Generate dynamic options
         generateAnimalOptions(randomAnimal.name, animals);
         currentAnimal = randomAnimal.name;
@@ -366,22 +360,22 @@
     function generateAnimalOptions(correctAnswer, allAnimals) {
         const optionsContainer = document.getElementById('animal-options');
         optionsContainer.innerHTML = '';
-        
+
         // Create array with correct answer and 3 random incorrect answers
         const options = [correctAnswer];
-        
+
         // Get 3 random incorrect animals
         const incorrectAnimals = allAnimals
             .filter(animal => animal.name !== correctAnswer)
             .sort(() => 0.5 - Math.random())
             .slice(0, 3)
             .map(animal => animal.name);
-        
+
         options.push(...incorrectAnimals);
-        
+
         // Shuffle the options
         shuffleArray(options);
-        
+
         // Create buttons for each option
         options.forEach(option => {
             const button = document.createElement('button');

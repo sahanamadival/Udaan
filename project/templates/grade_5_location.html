@@ -2,14 +2,12 @@
 
 {% block title %}Location Learning (Dyslexia Friendly) - Grade 5{% endblock %}
 
-{% block body_class %}bg-[#FFFDE7]{% endblock %} <!-- Soft yellow background is often better for dyslexia -->
+{% block body_class %}bg-[#FFFDE7]{% endblock %} 
 
 {% block content %}
 <style>
-    /* Dyslexia-friendly font settings */
     body {
         font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif !important;
-        /* OpenDyslexic fallback */
         letter-spacing: 0.05em;
         line-height: 1.6;
     }
@@ -55,11 +53,11 @@
                 <!-- Interactive Markers -->
                 <!-- Dynamic Markers -->
                 {% for loc in locations %}
-                <div class="absolute map-marker" style="top: {{ loc.top }}%; left: {{ loc.left }}%;"
+                <div class="absolute map-marker" data-top="{{ loc.top }}" data-left="{{ loc.left }}"
                     onclick="showLocation('{{ loc.name }}')">
-                    <div class="w-12 h-12 {{ loc.color }} rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-bounce"
-                        style="animation-delay: {{ loop.index0 * 0.2 }}s;">
-                        <i class="{{ loc.icon }} text-white"></i>
+                    <div class="w-12 h-12 {{ loc.color }} rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-bounce map-marker-icon"
+                        data-delay="{{ loop.index0 * 0.2 }}">
+                        <i class="{{ loc.icon }} text-indigo-900"></i>
                     </div>
                     <!-- Optional Label on Hover -->
                     <div
@@ -76,7 +74,7 @@
             class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
             <div class="bg-[#FFFDE7] w-full max-w-2xl rounded-3xl border-4 border-black shadow-2xl relative">
                 <button onclick="closeModal()"
-                    class="absolute -top-6 -right-6 bg-red-500 text-white w-12 h-12 rounded-full font-bold border-4 border-black text-xl hover:scale-110 transition-transform">X</button>
+                    class="absolute -top-6 -right-6 bg-[#EEEAF7] text-indigo-900 w-12 h-12 rounded-full font-bold border-4 border-black text-xl hover:scale-110 transition-transform">X</button>
 
                 <div class="p-8">
                     <h2 id="modalTitle" class="text-4xl font-black mb-6 text-center border-b-4 border-black pb-4">
@@ -113,7 +111,7 @@
 
                         <div class="mt-6 text-center">
                             <button onclick="speakText()"
-                                class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg border-2 border-black flex items-center justify-center gap-3 mx-auto">
+                                class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 font-bold py-3 px-8 rounded-full text-xl shadow-lg border-2 border-black flex items-center justify-center gap-3 mx-auto">
                                 <i class="fas fa-volume-up"></i> Listen to this
                             </button>
                         </div>
@@ -188,5 +186,16 @@
             window.speechSynthesis.speak(utterance);
         }
     }
+    // Fix for CSS Linter: Apply dynamic styles via JS
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.map-marker').forEach(marker => {
+            marker.style.top = marker.getAttribute('data-top') + '%';
+            marker.style.left = marker.getAttribute('data-left') + '%';
+        });
+
+        document.querySelectorAll('.map-marker-icon').forEach(icon => {
+            icon.style.animationDelay = icon.getAttribute('data-delay') + 's';
+        });
+    });
 </script>
 {% endblock %}

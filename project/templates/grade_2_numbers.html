@@ -145,13 +145,7 @@
                 </div>
             </div>
 
-            <!-- Back Button -->
-            <div class="text-center mt-8">
-                <a href="{{ url_for('grade_2_dashboard') }}"
-                    class="inline-block bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
-                </a>
-            </div>
+            <!-- Back Button Removed -->
         </div>
     </div>
 </div>
@@ -188,10 +182,10 @@
         // Generate multiple choice options
         const optionsContainer = document.getElementById('counting-options');
         optionsContainer.innerHTML = '';
-        
+
         // Create 4 options: 1 correct answer and 3 incorrect answers
         const options = [randomNumber]; // Correct answer
-        
+
         // Generate 3 incorrect answers close to the correct answer
         while (options.length < 4) {
             let incorrect = randomNumber + Math.floor(Math.random() * 5) - 2; // Within ±2 of correct answer
@@ -200,10 +194,10 @@
                 options.push(incorrect);
             }
         }
-        
+
         // Shuffle the options
         shuffleArray(options);
-        
+
         // Add buttons for each option
         options.forEach(option => {
             const button = document.createElement('button');
@@ -258,45 +252,45 @@
             { type: '10s', title: 'Counting by 10s', base: 10, multiplier: 10 },
             { type: '3s', title: 'Counting by 3s', base: 3, multiplier: 3 }
         ];
-        
+
         const selectedPattern = patternTypes[Math.floor(Math.random() * patternTypes.length)];
-        
+
         // Generate a sequence with a missing number
         const startIndex = Math.floor(Math.random() * 5) + 1; // Start from 1-5
         const sequence = [];
-        
+
         for (let i = 0; i < 5; i++) {
             sequence.push((startIndex + i) * selectedPattern.base);
         }
-        
+
         // Select a position to hide (not first or last)
         const hidePosition = Math.floor(Math.random() * 3) + 1; // Position 1, 2, or 3
         const correctAnswer = sequence[hidePosition];
-        
+
         // Create the sequence string with blank for the missing number
         const sequenceStr = sequence.map((num, idx) => idx === hidePosition ? '__' : num).join(', ');
-        
+
         // Update the UI
         document.getElementById('pattern-title').textContent = selectedPattern.title;
         document.getElementById('pattern-sequence').textContent = sequenceStr;
-        
+
         // Generate options
         const optionsContainer = document.getElementById('pattern-options');
         optionsContainer.innerHTML = '';
-        
+
         // Create 3 options: 1 correct answer and 2 incorrect answers
         const options = [correctAnswer];
-        
+
         while (options.length < 3) {
             let incorrect = correctAnswer + Math.floor(Math.random() * 5) - 2; // Within ±2 of correct answer
             if (incorrect > 0 && !options.includes(incorrect)) {
                 options.push(incorrect);
             }
         }
-        
+
         // Shuffle the options
         shuffleArray(options);
-        
+
         // Add buttons for each option
         options.forEach(option => {
             const button = document.createElement('button');
@@ -305,7 +299,7 @@
             button.onclick = () => checkPattern(selectedPattern.type, option, correctAnswer);
             optionsContainer.appendChild(button);
         });
-        
+
         window.currentPatternAnswer = correctAnswer;
     }
 
@@ -332,7 +326,7 @@
         // Generate two random numbers for comparison
         const num1 = Math.floor(Math.random() * 50) + 10; // Numbers 10-60
         const num2 = Math.floor(Math.random() * 50) + 10; // Numbers 10-60
-        
+
         // Make sure they're different
         if (num1 === num2) {
             if (num2 < 60) {
@@ -341,49 +335,49 @@
                 num2 = num2 - 1;
             }
         }
-        
+
         document.getElementById('comparison-num1').textContent = num1;
         document.getElementById('comparison-num2').textContent = num2;
-        
+
         // Generate visual representations
         const objects1 = generateVisuals(num1, '🍎');
         const objects2 = generateVisuals(num2, '🍊');
-        
+
         document.getElementById('comparison-visual1').textContent = objects1;
         document.getElementById('comparison-visual2').textContent = objects2;
-        
+
         // Generate options
         const optionsContainer = document.getElementById('comparison-options');
         optionsContainer.innerHTML = '';
-        
+
         // Create 2 options: greater than and less than
         const greaterButton = document.createElement('button');
         greaterButton.className = 'bg-blue-100 hover:bg-blue-200 p-4 rounded-lg font-bold text-xl';
         greaterButton.innerHTML = '<div class="text-3xl mb-2">&gt;</div><div>Greater Than</div>';
         greaterButton.onclick = () => checkComparison('greater', num1, num2);
         optionsContainer.appendChild(greaterButton);
-        
+
         const lessButton = document.createElement('button');
         lessButton.className = 'bg-green-100 hover:bg-green-200 p-4 rounded-lg font-bold text-xl';
         lessButton.innerHTML = '<div class="text-3xl mb-2">&lt;</div><div>Less Than</div>';
         lessButton.onclick = () => checkComparison('less', num1, num2);
         optionsContainer.appendChild(lessButton);
-        
+
         window.currentComparison = { num1, num2 };
     }
 
     function generateVisuals(count, emoji) {
         let visuals = '';
         const maxDisplay = Math.min(count, 5); // Show max 5 emojis with a number indicator
-        
+
         for (let i = 0; i < maxDisplay; i++) {
             visuals += emoji;
         }
-        
+
         if (count > 5) {
             visuals += `... (${count})`;
         }
-        
+
         return visuals;
     }
 
@@ -399,7 +393,7 @@
         } else if (num1 < num2) {
             correctChoice = 'less';
         }
-        
+
         if (choice === correctChoice) {
             resultDiv.innerHTML = `<span class="text-green-600 font-bold">🎉 Correct! ${num1} is ${correctChoice} than ${num2}</span>`;
         } else {

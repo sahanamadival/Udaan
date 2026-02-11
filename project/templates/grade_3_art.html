@@ -62,7 +62,7 @@
                 <!-- Inspiration -->
                 <div class="text-center">
                     <button onclick="getIdea()"
-                        class="w-full bg-gradient-to-r from-purple-400 to-pink-500 text-white font-bold py-3 rounded-xl shadow hover:opacity-90 transition-opacity">
+                        class="w-full bg-gradient-to-r from-purple-400 to-pink-500 text-indigo-900 font-bold py-3 rounded-xl shadow hover:opacity-90 transition-opacity">
                         ✨ Inspire Me!
                     </button>
                     <p id="idea-text" class="mt-2 text-sm text-gray-600 italic min-h-[40px]">Click above for an idea...
@@ -96,7 +96,7 @@
                         class="tool-btn bg-red-100 text-red-600 font-bold py-2 rounded-lg hover:bg-red-200">❌ Clear
                         All</button>
                     <button onclick="downloadArt()"
-                        class="tool-btn bg-green-500 text-white font-bold py-2 rounded-lg hover:bg-green-600">💾 Save
+                        class="tool-btn bg-[#EEEAF7] text-indigo-900 font-bold py-2 rounded-lg hover:bg-[#d6cceb]">💾 Save
                         Art</button>
                 </div>
 
@@ -228,6 +228,24 @@
         link.download = 'my-masterpiece.png';
         link.href = canvas.toDataURL();
         link.click();
+
+        // Save progress
+        fetch('/api/submit_progress', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                quiz_id: 'g3_art_masterpiece',
+                score: 1,
+                total: 1
+            })
+        }).then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Optional: Show a small notification or just let it pass
+                    console.log("Art progress saved!");
+                }
+            })
+            .catch(err => console.error("Error saving progress:", err));
     }
 
     async function getIdea() {
