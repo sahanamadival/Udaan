@@ -74,7 +74,8 @@ else:
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-change-this")  
-DB = "database.db"
+# Database configuration
+DB = os.path.join(os.path.dirname(__file__), 'database.db')
 books=[]
 
 # Google OAuth setup
