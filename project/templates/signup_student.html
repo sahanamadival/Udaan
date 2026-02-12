@@ -163,54 +163,58 @@ font-comic light-theme{% endblock %}
       </div>
 
       <script>
-        const passwordInput = document.getElementById('passwordInput');
-        const checklist = document.getElementById('password-checklist');
-        const submitBtn = document.getElementById('submitBtn');
-        const rules = {
-          length: { regex: /.{8,}/, element: document.getElementById('rule-length') },
-          upper: { regex: /[A-Z]/, element: document.getElementById('rule-upper') },
-          lower: { regex: /[a-z]/, element: document.getElementById('rule-lower') },
-          number: { regex: /[0-9]/, element: document.getElementById('rule-number') },
-          special: { regex: /[!@#$%^&*(),.?":{}|<>]/, element: document.getElementById('rule-special') }
-        };
+        document.addEventListener('DOMContentLoaded', () => {
+          const passwordInput = document.getElementById('passwordInput');
+          const checklist = document.getElementById('password-checklist');
+          const submitBtn = document.getElementById('submitBtn');
+          const rules = {
+            length: { regex: /.{8,}/, element: document.getElementById('rule-length') },
+            upper: { regex: /[A-Z]/, element: document.getElementById('rule-upper') },
+            lower: { regex: /[a-z]/, element: document.getElementById('rule-lower') },
+            number: { regex: /[0-9]/, element: document.getElementById('rule-number') },
+            special: { regex: /[!@#$%^&*(),.?":{}|<>]/, element: document.getElementById('rule-special') }
+          };
 
-        passwordInput.addEventListener('focus', () => {
-          checklist.classList.remove('hidden');
-        });
+          if (passwordInput && checklist && submitBtn) {
+            passwordInput.addEventListener('focus', () => {
+              checklist.classList.remove('hidden');
+            });
 
-        passwordInput.addEventListener('input', () => {
-          const val = passwordInput.value;
-          let allValid = true;
+            passwordInput.addEventListener('input', () => {
+              const val = passwordInput.value;
+              let allValid = true;
 
-          Object.keys(rules).forEach(key => {
-            const rule = rules[key];
-            const isValid = rule.regex.test(val);
-            const icon = rule.element.querySelector('i');
+              Object.keys(rules).forEach(key => {
+                const rule = rules[key];
+                const isValid = rule.regex.test(val);
+                const icon = rule.element.querySelector('i');
 
-            if (isValid) {
-              rule.element.classList.remove('text-gray-500', 'text-red-500');
-              rule.element.classList.add('text-green-600', 'font-medium');
-              icon.classList.remove('fa-times-circle');
-              icon.classList.add('fa-check-circle');
-            } else {
-              allValid = false;
-              rule.element.classList.remove('text-green-600', 'font-medium');
-              rule.element.classList.add('text-gray-500');
-              // Only show red if user has started typing and criteria is not met
-              if (val.length > 0) rule.element.classList.add('text-gray-500');
-              icon.classList.remove('fa-check-circle');
-              icon.classList.add('fa-times-circle');
-            }
-          });
+                if (isValid) {
+                  rule.element.classList.remove('text-gray-500', 'text-red-500');
+                  rule.element.classList.add('text-green-600', 'font-medium');
+                  icon.classList.remove('fa-times-circle');
+                  icon.classList.add('fa-check-circle');
+                } else {
+                  allValid = false;
+                  rule.element.classList.remove('text-green-600', 'font-medium');
+                  rule.element.classList.add('text-gray-500');
+                  // Only show red if user has started typing and criteria is not met
+                  if (val.length > 0) rule.element.classList.add('text-gray-500');
+                  icon.classList.remove('fa-check-circle');
+                  icon.classList.add('fa-times-circle');
+                }
+              });
 
-          if (allValid) {
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
-            submitBtn.classList.add('hover:scale-[1.02]');
-          } else {
-            submitBtn.disabled = true;
-            submitBtn.classList.add('bg-gray-300', 'cursor-not-allowed');
-            submitBtn.classList.remove('hover:scale-[1.02]');
+              if (allValid) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+                submitBtn.classList.add('hover:scale-[1.02]', 'bg-blue-600', 'text-white', 'hover:bg-blue-700'); // Add active styles
+              } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('bg-gray-300', 'cursor-not-allowed');
+                submitBtn.classList.remove('hover:scale-[1.02]', 'bg-blue-600', 'text-white', 'hover:bg-blue-700'); // Remove active styles
+              }
+            });
           }
         });
       </script>
