@@ -47,7 +47,6 @@
                             alphabet!</div>
                     </div>
 
-                    <!-- Audio Controls -->
                     <div class="flex justify-center space-x-3 mb-6">
                         <button onclick="playLetterSound()"
                             class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-4 py-2 rounded-lg font-medium transition-colors">
@@ -56,14 +55,6 @@
                         <button onclick="playPhoneticSound()"
                             class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-4 py-2 rounded-lg font-medium transition-colors">
                             <i class="fas fa-music mr-2"></i>Phonetic Sound
-                        </button>
-                        <button onclick="testSpeechRecognition()"
-                            class="bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-4 py-2 rounded-lg font-medium transition-colors">
-                            <i class="fas fa-microphone-alt mr-2"></i>Test Mic
-                        </button>
-                        <button onclick="showDiagnostics()"
-                            class="bg-gray-500 hover:bg-gray-600 text-indigo-900 px-4 py-2 rounded-lg font-medium transition-colors">
-                            <i class="fas fa-info-circle mr-2"></i>Diagnostics
                         </button>
                     </div>
 
@@ -136,9 +127,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Back Button -->
-            <!-- Back Button Removed -->
         </div>
     </div>
 </div>
@@ -153,7 +141,7 @@
     // Initialize the page
     document.addEventListener('DOMContentLoaded', async function () {
         await loadProgress();
-        updateProgress(false); // don't save on initial load
+        updateProgress(false);
         // Preload first letter info
         loadLetterInfo('A');
     });
@@ -253,7 +241,7 @@
             // Fallback to a default image if specific image doesn't exist
             document.getElementById('letter-image').onerror = function () {
                 this.src = '/static/alphabet_images/default.png';
-                this.onerror = null; // Prevent infinite loop
+                this.onerror = null;
             };
 
         } catch (error) {
@@ -436,12 +424,11 @@
             speakFeedback(msg);
             saveProgress(`alphabet_pronunciation_${currentLetter}`, 2);
         } else {
-            // Still call server-side AI for detailed feedback if possible
             try {
                 const response = await fetch('/api/check_pronunciation', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ word: currentLetter }) // We send the target word, server checks audio (mocked usually)
+                    body: JSON.stringify({ word: currentLetter })
                 });
                 const data = await response.json();
                 if (data.success) {
@@ -470,28 +457,7 @@
         document.getElementById('stop-btn').classList.add('hidden');
     }
 
-    function testSpeechRecognition() {
-        if (!hasSpeechRecognition()) {
-            alert('❌ Speech recognition is not supported in your browser.');
-            return;
-        }
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        recognition.onstart = () => alert('🎙️ Microphone test started. Say something!');
-        recognition.onresult = (event) => alert('✅ Success! I heard: "' + event.results[0][0].transcript + '"');
-        recognition.onerror = (event) => alert('❌ Error: ' + event.error);
-        try { recognition.start(); } catch (e) { alert('❌ Error: ' + e.message); }
-    }
 
-    function showDiagnostics() {
-        const diag = `🔧 System Diagnostics:\n\n` +
-            `SpeechRecognition: ${hasSpeechRecognition() ? '✅' : '❌'}\n` +
-            `MediaRecorder: ${hasMediaRecorder() ? '✅' : '❌'}\n` +
-            `AudioContext: ${(window.AudioContext || window.webkitAudioContext) ? '✅' : '❌'}\n` +
-            `Letter: ${currentLetter}\n` +
-            `Progress: ${learnedLetters.size} learned`;
-        alert(diag);
-    }
 
     function speakFeedback(message) {
         window.speechSynthesis.cancel();
