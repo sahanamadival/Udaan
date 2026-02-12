@@ -1020,11 +1020,15 @@ def google_callback_student():
                 return redirect(url_for(f"grade_{user['grade']}_dashboard"))
             else:
                 return redirect_to_dashboard(session.get('user'))
-        else:
+            # User doesn't exist. 
+            # Check if this was a strict "Login" attempt (optional, based on user request "ask to create account")
+            # For now, we will Redirect to Complete Profile but with a helpful Flash message
+            
             # Clear any existing session data to prevent conflicts
             session.clear()
             
-            # User doesn't exist, redirect to complete profile
+            flash("No existing account found. Please complete your profile to create a new account.")
+            
             session['pending_google_signup'] = {
                 'email': email,
                 'name': name,
@@ -4682,8 +4686,9 @@ def forgot_password_student():
         if email_sent:
             flash(f"A 6-digit OTP has been sent to your email. Please enter it below.")
         else:
-            # Fallback for development
-            flash(f"OTP generated. For development: {otp}")
+            # Fallback for development NO LONGER SHOWS OTP ON SCREEN
+            print(f"DEBUG: OTP generated but failed to send. Check console logs. OTP: {otp}")
+            flash("Failed to send email. Please ensure the administrator has configured email settings.")
         
         return redirect(url_for('verify_otp_student'))
     
