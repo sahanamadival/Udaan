@@ -4685,8 +4685,8 @@ def forgot_password_student():
         
         if not student:
             print(f"DEBUG: Email {email} not found in database.")
-            flash(f"No account found with the email: {email}. Please check your spelling or register first.")
-            return redirect(url_for('forgot_password_student'))
+            flash(f"No account found with the email: {email}. Redirecting to sign up...")
+            return redirect(url_for('signup_student'))
         
         print(f"DEBUG: Found student: {student['name']} (ID: {student['id']})")
         
