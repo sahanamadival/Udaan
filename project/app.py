@@ -1020,6 +1020,7 @@ def google_callback_student():
                 return redirect(url_for(f"grade_{user['grade']}_dashboard"))
             else:
                 return redirect_to_dashboard(session.get('user'))
+        else:
             # User doesn't exist. 
             # Check if this was a strict "Login" attempt (optional, based on user request "ask to create account")
             # For now, we will Redirect to Complete Profile but with a helpful Flash message
