@@ -943,6 +943,10 @@ def google_login_student():
         flash("Google login is not configured by the administrator.")
         return redirect(url_for('login_student'))
     
+    # Capture the mode (login or signup) from the request
+    mode = request.args.get('mode', 'signup') # Default to signup if not specified
+    session['auth_mode'] = mode
+    
     # Create OAuth2 session
     google = OAuth2Session(
         client_id=GOOGLE_CLIENT_ID,
@@ -1043,9 +1047,16 @@ def google_callback_student():
             else:
                 return redirect_to_dashboard(session.get('user'))
         else:
-            # User doesn't exist. 
-            # Check if this was a strict "Login" attempt (optional, based on user request "ask to create account")
-            # For now, we will Redirect to Complete Profile but with a helpful Flash message
+            # User doesn't exist
+            auth_mode = session.get('auth_mode')
+            
+            # Use strict login check if mode is 'login'
+            if auth_mode == 'login':
+                session.clear() # Clear state
+                flash(f"No account found for {email}. Please Sign Up first.")
+                return redirect(url_for('signup_student'))
+            
+            # Otherwise (signup mode), proceed to create account
             
             # Clear any existing session data to prevent conflicts
             session.clear()
