@@ -634,8 +634,8 @@ def create_default_teachers():
 
 def init_db():
     """Initialize database from schema.sql if database.db doesn't exist."""
-    db_path = "database.db"
-    schema_path = "schema.sql"
+    db_path = os.path.join(os.path.dirname(__file__), "database.db")
+    schema_path = os.path.join(os.path.dirname(__file__), "schema.sql")
     
     # Check if database exists
     if not os.path.exists(db_path):
@@ -682,6 +682,17 @@ def create_basic_tables(c):
         created_at TEXT,
         reset_token TEXT,
         reset_token_expires TEXT
+    )""")
+    
+    c.execute("""CREATE TABLE IF NOT EXISTS teachers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT,
+        phone TEXT,
+        password_hash TEXT,
+        grade TEXT,
+        created_at TEXT,
+        google_id TEXT
     )""")
     # Add other essential tables as needed
 
@@ -4742,8 +4753,9 @@ def reset_password(token):
     return render_template('reset_password.html')
 
 
-if __name__ == "__main__":
-
+# Initialize DB and Migrations on startup (Required for Gunicorn/Render)
+# This ensures tables are created even if the app defaults to basic tables
+try:
     init_db()
     # Run migration to handle existing databases that may not have all columns
     migrate_student_progress_table()
@@ -4751,5 +4763,9 @@ if __name__ == "__main__":
     migrate_database()
     # Create default teacher accounts for each grade
     create_default_teachers()
+except Exception as e:
+    print(f"Startup DB Error: {e}")
+
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))  
     app.run(host='0.0.0.0', port=port, debug=True)
