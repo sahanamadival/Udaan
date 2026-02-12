@@ -863,6 +863,28 @@ def signup_student():
                 conn.close()
                 return redirect(request.url)
 
+            # Password Validation Rules
+            if len(password) < 8:
+                flash("Password must be at least 8 characters long.")
+                conn.close()
+                return redirect(request.url)
+            if not re.search(r"[A-Z]", password):
+                flash("Password must contain at least one uppercase letter.")
+                conn.close()
+                return redirect(request.url)
+            if not re.search(r"[a-z]", password):
+                flash("Password must contain at least one lowercase letter.")
+                conn.close()
+                return redirect(request.url)
+            if not re.search(r"\d", password):
+                flash("Password must contain at least one number.")
+                conn.close()
+                return redirect(request.url)
+            if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+                flash("Password must contain at least one special character.")
+                conn.close()
+                return redirect(request.url)
+
             password_hash = generate_password_hash(password)
             cur.execute("""
                 INSERT INTO students (name, age, grade, accessibility, email, phone, password_hash, created_at)
@@ -4579,13 +4601,13 @@ def send_reset_otp_email(email, name, otp):
     print(f"DEBUG: Attempting to send OTP to {email}...")
     try:
         # Get email settings from environment variables
-        smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com').strip()
         smtp_port = int(os.getenv('SMTP_PORT', '587'))
-        email_user = os.getenv('EMAIL_ADDRESS')
-        email_password = os.getenv('EMAIL_PASSWORD')
+        email_user = os.getenv('EMAIL_ADDRESS', '').strip()
+        email_password = os.getenv('EMAIL_PASSWORD', '').strip()
         
-        print(f"DEBUG: Using SMTP Server: {smtp_server}:{smtp_port}")
-        print(f"DEBUG: Email User: {email_user}")
+        print(f"DEBUG: Using SMTP Server: '{smtp_server}':{smtp_port}")
+        print(f"DEBUG: Email User: '{email_user}'")
         
         if not email_user or not email_password:
             print("ERROR: EMAIL_ADDRESS or EMAIL_PASSWORD not configured in .env file")
@@ -4683,14 +4705,14 @@ def forgot_password_student():
         session['reset_email'] = email
         
         # Send the reset OTP email
-        email_sent, error_message = send_reset_otp_email(student['email'], student['name'], otp)
+        email_sent = send_reset_otp_email(student['email'], student['name'], otp)
         
         if email_sent:
             flash(f"A 6-digit OTP has been sent to your email. Please enter it below.")
         else:
             # Fallback for development NO LONGER SHOWS OTP ON SCREEN
             print(f"DEBUG: OTP generated but failed to send. Check console logs. OTP: {otp}")
-            flash(f"Failed to send email. Error: {error_message}")
+            flash("Failed to send email. Please ensure the administrator has configured email settings.")
         
         return redirect(url_for('verify_otp_student'))
     

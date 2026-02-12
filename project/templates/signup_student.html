@@ -135,9 +135,85 @@ font-comic light-theme{% endblock %}
 
     <div>
       <label class="block text-sm text-gray-700 font-medium mb-2 text-center">Password *</label>
-      <input type="password" name="password" required
+      <input type="password" name="password" id="passwordInput" required
         class="w-full bg-white/90 border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-center"
         placeholder="Create a password">
+
+      <!-- Password Strength Checklist -->
+      <div id="password-checklist"
+        class="mt-3 text-xs text-left bg-gray-50 p-3 rounded-lg border border-gray-200 hidden">
+        <p class="font-bold text-gray-700 mb-2">Password must contain:</p>
+        <ul class="space-y-1">
+          <li id="rule-length" class="flex items-center gap-2 text-gray-500">
+            <i class="fas fa-times-circle"></i> <span>At least 8 characters</span>
+          </li>
+          <li id="rule-upper" class="flex items-center gap-2 text-gray-500">
+            <i class="fas fa-times-circle"></i> <span>One uppercase letter (A-Z)</span>
+          </li>
+          <li id="rule-lower" class="flex items-center gap-2 text-gray-500">
+            <i class="fas fa-times-circle"></i> <span>One lowercase letter (a-z)</span>
+          </li>
+          <li id="rule-number" class="flex items-center gap-2 text-gray-500">
+            <i class="fas fa-times-circle"></i> <span>One number (0-9)</span>
+          </li>
+          <li id="rule-special" class="flex items-center gap-2 text-gray-500">
+            <i class="fas fa-times-circle"></i> <span>One special character (!@#$%)</span>
+          </li>
+        </ul>
+      </div>
+
+      <script>
+        const passwordInput = document.getElementById('passwordInput');
+        const checklist = document.getElementById('password-checklist');
+        const submitBtn = document.getElementById('submitBtn');
+        const rules = {
+          length: { regex: /.{8,}/, element: document.getElementById('rule-length') },
+          upper: { regex: /[A-Z]/, element: document.getElementById('rule-upper') },
+          lower: { regex: /[a-z]/, element: document.getElementById('rule-lower') },
+          number: { regex: /[0-9]/, element: document.getElementById('rule-number') },
+          special: { regex: /[!@#$%^&*(),.?":{}|<>]/, element: document.getElementById('rule-special') }
+        };
+
+        passwordInput.addEventListener('focus', () => {
+          checklist.classList.remove('hidden');
+        });
+
+        passwordInput.addEventListener('input', () => {
+          const val = passwordInput.value;
+          let allValid = true;
+
+          Object.keys(rules).forEach(key => {
+            const rule = rules[key];
+            const isValid = rule.regex.test(val);
+            const icon = rule.element.querySelector('i');
+
+            if (isValid) {
+              rule.element.classList.remove('text-gray-500', 'text-red-500');
+              rule.element.classList.add('text-green-600', 'font-medium');
+              icon.classList.remove('fa-times-circle');
+              icon.classList.add('fa-check-circle');
+            } else {
+              allValid = false;
+              rule.element.classList.remove('text-green-600', 'font-medium');
+              rule.element.classList.add('text-gray-500');
+              // Only show red if user has started typing and criteria is not met
+              if (val.length > 0) rule.element.classList.add('text-gray-500');
+              icon.classList.remove('fa-check-circle');
+              icon.classList.add('fa-times-circle');
+            }
+          });
+
+          if (allValid) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+            submitBtn.classList.add('hover:scale-[1.02]');
+          } else {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('bg-gray-300', 'cursor-not-allowed');
+            submitBtn.classList.remove('hover:scale-[1.02]');
+          }
+        });
+      </script>
     </div>
 
     <div>
@@ -161,7 +237,8 @@ font-comic light-theme{% endblock %}
       </label>
     </div>
 
-    <button type="submit" class="w-full py-3 rounded-xl font-semibold text-lg hover:scale-[1.02] transition-all">
+    <button type="submit" id="submitBtn" disabled
+      class="w-full py-3 rounded-xl font-semibold text-lg hover:scale-[1.02] transition-all bg-gray-300 cursor-not-allowed">
       Create Account
     </button>
   </form>
