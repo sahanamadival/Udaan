@@ -124,14 +124,14 @@
 
 <!-- Floating Navbar -->
 <nav
-  class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 md:gap-8 px-3 md:px-8 py-2 md:py-3 bg-white/80 backdrop-blur-md border border-gray-100 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.08)] fade-down w-auto max-w-[95%] justify-center mx-auto">
+  class="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 md:gap-8 px-2 md:px-8 py-2 md:py-3 bg-white/80 backdrop-blur-md border border-gray-100 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.08)] fade-down w-auto max-w-[95%] justify-center mx-auto whitespace-nowrap">
   <a href="/"
-    class="text-[#222222] hover:text-[#2673ca] transition font-bold text-xs md:text-sm whitespace-nowrap px-1">Home</a>
+    class="text-[#222222] hover:text-[#2673ca] transition font-bold text-[11px] md:text-sm px-1.5 py-1 rounded-md hover:bg-gray-50/50">Home</a>
   <a href="{{ url_for('student_portal') }}"
-    class="text-[#222222] hover:text-[#2673ca] transition font-bold text-xs md:text-sm whitespace-nowrap px-1">Student<span
+    class="text-[#222222] hover:text-[#2673ca] transition font-bold text-[11px] md:text-sm px-1.5 py-1 rounded-md hover:bg-gray-50/50">Student<span
       class="hidden md:inline"> Login</span></a>
   <a href="{{ url_for('teacher_portal') }}"
-    class="text-[#222222] hover:text-[#2673ca] transition font-bold text-xs md:text-sm whitespace-nowrap px-1">Teacher<span
+    class="text-[#222222] hover:text-[#2673ca] transition font-bold text-[11px] md:text-sm px-1.5 py-1 rounded-md hover:bg-gray-50/50">Teacher<span
       class="hidden md:inline"> Login</span></a>
 </nav>
 
