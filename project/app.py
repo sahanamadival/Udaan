@@ -907,6 +907,9 @@ def login_student():
                 flash("Incorrect password.")
                 return redirect(request.url)
         except Exception as e:
+            print(f"Google Login Error: {e}")
+            import traceback
+            traceback.print_exc()
             flash(f"An error occurred during login: {str(e)}")
             return redirect(request.url)
     return render_template("login_student.html")
@@ -945,11 +948,14 @@ def google_callback_student():
         return redirect(url_for('login_student'))
     
     try:
+        redirect_uri = url_for('google_callback_student', _external=True)
+        print(f"Debug: Generated Redirect URI: {redirect_uri}")
+        
         # Create OAuth2 session with state for security
         google = OAuth2Session(
             client_id=GOOGLE_CLIENT_ID,
             state=session.get('oauth_state'),
-            redirect_uri=url_for('google_callback_student', _external=True)
+            redirect_uri=redirect_uri
         )
         
         # Fetch token
