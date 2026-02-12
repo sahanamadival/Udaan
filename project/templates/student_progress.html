@@ -220,7 +220,7 @@ endblock %}
         position: relative;
         z-index: 1;
         font-size: 0.75rem;
-        color: #94a3b8;
+        color: #475569;
         margin-top: -6px;
     }
 
@@ -241,7 +241,7 @@ endblock %}
         border: 0;
         border-bottom: 1px dashed rgba(148, 163, 184, 0.3);
         background: transparent;
-        color: #cbd5e1;
+        color: #475569;
     }
 
     .list-group-item:last-child {
@@ -333,7 +333,7 @@ endblock %}
                     </div>
                     <div>
                         <div class="font-bold">Teacher Panel</div>
-                        <div class="text-gray-400 text-sm">Student Progress Overview</div>
+                        <div class="text-gray-700 text-sm">Student Progress Overview</div>
                     </div>
                 </div>
 
@@ -364,15 +364,15 @@ endblock %}
                 <h3 class="font-bold mb-4">Class Statistics</h3>
                 <div class="space-y-3">
                     <div class="flex justify-between">
-                        <span class="text-gray-300">Students</span>
+                        <span class="text-gray-600">Students</span>
                         <span class="font-bold">{{ progress_data|length }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-300">Total Uploads</span>
+                        <span class="text-gray-600">Total Uploads</span>
                         <span class="font-bold">{{ progress_data|sum(attribute='total_uploads') }}</span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-300">Total Flashcards</span>
+                        <span class="text-gray-600">Total Flashcards</span>
                         <span class="font-bold">{{ progress_data|sum(attribute='total_flashcards') }}</span>
                     </div>
                 </div>
@@ -385,7 +385,7 @@ endblock %}
             <div
                 class="bg-white/10 backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.4)] rounded-3xl p-8 md:p-10 mb-6 fade-up-delay-1">
                 <h2 class="text-xl md:text-2xl font-bold mb-2">Student Progress Overview</h2>
-                <p class="text-gray-300">Live overview of uploads, flashcards and quiz performance</p>
+                <p class="text-gray-600">Live overview of uploads, flashcards and quiz performance</p>
             </div>
 
             <!-- KPI Summary -->
@@ -450,7 +450,7 @@ endblock %}
                                     {% for u in p.uploads %}
                                     <li class="list-group-item flex justify-between items-center">
                                         <span class="text-truncate" style="max-width:70%">{{ u.filename }}</span>
-                                        <small class="text-gray-400 text-xs">
+                                        <small class="text-gray-700 text-xs">
                                             {% if u.uploaded_at %}
                                             {{ u.uploaded_at.split('T')[0] if 'T' in u.uploaded_at else
                                             u.uploaded_at[:10] }}
@@ -461,7 +461,7 @@ endblock %}
                                     </li>
                                     {% endfor %}
                                     {% if p.uploads|length == 0 %}
-                                    <li class="text-gray-400 text-sm">No textbooks uploaded</li>
+                                    <li class="text-gray-700 text-sm">No textbooks uploaded</li>
                                     {% endif %}
                                 </ul>
                                 <div class="progress" title="Uploads">
@@ -486,7 +486,7 @@ endblock %}
                                     </li>
                                     {% endfor %}
                                     {% if p.flashcards|length == 0 %}
-                                    <li class="text-gray-400 text-sm">No flashcards generated</li>
+                                    <li class="text-gray-700 text-sm">No flashcards generated</li>
                                     {% endif %}
                                 </ul>
                                 <div class="progress" title="Flashcards">
@@ -507,14 +507,14 @@ endblock %}
                                     <span class="badge-soft">Avg Score: {{ p.avg_score }}%</span>
                                     <span class="badge-soft-info">Attempts: {{ p.total_quizzes }}</span>
                                 </div>
-                                <div class="text-gray-400 text-sm mb-2">Completion: {{ p.completion_rate }}</div>
+                                <div class="text-gray-700 text-sm mb-2">Completion: {{ p.completion_rate }}</div>
                                 <div class="progress" title="Quizzes">
                                     <div class="progress-bar width-style"
                                         style="background: linear-gradient(90deg, #d946ef, #4f46e5); --width-value: {{ (p.total_quizzes/10)*100 }}%">
                                     </div>
                                 </div>
                                 {% if p.num_audiobooks %}
-                                <div class="mt-3 text-gray-400 text-sm">🎧 Audiobooks generated: {{ p.num_audiobooks }}
+                                <div class="mt-3 text-gray-700 text-sm">🎧 Audiobooks generated: {{ p.num_audiobooks }}
                                 </div>
                                 {% endif %}
                             </div>

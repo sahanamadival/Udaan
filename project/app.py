@@ -5,6 +5,7 @@ import xml.sax.saxutils as saxutils
 import asyncio
 import edge_tts
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 from datetime import datetime, timezone, timedelta
 from functools import wraps
 import PyPDF2
@@ -100,6 +101,7 @@ else:
 
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-change-this")  
 # Database configuration
 DB = os.path.join(os.path.dirname(__file__), 'database.db')
@@ -506,6 +508,24 @@ def migrate_database():
             cur.execute("ALTER TABLE student_progress ADD COLUMN last_activity_date DATE")
             print("Added last_activity_date column to student_progress table")
 
+        # Ensure students table exists before checking columns
+        cur.execute("""CREATE TABLE IF NOT EXISTS students (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            age INTEGER,
+            grade TEXT,
+            accessibility TEXT,
+            email TEXT,
+            phone TEXT,
+            password_hash TEXT,
+            created_at TEXT,
+            reset_token TEXT,
+            reset_token_expires TEXT,
+            google_id TEXT,
+            reset_otp TEXT,
+            reset_otp_expires TEXT
+        )""")
+
         # Add OTP columns to students table if they don't exist
         cur.execute("PRAGMA table_info(students)")
         student_columns = [row[1] for row in cur.fetchall()]
@@ -843,6 +863,28 @@ def signup_student():
                 conn.close()
                 return redirect(request.url)
 
+            # Password Validation Rules
+            if len(password) < 8:
+                flash("Password must be at least 8 characters long.")
+                conn.close()
+                return redirect(request.url)
+            if not re.search(r"[A-Z]", password):
+                flash("Password must contain at least one uppercase letter.")
+                conn.close()
+                return redirect(request.url)
+            if not re.search(r"[a-z]", password):
+                flash("Password must contain at least one lowercase letter.")
+                conn.close()
+                return redirect(request.url)
+            if not re.search(r"\d", password):
+                flash("Password must contain at least one number.")
+                conn.close()
+                return redirect(request.url)
+            if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+                flash("Password must contain at least one special character.")
+                conn.close()
+                return redirect(request.url)
+
             password_hash = generate_password_hash(password)
             cur.execute("""
                 INSERT INTO students (name, age, grade, accessibility, email, phone, password_hash, created_at)
@@ -887,6 +929,9 @@ def login_student():
                 flash("Incorrect password.")
                 return redirect(request.url)
         except Exception as e:
+            print(f"Google Login Error: {e}")
+            import traceback
+            traceback.print_exc()
             flash(f"An error occurred during login: {str(e)}")
             return redirect(request.url)
     return render_template("login_student.html")
@@ -925,11 +970,14 @@ def google_callback_student():
         return redirect(url_for('login_student'))
     
     try:
+        redirect_uri = url_for('google_callback_student', _external=True)
+        print(f"Debug: Generated Redirect URI: {redirect_uri}")
+        
         # Create OAuth2 session with state for security
         google = OAuth2Session(
             client_id=GOOGLE_CLIENT_ID,
             state=session.get('oauth_state'),
-            redirect_uri=url_for('google_callback_student', _external=True)
+            redirect_uri=redirect_uri
         )
         
         # Fetch token
@@ -995,10 +1043,15 @@ def google_callback_student():
             else:
                 return redirect_to_dashboard(session.get('user'))
         else:
+            # User doesn't exist. 
+            # Check if this was a strict "Login" attempt (optional, based on user request "ask to create account")
+            # For now, we will Redirect to Complete Profile but with a helpful Flash message
+            
             # Clear any existing session data to prevent conflicts
             session.clear()
             
-            # User doesn't exist, redirect to complete profile
+            flash("No existing account found. Please complete your profile to create a new account.")
+            
             session['pending_google_signup'] = {
                 'email': email,
                 'name': name,
@@ -4548,18 +4601,18 @@ def send_reset_otp_email(email, name, otp):
     print(f"DEBUG: Attempting to send OTP to {email}...")
     try:
         # Get email settings from environment variables
-        smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com').strip()
         smtp_port = int(os.getenv('SMTP_PORT', '587'))
-        email_user = os.getenv('EMAIL_ADDRESS')
-        email_password = os.getenv('EMAIL_PASSWORD')
+        email_user = os.getenv('EMAIL_ADDRESS', '').strip()
+        email_password = os.getenv('EMAIL_PASSWORD', '').strip()
         
-        print(f"DEBUG: Using SMTP Server: {smtp_server}:{smtp_port}")
-        print(f"DEBUG: Email User: {email_user}")
+        print(f"DEBUG: Using SMTP Server: '{smtp_server}':{smtp_port}")
+        print(f"DEBUG: Email User: '{email_user}'")
         
         if not email_user or not email_password:
             print("ERROR: EMAIL_ADDRESS or EMAIL_PASSWORD not configured in .env file")
             print(f"DEBUG: Falling back to console OTP: {otp}")
-            return False
+            return False, "Email configuration missing (EMAIL_ADDRESS or EMAIL_PASSWORD)"
             
         # Create message
         msg = MIMEMultipart()
@@ -4601,15 +4654,16 @@ The Udaan Team
         server.quit()
         
         print(f"SUCCESS: Password reset OTP sent successfully to {email}")
-        return True
+        return True, "Email sent successfully"
         
     except Exception as e:
-        print(f"CRITICAL ERROR: Failed to send email: {str(e)}")
+        error_msg = str(e)
+        print(f"CRITICAL ERROR: Failed to send email: {error_msg}")
         import traceback
         traceback.print_exc()
         # Fallback: print the OTP to console
         print(f"DEBUG: FALLBACK OTP: {otp}")
-        return False
+        return False, error_msg
 
 
 @app.route('/forgot-password/student', methods=["GET", "POST"])
@@ -4656,8 +4710,9 @@ def forgot_password_student():
         if email_sent:
             flash(f"A 6-digit OTP has been sent to your email. Please enter it below.")
         else:
-            # Fallback for development
-            flash(f"OTP generated. For development: {otp}")
+            # Fallback for development NO LONGER SHOWS OTP ON SCREEN
+            print(f"DEBUG: OTP generated but failed to send. Check console logs. OTP: {otp}")
+            flash("Failed to send email. Please ensure the administrator has configured email settings.")
         
         return redirect(url_for('verify_otp_student'))
     

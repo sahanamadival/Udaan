@@ -135,9 +135,49 @@ font-comic light-theme{% endblock %}
 
     <div>
       <label class="block text-sm text-gray-700 font-medium mb-2 text-center">Password *</label>
-      <input type="password" name="password" required
+      <input type="password" name="password" id="passwordInput" required
         class="w-full bg-white/90 border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-center"
         placeholder="Create a password">
+
+      <!-- Hidden Checklist (Removed per request for native popup) -->
+      <!-- <div id="password-checklist" ... ></div> -->
+
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const passwordInput = document.getElementById('passwordInput');
+
+          const rules = {
+            'At least 8 characters': /.{8,}/,
+            'One uppercase letter (A-Z)': /[A-Z]/,
+            'One lowercase letter (a-z)': /[a-z]/,
+            'One number (0-9)': /[0-9]/,
+            'One special character (!@#$%)': /[!@#$%^&*(),.?":{}|<>]/
+          };
+
+          if (passwordInput) {
+            const validatePassword = () => {
+              const val = passwordInput.value;
+              let errors = [];
+
+              for (const [msg, regex] of Object.entries(rules)) {
+                if (!regex.test(val)) {
+                  errors.push(msg);
+                }
+              }
+
+              if (errors.length > 0) {
+                passwordInput.setCustomValidity("Password missing:\n" + errors.join("\n"));
+              } else {
+                passwordInput.setCustomValidity("");
+              }
+            };
+
+            passwordInput.addEventListener('input', validatePassword);
+            // Initial check
+            validatePassword();
+          }
+        });
+      </script>
     </div>
 
     <div>
@@ -161,7 +201,8 @@ font-comic light-theme{% endblock %}
       </label>
     </div>
 
-    <button type="submit" class="w-full py-3 rounded-xl font-semibold text-lg hover:scale-[1.02] transition-all">
+    <button type="submit" id="submitBtn"
+      class="w-full py-3 rounded-xl font-semibold text-lg hover:scale-[1.02] transition-all bg-blue-600 text-white hover:bg-blue-700">
       Create Account
     </button>
   </form>

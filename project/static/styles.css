@@ -690,7 +690,11 @@ input[type="submit"]:hover,
   transform: scale(1.06);
 }
 
-input,
+input:not([type="checkbox"]):not([type="radio"]),
+input[type="password"],
+input[type="email"],
+input[type="text"],
+input[type="number"],
 select,
 textarea {
   font-size: 1rem;
@@ -703,7 +707,11 @@ textarea {
   color: var(--color-primary) !important;
 }
 
-input:focus,
+input:not([type="checkbox"]):not([type="radio"]):focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+input[type="text"]:focus,
+input[type="number"]:focus,
 select:focus,
 textarea:focus {
   border-color: #2681e3;
@@ -1151,9 +1159,9 @@ textarea:focus {
 }
 
 .login-card {
-  background: rgba(255, 255, 255, 0.9) !important;
+  /* background: rgba(255, 255, 255, 0.9) !important; REMOVED to fix overlap */
   border-color: rgba(100, 100, 100, 0.2) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+  /* box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important; REMOVED to fix overlap */
 }
 
 .login-card input {
@@ -1197,9 +1205,9 @@ textarea:focus {
 
 /* Signup Card Improvements */
 .signup-card {
-  background: rgba(255, 255, 255, 0.9) !important;
+  /* background: rgba(255, 255, 255, 0.9) !important; REMOVED to fix overlap */
   border-color: rgba(100, 100, 100, 0.2) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+  /* box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important; REMOVED to fix overlap */
 }
 
 .signup-card input,

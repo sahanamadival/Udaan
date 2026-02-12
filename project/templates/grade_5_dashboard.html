@@ -43,7 +43,7 @@
 
         {% if hindi_file %}
         <div class="mt-6 text-center">
-            <p class="mb-2 text-green-400 font-semibold">
+            <p class="mb-2 text-green-600 font-semibold">
                 Hindi translation ready
             </p>
 
@@ -63,7 +63,7 @@
                         <i class="fas fa-book-reader text-2xl text-indigo-600"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Vocabulary Builder</h3>
-                    <p class="text-gray-600 mb-4">Master new words and improve your language.</p>
+                    <p class="text-gray-800 mb-4">Master new words and improve your language.</p>
                     <a href="{{ url_for('grade_5_vocab_builder') }}"
                         class="inline-block bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-6 py-2 rounded-lg transition-colors">
                         Start Learning
@@ -78,7 +78,7 @@
                         <i class="fas fa-calculator text-2xl text-green-600"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Math Word Problems</h3>
-                    <p class="text-gray-600 mb-4">Solve real-world challenges with math.</p>
+                    <p class="text-gray-800 mb-4">Solve real-world challenges with math.</p>
                     <a href="{{ url_for('grade_5_math_problems') }}"
                         class="inline-block bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-6 py-2 rounded-lg transition-colors">
                         Solve Problems
@@ -93,7 +93,7 @@
                         <i class="fas fa-globe-americas text-2xl text-blue-600"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Location Learning</h3>
-                    <p class="text-gray-600 mb-4">Explore the world with our interactive map.</p>
+                    <p class="text-gray-800 mb-4">Explore the world with our interactive map.</p>
                     <a href="{{ url_for('grade_5_location_learning') }}"
                         class="inline-block bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-6 py-2 rounded-lg transition-colors">
                         Explore Map
@@ -108,7 +108,7 @@
                         <i class="fas fa-pen-fancy text-2xl text-amber-600"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Paragraph Writing</h3>
-                    <p class="text-gray-600 mb-4">Express your ideas and get AI feedback.</p>
+                    <p class="text-gray-800 mb-4">Express your ideas and get AI feedback.</p>
                     <a href="{{ url_for('grade_5_paragraph_writing') }}"
                         class="inline-block bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-6 py-2 rounded-lg transition-colors">
                         Start Writing
@@ -124,7 +124,7 @@
                         <i class="fas fa-hourglass-half text-2xl text-red-600"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Time Travel History</h3>
-                    <p class="text-gray-600 mb-4">Explore ancient eras and historical events.</p>
+                    <p class="text-gray-800 mb-4">Explore ancient eras and historical events.</p>
                     <a href="{{ url_for('grade_5_history_learning') }}"
                         class="inline-block bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-6 py-2 rounded-lg transition-colors">
                         Start Time Travel
@@ -140,7 +140,7 @@
                         <i class="fas fa-rocket text-2xl text-purple-600"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-2">Galactic Math</h3>
-                    <p class="text-gray-600 mb-4">Power your spaceship with multiplication.</p>
+                    <p class="text-gray-800 mb-4">Power your spaceship with multiplication.</p>
                     <a href="{{ url_for('grade_5_multiplication') }}"
                         class="inline-block bg-[#EEEAF7] hover:bg-[#d6cceb] text-indigo-900 px-6 py-2 rounded-lg transition-colors">
                         Launch Mission
@@ -155,22 +155,22 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div class="text-center">
                     <div class="text-3xl font-bold text-indigo-600 mb-2">{{ progress.books_read }}</div>
-                    <div class="text-gray-600">Books Mastered</div>
+                    <div class="text-gray-800">Books Mastered</div>
                 </div>
                 <div class="text-center">
                     <div class="text-3xl font-bold text-green-600 mb-2">{{ progress.math_solved }}</div>
-                    <div class="text-gray-600">Math Problems Solved</div>
+                    <div class="text-gray-800">Math Problems Solved</div>
                 </div>
                 <div class="text-center">
                     <div class="text-3xl font-bold text-blue-600 mb-2">{{ progress.science_done }}</div>
-                    <div class="text-gray-600">Science Innovations</div>
+                    <div class="text-gray-800">Science Innovations</div>
                 </div>
                 <div class="text-center">
                     <div class="text-3xl font-bold text-amber-600 mb-2">{{ progress.logic_done }}</div>
-                    <div class="text-gray-600">Leadership Projects</div>
+                    <div class="text-gray-800">Leadership Projects</div>
                 </div>
             </div>
-            <div class="mt-4 pt-4 border-t border-gray-100 flex justify-center gap-8 text-sm text-gray-500">
+            <div class="mt-4 pt-4 border-t border-gray-100 flex justify-center gap-8 text-sm text-gray-700">
                 <span>🎴 Flashcard Sets: {{ progress.flashcards_created }}</span>
                 <span>📝 Textbook Quizzes: {{ progress.quizzes_taken }}</span>
             </div>
@@ -197,7 +197,7 @@
                                 Upload Textbook
                             </button>
                         </div>
-                        <p class="mt-4 text-gray-500">Drag and drop your file here, or click to browse</p>
+                        <p class="mt-4 text-gray-700">Drag and drop your file here, or click to browse</p>
                     </div>
                 </form>
                 {% if session.get('uploaded_file') %}
@@ -212,7 +212,7 @@
             <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <span>✨</span> Learning Features
             </h3>
-            <p class="text-gray-600 mb-6">Explore powerful tools designed to enhance your learning experience.</p>
+            <p class="text-gray-800 mb-6">Explore powerful tools designed to enhance your learning experience.</p>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div
@@ -223,7 +223,7 @@
                         </div>
                         <h4 class="font-bold text-gray-800">Library</h4>
                     </div>
-                    <p class="text-gray-600 text-sm mb-4">Access your uploaded textbooks and study materials.</p>
+                    <p class="text-gray-800 text-sm mb-4">Access your uploaded textbooks and study materials.</p>
                     <a class="bg-[#E8EEF5] hover:bg-[#dbe4f0] rounded-full py-2 px-6 text-indigo-900 font-bold text-sm transition-colors border border-amber-100 shadow-sm inline-block"
                         href="{{ url_for('library') }}">Open Library</a>
                 </div>
@@ -236,7 +236,7 @@
                         </div>
                         <h4 class="font-bold text-gray-800">Audio Narration</h4>
                     </div>
-                    <p class="text-gray-600 text-sm mb-4">Listen to your textbooks with high-quality text-to-speech.</p>
+                    <p class="text-gray-800 text-sm mb-4">Listen to your textbooks with high-quality text-to-speech.</p>
                     <form action="{{ url_for('audio_narration') }}" method="POST">
                         <button type="submit"
                             class="bg-[#E8EEF5] hover:bg-[#dbe4f0] rounded-full py-2 px-6 text-indigo-900 font-bold text-sm transition-colors border border-amber-100 shadow-sm">Generate
@@ -252,7 +252,7 @@
                         </div>
                         <h4 class="font-bold text-gray-800">AI Summary</h4>
                     </div>
-                    <p class="text-gray-600 text-sm mb-4">Get simplified summaries of complex topics easily.</p>
+                    <p class="text-gray-800 text-sm mb-4">Get simplified summaries of complex topics easily.</p>
                     <form action="{{ url_for('generate_summary') }}" method="POST">
                         <button type="submit"
                             class="bg-[#E8EEF5] hover:bg-[#dbe4f0] rounded-full py-2 px-6 text-indigo-900 font-bold text-sm transition-colors border border-amber-100 shadow-sm">Generate
@@ -268,7 +268,7 @@
                         </div>
                         <h4 class="font-bold text-gray-800">Translation</h4>
                     </div>
-                    <p class="text-gray-600 text-sm mb-4">Translate content to Hindi and other languages.</p>
+                    <p class="text-gray-800 text-sm mb-4">Translate content to Hindi and other languages.</p>
                     <form action="{{ url_for('translate_text') }}" method="POST">
                         <button type="submit"
                             class="bg-[#E8EEF5] hover:bg-[#dbe4f0] rounded-full py-2 px-6 text-indigo-900 font-bold text-sm transition-colors border border-amber-100 shadow-sm">Translate
@@ -284,7 +284,7 @@
                         </div>
                         <h4 class="font-bold text-gray-800">Dyslexic Reader</h4>
                     </div>
-                    <p class="text-gray-600 text-sm mb-4">Special reading mode for learning disabilities.</p>
+                    <p class="text-gray-800 text-sm mb-4">Special reading mode for learning disabilities.</p>
                     <form action="{{ url_for('dyslexic_friendly') }}" method="POST">
                         <button type="submit"
                             class="bg-[#E8EEF5] hover:bg-[#dbe4f0] rounded-full py-2 px-6 text-indigo-900 font-bold text-sm transition-colors border border-amber-100 shadow-sm">Open
@@ -300,7 +300,7 @@
                         </div>
                         <h4 class="font-bold text-gray-800">Flashcards</h4>
                     </div>
-                    <p class="text-gray-600 text-sm mb-4">Auto-generated flashcards from your materials.</p>
+                    <p class="text-gray-800 text-sm mb-4">Auto-generated flashcards from your materials.</p>
                     <form action="{{ url_for('generate_flashcards') }}" method="POST">
                         <button type="submit"
                             class="bg-[#E8EEF5] hover:bg-[#dbe4f0] rounded-full py-2 px-6 text-indigo-900 font-bold text-sm transition-colors border border-amber-100 shadow-sm">Create
@@ -316,7 +316,7 @@
                         </div>
                         <h4 class="font-bold text-gray-800">Quizzes</h4>
                     </div>
-                    <p class="text-gray-600 text-sm mb-4">Generate a quiz from your current textbook.</p>
+                    <p class="text-gray-800 text-sm mb-4">Generate a quiz from your current textbook.</p>
                     <form action="{{ url_for('generate_quiz') }}" method="POST">
                         <button type="submit"
                             class="bg-[#E8EEF5] hover:bg-[#dbe4f0] rounded-full py-2 px-6 text-indigo-900 font-bold text-sm transition-colors border border-amber-100 shadow-sm">Start
@@ -332,7 +332,7 @@
                         </div>
                         <h4 class="font-bold text-gray-800">AI Tutor</h4>
                     </div>
-                    <p class="text-gray-600 text-sm mb-4">Get personalized help from your AI learning assistant.</p>
+                    <p class="text-gray-800 text-sm mb-4">Get personalized help from your AI learning assistant.</p>
                     <a href="{{ url_for('ai_tutor') }}"
                         class="bg-[#E8EEF5] hover:bg-[#dbe4f0] rounded-full py-2 px-6 text-indigo-900 font-bold text-sm transition-colors border border-amber-100 shadow-sm inline-block">Launch
                         AI Tutor</a>
@@ -346,7 +346,7 @@
                         </div>
                         <h4 class="font-bold text-gray-800">Learning Games</h4>
                     </div>
-                    <p class="text-gray-600 text-sm mb-4">Fun and interactive games to reinforce your learning.</p>
+                    <p class="text-gray-800 text-sm mb-4">Fun and interactive games to reinforce your learning.</p>
                     <a href="{{ url_for('games_dashboard') }}"
                         class="bg-[#E8EEF5] hover:bg-[#dbe4f0] rounded-full py-2 px-6 text-indigo-900 font-bold text-sm transition-colors border border-amber-100 shadow-sm inline-block">Play
                         Games</a>
