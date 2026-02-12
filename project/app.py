@@ -527,6 +527,18 @@ def migrate_database():
             cur.execute("ALTER TABLE student_progress ADD COLUMN streak_count INTEGER DEFAULT 0")
             print("Added streak_count column to student_progress table")
         
+        # Ensure teachers table exists before checking columns
+        cur.execute("""CREATE TABLE IF NOT EXISTS teachers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT,
+            phone TEXT,
+            password_hash TEXT,
+            grade TEXT,
+            created_at TEXT,
+            google_id TEXT
+        )""")
+
         # Check teachers table for missing columns
         cur.execute("PRAGMA table_info(teachers)")
         teacher_columns = [row[1] for row in cur.fetchall()]
