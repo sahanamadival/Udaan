@@ -86,15 +86,15 @@
         <!-- Scores -->
         <div class="flex justify-center gap-8 mb-8">
             <div class="bg-white px-6 py-3 rounded-xl shadow-md border-b-4 border-indigo-200">
-                <span class="text-gray-500 font-bold">Patterns</span>
+                <span class="text-gray-700 font-bold">Patterns</span>
                 <div class="text-3xl font-bold text-indigo-600" id="score-pattern">0</div>
             </div>
             <div class="bg-white px-6 py-3 rounded-xl shadow-md border-b-4 border-pink-200">
-                <span class="text-gray-500 font-bold">Odd One Out</span>
+                <span class="text-gray-700 font-bold">Odd One Out</span>
                 <div class="text-3xl font-bold text-pink-600" id="score-odd">0</div>
             </div>
             <div class="bg-white px-6 py-3 rounded-xl shadow-md border-b-4 border-purple-200">
-                <span class="text-gray-500 font-bold">Analogies</span>
+                <span class="text-gray-700 font-bold">Analogies</span>
                 <div class="text-3xl font-bold text-purple-600" id="score-analogy">0</div>
             </div>
         </div>
@@ -251,7 +251,7 @@
         let html = `
             <div class="text-center mb-4 text-xl font-bold bg-white p-3 rounded-lg shadow-sm">
                 ${q.pair1} <span class="text-purple-400">is to</span> ${q.pair2} <br>
-                <span class="text-gray-400">as</span> <br>
+                <span class="text-gray-600">as</span> <br>
                 ${q.target} <span class="text-purple-400">is to</span> ...
                 <button onclick="speak('${q.pair1} is to ${q.pair2} as ${q.target} is to what?')" class="speak-btn text-sm">🔊</button>
             </div>

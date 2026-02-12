@@ -4590,7 +4590,7 @@ def send_reset_otp_email(email, name, otp):
         if not email_user or not email_password:
             print("ERROR: EMAIL_ADDRESS or EMAIL_PASSWORD not configured in .env file")
             print(f"DEBUG: Falling back to console OTP: {otp}")
-            return False
+            return False, "Email configuration missing (EMAIL_ADDRESS or EMAIL_PASSWORD)"
             
         # Create message
         msg = MIMEMultipart()
@@ -4632,15 +4632,16 @@ The Udaan Team
         server.quit()
         
         print(f"SUCCESS: Password reset OTP sent successfully to {email}")
-        return True
+        return True, "Email sent successfully"
         
     except Exception as e:
-        print(f"CRITICAL ERROR: Failed to send email: {str(e)}")
+        error_msg = str(e)
+        print(f"CRITICAL ERROR: Failed to send email: {error_msg}")
         import traceback
         traceback.print_exc()
         # Fallback: print the OTP to console
         print(f"DEBUG: FALLBACK OTP: {otp}")
-        return False
+        return False, error_msg
 
 
 @app.route('/forgot-password/student', methods=["GET", "POST"])
@@ -4682,14 +4683,14 @@ def forgot_password_student():
         session['reset_email'] = email
         
         # Send the reset OTP email
-        email_sent = send_reset_otp_email(student['email'], student['name'], otp)
+        email_sent, error_message = send_reset_otp_email(student['email'], student['name'], otp)
         
         if email_sent:
             flash(f"A 6-digit OTP has been sent to your email. Please enter it below.")
         else:
             # Fallback for development NO LONGER SHOWS OTP ON SCREEN
             print(f"DEBUG: OTP generated but failed to send. Check console logs. OTP: {otp}")
-            flash("Failed to send email. Please ensure the administrator has configured email settings.")
+            flash(f"Failed to send email. Error: {error_message}")
         
         return redirect(url_for('verify_otp_student'))
     
