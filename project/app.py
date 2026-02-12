@@ -506,6 +506,24 @@ def migrate_database():
             cur.execute("ALTER TABLE student_progress ADD COLUMN last_activity_date DATE")
             print("Added last_activity_date column to student_progress table")
 
+        # Ensure students table exists before checking columns
+        cur.execute("""CREATE TABLE IF NOT EXISTS students (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            age INTEGER,
+            grade TEXT,
+            accessibility TEXT,
+            email TEXT,
+            phone TEXT,
+            password_hash TEXT,
+            created_at TEXT,
+            reset_token TEXT,
+            reset_token_expires TEXT,
+            google_id TEXT,
+            reset_otp TEXT,
+            reset_otp_expires TEXT
+        )""")
+
         # Add OTP columns to students table if they don't exist
         cur.execute("PRAGMA table_info(students)")
         student_columns = [row[1] for row in cur.fetchall()]
