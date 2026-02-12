@@ -124,12 +124,15 @@
 
 <!-- Floating Navbar -->
 <nav
-  class="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-8 px-8 py-3 bg-white/80 backdrop-blur-md border border-gray-100 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.08)] fade-down">
-  <a href="/" class="text-[#222222] hover:text-[#2673ca] transition font-bold text-sm">Home</a>
+  class="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 md:gap-8 px-4 md:px-8 py-3 bg-white/80 backdrop-blur-md border border-gray-100 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.08)] fade-down w-[90%] md:w-auto justify-center">
+  <a href="/"
+    class="text-[#222222] hover:text-[#2673ca] transition font-bold text-xs md:text-sm whitespace-nowrap">Home</a>
   <a href="{{ url_for('student_portal') }}"
-    class="text-[#222222] hover:text-[#2673ca] transition font-bold text-sm">Student Login</a>
+    class="text-[#222222] hover:text-[#2673ca] transition font-bold text-xs md:text-sm whitespace-nowrap">Student
+    Login</a>
   <a href="{{ url_for('teacher_portal') }}"
-    class="text-[#222222] hover:text-[#2673ca] transition font-bold text-sm">Teacher Login</a>
+    class="text-[#222222] hover:text-[#2673ca] transition font-bold text-xs md:text-sm whitespace-nowrap">Teacher
+    Login</a>
 </nav>
 
 <!-- Main Content -->
