@@ -5,6 +5,7 @@ import xml.sax.saxutils as saxutils
 import asyncio
 import edge_tts
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 from datetime import datetime, timezone, timedelta
 from functools import wraps
 import PyPDF2
@@ -100,6 +101,7 @@ else:
 
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-change-this")  
 # Database configuration
 DB = os.path.join(os.path.dirname(__file__), 'database.db')
