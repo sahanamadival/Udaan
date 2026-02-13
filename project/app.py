@@ -3,6 +3,7 @@ import sqlite3
 import os
 import xml.sax.saxutils as saxutils
 import asyncio
+import threading
 import edge_tts
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -153,23 +154,44 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 # Hybrid Text Extraction
 def run_edge_tts(text, output_file, voice="en-US-ChristopherNeural"):
     """
-    Synchronous wrapper for Edge TTS.
+    Robust synchronous wrapper for Edge TTS using a separate thread.
+    This avoids event loop conflicts in deployed environments (e.g. gunicorn/uvicorn).
     """
     async def _generate():
-        communicate = edge_tts.Communicate(text, voice)
-        await communicate.save(output_file)
+        try:
+            communicate = edge_tts.Communicate(text, voice)
+            await communicate.save(output_file)
+        except Exception as e:
+            print(f"EdgeTTS generation error: {e}")
+            raise
 
-    try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-             # If strictly single-threaded/event loop already running, we might need nesting
-             # But for Flask (threaded), new loop usually works better or run_coroutine_threadsafe
-            asyncio.run(_generate()) 
-        else:
+    # Container for exceptions from the thread
+    result = {"error": None}
+
+    def run_in_thread():
+        try:
+            # Create a new event loop for this thread
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            # Run the coroutine
             loop.run_until_complete(_generate())
-    except RuntimeError:
-        # Fallback for when loop is already running (e.g. some envs)
-        asyncio.run(_generate())
+            
+            # Clean up
+            loop.close()
+        except Exception as e:
+            result["error"] = e
+
+    # Create and start the thread
+    t = threading.Thread(target=run_in_thread)
+    t.start()
+    t.join() # Wait for it to finish
+    
+    # Check for errors
+    if result["error"]:
+        print(f"Error in run_edge_tts thread: {result['error']}")
+        # Don't crash the app, just log it. The file won't exist or will be empty.
+
 
 def extract_text_hybrid(filepath):
     """
@@ -264,9 +286,13 @@ def text_to_pdf(text, output_pdf, font_path, font_size=16):
     from reportlab.pdfbase.ttfonts import TTFont
     from reportlab.lib.units import inch
 
-    print("Registering font:", font_path)
     font_name = "CustomFont"
-    pdfmetrics.registerFont(TTFont(font_name, font_path))
+    if os.path.exists(font_path):
+        print("Registering font:", font_path)
+        pdfmetrics.registerFont(TTFont(font_name, font_path))
+    else:
+        print(f"Warning: Font file {font_path} not found. Using default Helvetica.")
+        font_name = "Helvetica"
 
     doc = SimpleDocTemplate(
         output_pdf,
@@ -4845,5 +4871,6 @@ except Exception as e:
     print(f"Startup DB Error: {e}")
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  
-    app.run(host='0.0.0.0', port=port, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    debug_mode = os.environ.get("FLASK_DEBUG", "False").lower() == "true"
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
