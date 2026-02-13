@@ -182,9 +182,33 @@ font-comic light-theme{% endblock %}
 
     <div>
       <label class="block text-sm text-gray-700 font-medium mb-2 text-center">Email Address *</label>
-      <input type="email" name="email" required
+      <input type="email" name="email" id="emailInput" required
         class="w-full bg-white/90 border border-gray-300 rounded-xl px-4 py-3 text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-center"
         placeholder="Enter your email address">
+      <p id="emailError" class="text-xs text-red-500 mt-1 hidden text-center"></p>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const emailInput = document.getElementById('emailInput');
+          const emailError = document.getElementById('emailError');
+
+          if (emailInput) {
+            emailInput.addEventListener('input', () => {
+              const val = emailInput.value;
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+              if (val && !emailRegex.test(val)) {
+                emailInput.setCustomValidity("Please enter a valid email address (e.g., name@example.com)");
+                emailError.textContent = "Invalid email format";
+                emailError.classList.remove('hidden');
+              } else {
+                emailInput.setCustomValidity("");
+                emailError.classList.add('hidden');
+              }
+            });
+          }
+        });
+      </script>
     </div>
 
     <div>
