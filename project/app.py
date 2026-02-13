@@ -889,6 +889,11 @@ def signup_student():
             if not name:
                 flash("Name is required.")
                 return redirect(request.url)
+            
+            # Email Validation
+            if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                flash("Please enter a valid email address.")
+                return redirect(request.url)
 
             conn = get_db()
             cur = conn.cursor()
