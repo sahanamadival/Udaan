@@ -36,6 +36,16 @@ import xml.etree.ElementTree as ET
 
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))  # Load environment variables from .env file
 
+import hashlib
+
+def get_file_hash(filepath):
+    """Generate a hash based on file path and modification time for caching."""
+    if not os.path.exists(filepath):
+        return None
+    mtime = os.path.getmtime(filepath)
+    raw_string = f"{filepath}_{mtime}"
+    return hashlib.md5(raw_string.encode()).hexdigest()
+
 # AI Quota Config
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", 500))
 DAILY_REQUEST_LIMIT = int(os.getenv("DAILY_REQUEST_LIMIT", 20))
@@ -241,6 +251,10 @@ def extract_text_hybrid(filepath):
             # 2. Fallback: OCR (Scanned PDF)
             print("⚠️ No text found in PDF, attempting OCR...")
             
+            # Check if we have Tesseract
+            if not tesseract_cmd:
+                return "ERROR_OCR_MISSING: OCR tools not installed on server. Please use a text-based PDF."
+
             try:
                 # Check for Poppler (required for convert_from_path to work)
                 try:
@@ -253,7 +267,7 @@ def extract_text_hybrid(filepath):
                      # Fallback: Try fitz (PyMuPDF) -> Image -> Tesseract which doesn't need Poppler
                      try:
                         import fitz
-                        doc = fitz.open(file_path)
+                        doc = fitz.open(filepath) # Fixed variable name
                         for page in doc:
                             pix = page.get_pixmap()
                             img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
@@ -264,7 +278,7 @@ def extract_text_hybrid(filepath):
             except Exception as e:
                 print("⚠️ OCR failed completely:", e)
 
-            return text if text.strip() else "ERROR_NO_TEXT: Could not read text. Please check the file."
+            return text if text.strip() else "ERROR_NO_TEXT: Could not read text."
     except Exception as e:
         print(f"General extraction error: {e}")
         return ""
@@ -2832,6 +2846,19 @@ def audio_narration():
         flash("File not found.")
         return redirect_to_dashboard(user)
 
+    # --- Smart Caching ---
+    file_hash = get_file_hash(filepath)
+    if file_hash:
+        cached_audio_filename = f"cache_{file_hash}.mp3"
+        cached_audio_path = os.path.join("static", "narrations", cached_audio_filename)
+        
+        if os.path.exists(cached_audio_path):
+            print(f"=== CACHE HIT: Serving {cached_audio_filename} ===")
+            session["audio_file"] = cached_audio_filename
+            session.modified = True
+            flash("Audio loaded from cache! ⚡")
+            return redirect_to_dashboard(user)
+
     # Quota log
     check_and_update_quota(user["id"])
 
@@ -2859,15 +2886,22 @@ def audio_narration():
 
     try:
         student_id = session["user"]["id"]
-        timestamp = int(time.time())
-        audio_filename = f"{student_id}_{timestamp}.mp3"
+        
+        # Use cache filename if possible
+        file_hash = get_file_hash(filepath)
+        if file_hash:
+            audio_filename = f"cache_{file_hash}.mp3"
+        else:
+            timestamp = int(time.time())
+            audio_filename = f"{student_id}_{timestamp}.mp3"
+            
         audio_path = os.path.join("static", "narrations", audio_filename)
 
         os.makedirs("static/narrations", exist_ok=True)
 
         try:
             speech = client.audio.speech.create(
-                model="gpt-4o-mini-tts",
+                model="gpt-4o-mini-tts", # Check if this model name is correct, user had it in code
                 voice="alloy",
                 input=text[:4000]
             )
@@ -3011,6 +3045,19 @@ def translate_text():
         flash("File not found on server.")
         return redirect_to_dashboard(user)
 
+    # --- Smart Caching ---
+    file_hash = get_file_hash(filepath)
+    if file_hash:
+        cached_hindi_filename = f"cache_{file_hash}_hindi.pdf"
+        cached_hindi_path = os.path.join("static", "translations", cached_hindi_filename)
+        
+        if os.path.exists(cached_hindi_path):
+            print(f"=== CACHE HIT: Serving {cached_hindi_filename} ===")
+            session["hindi_file"] = cached_hindi_filename
+            session.modified = True
+            flash("Translation loaded from cache! ⚡")
+            return redirect_to_dashboard(user)
+
     # ---------- Extract text ----------
     print(f"--- Starting text extraction for {filename} ---")
     try:
@@ -3105,8 +3152,12 @@ Text:
     try:
         os.makedirs("static/translations", exist_ok=True)
 
-        base = os.path.splitext(filename)[0]
-        hindi_file = f"{base}_hindi.pdf"
+        if file_hash:
+            hindi_file = f"cache_{file_hash}_hindi.pdf"
+        else:
+            base = os.path.splitext(filename)[0]
+            hindi_file = f"{base}_hindi.pdf"
+            
         hindi_path = os.path.join("static", "translations", hindi_file)
 
         print("Saving Hindi PDF to:", hindi_path)
@@ -3980,13 +4031,28 @@ def api_dragdrop_generate():
         conn.close()
         return {"error": "File not found"}, 404
     
+    # --- Smart Caching ---
+    file_hash = get_file_hash(filepath)
+    if file_hash:
+        cache_file = os.path.join(app.config["UPLOAD_FOLDER"], f"cache_dragdrop_{file_hash}.json")
+        if os.path.exists(cache_file):
+            print(f"=== CACHE HIT: Serving DragDrop cache ===")
+            try:
+                with open(cache_file, "r") as f:
+                    data = json.load(f)
+                conn.close()
+                return data
+            except:
+                pass 
+
     try:
         # Extract text from PDF
         pdf_text = extract_text_hybrid(filepath)
         
-        if not pdf_text.strip():
-            conn.close()
-            return {"error": "No text found in the uploaded file"}, 404
+        # Handle OCR errors or empty text
+        if not pdf_text.strip() or pdf_text.startswith("ERROR_"):
+             conn.close()
+             return {"error": "No text found (or OCR missing on server). Please use a text-based PDF."}, 400
         
         # Limit text to first 2000 characters to avoid token limits
         pdf_text = pdf_text[:2000]
@@ -4041,6 +4107,15 @@ def api_dragdrop_generate():
         
         diagram_data = json.loads(json_match.group())
         
+        # --- Save to Cache ---
+        if file_hash:
+            cache_file = os.path.join(app.config["UPLOAD_FOLDER"], f"cache_dragdrop_{file_hash}.json")
+            try:
+                with open(cache_file, "w") as f:
+                    json.dump(diagram_data, f)
+            except Exception as e:
+                print(f"Error saving DragDrop cache: {e}")
+
         conn.close()
         
         return diagram_data
